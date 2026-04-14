@@ -1,0 +1,5 @@
+class LocalCategory{
+  public getCategoryData(){
+
+  }
+}
