@@ -65,17 +65,18 @@ const DefaultPalette = (mode: PaletteMode, skin: Skin) => {
 // },
 
  primary: {
-      light: '#2FA36E',
-      main: '#03753C',
-      dark: '#02552B',
-      contrastText: '#FFFFFF'
-    },
-    secondary: {
-      light: '#4D8DFF',
-      main: '#0B5ED7',
-      dark: '#084298',
-      contrastText: '#FFFFFF'
-    },
+  light: '#81C784',      // soft farm green
+  main: '#4CAF50',       // main green (brand)
+  dark: '#388E3C',       // hover / active
+  contrastText: '#FFFFFF'
+},
+
+secondary: {
+  light: '#FFE082',      // light egg yellow
+  main: '#FFC107',       // egg yolk color
+  dark: '#FFA000',       // deep yellow
+  contrastText: '#1F2937' // dark text for readability
+},
 
     error: {
       light: '#FF5B3F',
@@ -84,23 +85,23 @@ const DefaultPalette = (mode: PaletteMode, skin: Skin) => {
       contrastText: whiteColor
     },
     warning: {
-      light: '#FFB826',
-      main: '#FFAB00',
-      dark: '#E89C00',
-      contrastText: whiteColor
-    },
+  light: '#FFE082',
+  main: '#FFC107',
+  dark: '#FFA000',
+  contrastText: '#1F2937'
+},
     info: {
       light: '#29CCEF',
       main: '#03C3EC',
       dark: '#03B1D7',
       contrastText: whiteColor
     },
-    success: {
-      light: '#86E255',
-      main: '#71DD37',
-      dark: '#67C932',
-      contrastText: whiteColor
-    },
+   success: {
+  light: '#A5D6A7',
+  main: '#4CAF50',
+  dark: '#2E7D32',
+  contrastText: whiteColor
+},
     grey: {
       50: '#FAFAFA',
       100: '#F5F5F5',

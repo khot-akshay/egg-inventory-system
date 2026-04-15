@@ -36,11 +36,13 @@ import SubmitButton from 'src/components/common/button/Button'
 import RHFInput from 'src/hook-forms/RHFInput'
 import axiosInstance from 'src/services/axios'
 import { post } from 'src/services/apiCall'
+import RoleSelector from 'src/components/loginRole/RoleSelector'
 
 // ** Styled Components
 const LoginIllustration = styled('img')({
-  height: 'auto',
-  maxWidth: '100%'
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover'
 })
 
 const RightWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -85,6 +87,7 @@ interface FormData {
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<string>('admin')
   // ** Hooks
   const auth = useAuth()
   const theme = useTheme()
@@ -133,7 +136,7 @@ const LoginPage = () => {
       const response = await post('/api/v1/admin/userLogin', {
         email,
         password,
-     
+        role: selectedRole
       })
       console.log(response,"response")
       if (response?.success) {
@@ -154,13 +157,13 @@ const LoginPage = () => {
   }
 
   return (
-    <Box className='content-right'>
+    <Box className='content-right' sx={{ height: '100vh', overflow: 'hidden' }}>
       {!hidden ? (
-        <Box sx={{ p: 12, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <LoginIllustration
             width={700}
             alt='login-illustration'
-            src={`/images/pages/boy-with-rocket-${theme.palette.mode}.png`}
+            src={`/images/pages/login.png`}
           />
         </Box>
       ) : null}
@@ -191,10 +194,10 @@ const LoginPage = () => {
               width={50}
               height={50}
             /> */}
-            <img
+            {/* <img
               src={settings.mode == 'dark' ? themeConfig.templateDarkLogo : themeConfig.templateLogo}
               width={200}
-              alt={themeConfig.templateName} />
+              alt={themeConfig.templateName} /> */}
           </Box>
           <Typography variant='h6' sx={{ mb: 1.5 }}>
             Welcome to {themeConfig.templateName}!
@@ -203,6 +206,8 @@ const LoginPage = () => {
             {/* Please sign-in to your account */}
             Please sign in to your account.
           </Typography>
+
+          <RoleSelector selectedRole={selectedRole} onRoleChange={setSelectedRole} />
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* <FormControl fullWidth sx={{ mb: 4 }}>
