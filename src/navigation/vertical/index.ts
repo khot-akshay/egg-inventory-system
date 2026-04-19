@@ -7,13 +7,15 @@ const tempObject: VerticalNavItemsType = [
     title: "Dashboards",
     icon: "bx:home-circle",
     path: "/dashboards",
+    allowedRoles: ["Administrator", "Staff", "Distributor"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
   {
     title: "Shops",
-icon: "bx:package",
-        path: '/products',
+    icon: "bx:package",
+    path: '/products',
+    allowedRoles: ["Administrator", "Staff"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
@@ -21,70 +23,69 @@ icon: "bx:package",
   {
     title: "Users",
     icon: "bx:group",
-        path: '/user',
+    path: '/user',
+    allowedRoles: ["Administrator"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
-    {
+  {
     title: "Customers",
     icon: "bx:buildings",
-        path: '/plants',
+    path: '/plants',
+    allowedRoles: ["Administrator", "Staff", "Distributor"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
   {
     title: "Products",
     icon: "mdi:clipboard-text-outline",
+    allowedRoles: ["Administrator", "Staff"],
+    path: "/orders",
     // isPermissionNeeded: true,
     // permissionName: "view_orders", // aligned with backend permission
-    path: "/orders",
 
   },
   {
     title: "Stock",
-  icon: "mdi:cash-multiple",
+    icon: "mdi:cash-multiple",
+    allowedRoles: ["Administrator", "Staff"],
+    path: "/commission",
     // isPermissionNeeded: true,
     // permissionName: "view_orders", // aligned with backend permission
-    path: "/commission",
 
   },
-    {
+  {
     title: "Purchases",
-  icon: "mdi:cash-multiple",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    icon: "mdi:cash-multiple",
+    allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
 
   },
-    {
+  {
     title: "Vendors",
-  icon: "mdi:cash-multiple",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    icon: "mdi:cash-multiple",
+    allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
 
   },
-    {
+  {
     title: "Bills",
-  icon: "mdi:cash-multiple",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    icon: "mdi:cash-multiple",
+    allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
 
   },
-    {
+  {
     title: "Payments",
-  icon: "mdi:cash-multiple",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    icon: "mdi:cash-multiple",
+    allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
 
   },
-    {
+  {
     title: "Expenses",
-  icon: "mdi:cash-multiple",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    icon: "mdi:cash-multiple",
+    allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
 
   },
@@ -123,12 +124,11 @@ icon: "bx:package",
   {
     title: 'Reports',
     icon: 'mdi:information-outline',
-    // isPermissionNeeded: true,
-    // permissionName: 'view_query_request',
+    allowedRoles: ["Administrator", "Staff", "Distributor"],
     path: '/query',
 
   },
- 
+
   //  {
 
   //       title: 'Products',
@@ -143,9 +143,8 @@ icon: "bx:package",
   {
     title: 'Metadata',
     icon: 'icon-park-outline:data-file',
+    allowedRoles: ["Administrator"],
     path: '/superAdmin/all-careTaker',
-    // isPermissionNeeded: true,
-    permissionName: 'metadata',
 
     children: [
       {
@@ -174,7 +173,7 @@ icon: "bx:package",
 
         title: 'Products Grade',
         path: '/metadata/productsGrade',
-icon: 'mdi:medal-outline',
+        icon: 'mdi:medal-outline',
         // permissionName: 'view_truck_model',
         // isPermissionNeeded: true,
 
@@ -184,13 +183,14 @@ icon: 'mdi:medal-outline',
 
         title: 'Polish Type',
         path: '/metadata/polishType',
-icon: 'mdi:sparkles',
+        icon: 'mdi:sparkles',
         // permissionName: 'view_truck_model',
         // isPermissionNeeded: true,
 
 
       },
-      {  title: 'Truck Price',
+      {
+        title: 'Truck Price',
         path: '/metadata/truck_price',
         icon: 'ion:pricetags-outline',
         permissionName: 'view_truck_price',
@@ -260,11 +260,11 @@ icon: 'mdi:sparkles',
 
     ]
   },
- 
+
   {
     title: 'Activity Logs ',
-    icon: 'mdi:history'  ,  // isPermissionNeeded: true,
-    // permissionName: 'view_query_request',
+    icon: 'mdi:history',
+    allowedRoles: ["Administrator", "Staff"],
     path: '/logs',
 
   },
@@ -272,25 +272,54 @@ icon: 'mdi:sparkles',
     title: "Roles & Permissions",
     icon: "oui:app-users-roles",
     path: "/userManagement",
-    isPermissionNeeded: true,
-    permissionName: "roles_and_permissions",
+    allowedRoles: ["Administrator"],
   },
 ];
 
 const navigation = (): VerticalNavItemsType => {
   const { user } = useAuth();
 
+  // Debug logging
+  console.log('Navigation Debug - User data:', user);
+  console.log('Navigation Debug - User roles:', user?.roles);
+  console.log('Navigation Debug - User role (string):', user?.role);
+
+  const hasRole = (roleName: string): boolean => {
+    if (user?.is_super_admin) return true;
+    
+    const targetRole = roleName.toLowerCase();
+    
+    // Check user.role string (case-insensitive)
+    if (user?.role?.toLowerCase() === targetRole || 
+        (user?.role?.toLowerCase() === 'admin' && targetRole === 'administrator')) {
+      return true;
+    }
+
+    // Check user.roles array
+    if (user?.roles?.length) {
+      return user.roles.some((role: any) => {
+        const name = role.name?.toLowerCase();
+        const slug = role.slug?.toLowerCase();
+        
+        return name === targetRole || 
+               slug === targetRole || 
+               (name === 'admin' && targetRole === 'administrator');
+      });
+    }
+
+    return false;
+  };
+
   const hasPermission = (permissionName?: string): boolean => {
     if (user?.is_super_admin) return true;
     if (!permissionName) return false;
-    if (!user?.permission?.length) return false;
+    if (!user?.permissions?.length) return false;
 
-    return user.permission.some((p) => p.permission_name === permissionName);
+    return user.permissions.includes(permissionName);
   };
 
   const filterItems = (items: VerticalNavItemsType): VerticalNavItemsType => {
-    return (
-      items
+    return (items
         ?.filter((item) => {
           const matchesProject =
             !item.projectFor ||
@@ -299,7 +328,11 @@ const navigation = (): VerticalNavItemsType => {
           const matchesPermission =
             !item.isPermissionNeeded || hasPermission(item.permissionName);
 
-          return matchesProject && matchesPermission;
+          // Role-based filtering
+          const matchesRole = !item.allowedRoles ||
+            item.allowedRoles.some((role: string) => hasRole(role));
+
+          return matchesProject && matchesPermission && matchesRole;
         })
         .map((item) => {
           if ("children" in item && item.children) {
@@ -307,8 +340,7 @@ const navigation = (): VerticalNavItemsType => {
           }
 
           return item;
-        }) ?? []
-    );
+        }) ?? []);
   };
 
   return filterItems(tempObject);

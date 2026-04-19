@@ -109,21 +109,29 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
   function logInUser(data: any) {
-    console.log(data,"data")
-    // const  = JSON.stringify(deviceInfo);
-    const returnUrl = router.query.returnUrl
-    const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+    console.log(data, "Login Data Debug");
+    const returnUrl = router.query.returnUrl;
+    const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/';
+
+    // Extracting data based on your specific API response structure
+    const userData = data.user;
+    const token = data.access_token;
+    
+    // Get the first role name if available, otherwise default to a role
+    const primaryRole = (userData?.roles && userData.roles.length > 0) 
+      ? userData.roles[0].name 
+      : 'Staff'; 
 
     try {
       auth.handleSignIn(
-        { ...data['userData'], permission: data['permission'], ...data['is_super_admin'] },
-        data['token'],
+        userData,
+        token,
         redirectURL as string,
         rememberMe,
-        data['role']
-      )
+        primaryRole
+      );
     } catch (error) {
-      console.error('Error in handleSignIn:', error)
+      console.error('Error in handleSignIn:', error);
     }
   }
   const onSubmit = async (data: any) => {
@@ -132,15 +140,16 @@ const LoginPage = () => {
     setLoading(true)
 
     try {
-    
-      const response = await post('/api/v1/admin/userLogin', {
+      const response = await post('/api/v1/auth/login', {
         email,
         password,
-        role: selectedRole
       })
-      console.log(response,"response")
+      
+      console.log(response, "Full API Response");
+      
       if (response?.success) {
-        logInUser(response?.data)
+        // response.data contains { access_token, user, etc }
+        logInUser(response.data)
       }
     } catch (e: any) {
       console.log(e,"event")
@@ -207,7 +216,7 @@ const LoginPage = () => {
             Please sign in to your account.
           </Typography>
 
-          <RoleSelector selectedRole={selectedRole} onRoleChange={setSelectedRole} />
+          {/* <RoleSelector selectedRole={selectedRole} onRoleChange={setSelectedRole} /> */}
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* <FormControl fullWidth sx={{ mb: 4 }}>
