@@ -16,6 +16,9 @@ axiosInstance.interceptors.request.use(
       // config.headers['Content-Type'] = config.headers['Content-Type'] || 'application/json';
       // config.headers.orgId = userData?.org_id;
     }
+    if (config.headers) {
+      config.headers['ngrok-skip-browser-warning'] = 'true';
+    }
     return config;
   },
   (error) => {

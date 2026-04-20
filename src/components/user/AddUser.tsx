@@ -25,13 +25,13 @@ import SubmitButton from "../common/button/Button";
 const schema = yup.object().shape({
   name: yup
     .string()
-    .required("Name is required.")
-    .min(3, "Name must be at least 3 characters")
+    .required("Full Name is required.")
+    .min(3, "Full Name must be at least 3 characters")
     .trim(),
   email: yup
     .string()
     .email("Please enter a valid email address.")
-    .required("Email is required.")
+    .required("Email ID is required.")
     .trim(),
   password: yup
     .string()
@@ -42,8 +42,8 @@ const schema = yup.object().shape({
     }),
   phone: yup
     .string()
-    .required("Phone number is required.")
-    .matches(/^\d{10}$/, "Phone number must be 10 digits."),
+    .required("Mobile Number is required.")
+    .matches(/^\d{10}$/, "Mobile Number must be 10 digits."),
   role_id: yup
     .number()
     .required("Role is required.")
@@ -52,10 +52,10 @@ const schema = yup.object().shape({
     .number()
     .required("Shop is required.")
     .typeError("Shop is required."),
-  supplier_id: yup
-    .number()
-    .nullable()
-    .transform((v) => (v === "" || v === null ? null : v)),
+  // supplier_id: yup
+  //   .number()
+  //   .nullable()
+  //   .transform((v) => (v === "" || v === null ? null : v)),
   is_active: yup.boolean().required("Status is required."),
 });
 
@@ -138,8 +138,8 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
       }
 
       let url = selectedItem 
-        ? `/api/v1/admin/users/updateUser/${selectedItem.id}` 
-        : "/api/v1/admin/users/createUser";
+        ? `/api/v1/updateUser/${selectedItem.id}` 
+        : "/api/v1/registerUser";
 
       const response = await axiosInstance.post(url, payload);
 
@@ -190,7 +190,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {selectedItem ? "Update" : "Add"} System User
+          {selectedItem ? "Update" : "Add"} User
         </Typography>
         <IconButton onClick={handleCloseModal}>
           <HighlightOffIcon sx={{ color: "#f52d2de0" }} fontSize="large" />
@@ -202,17 +202,17 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           <Toaster position="top-right" />
           <Grid container spacing={4}>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name="name" label="Full Name" placeholder="Enter name" mandatory />
+              <RHFInput control={control} name="name" label="Full Name" placeholder="Full Name" mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name="email" label="Email Address" placeholder="Enter email" mandatory />
+              <RHFInput control={control} name="email" label="Email ID" placeholder="Email ID" mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
               <RHFInput 
                 control={control} 
                 name="phone" 
-                label="Phone Number" 
-                placeholder="Enter 10 digit phone" 
+                label="Mobile Number" 
+                placeholder="Mobile Number" 
                 mandatory 
               />
             </Grid>
@@ -221,7 +221,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 control={control} 
                 name="password" 
                 label={isEdit ? "Password (Leave blank to keep current)" : "Password"} 
-                placeholder="Enter password" 
+                placeholder="Password" 
                 inputType="password" 
                 mandatory={!isEdit} 
               />
@@ -232,7 +232,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 name="role_id"
                 labelinput="Role"
                 placeholder="Select Role"
-                apiUrl="/api/v1/admin/roles/getAllRoles"
+                apiUrl="/api/v1/getAllRoles"
                 required
               />
             </Grid>
@@ -242,8 +242,10 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 name="shop_id"
                 labelinput="Shop"
                 placeholder="Select Shop"
-                apiUrl="/api/v1/admin/shops/getAllShops"
+                apiUrl="/api/v1/admin/getAllShops"
                 required
+                labelKey="name"
+                valueKey="id"
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -274,7 +276,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           <Button onClick={handleCloseModal} variant="outlined" color="secondary">
             Cancel
           </Button>
-          <SubmitButton isLoading={isLoading} label={selectedItem ? "Update User" : "Create User"} />
+          <SubmitButton isLoading={isLoading} label={selectedItem ? "Update User" : "Add User"} />
         </DialogActions>
       </form>
     </Dialog>

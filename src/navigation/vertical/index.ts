@@ -171,8 +171,8 @@ const tempObject: VerticalNavItemsType = [
       // },
       {
 
-        title: 'Products Grade',
-        path: '/metadata/productsGrade',
+        title: 'Shop',
+        path: '/metadata/shop',
         icon: 'mdi:medal-outline',
         // permissionName: 'view_truck_model',
         // isPermissionNeeded: true,

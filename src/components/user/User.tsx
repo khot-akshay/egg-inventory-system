@@ -54,14 +54,14 @@ const User = () => {
   const fetchGame = async () => {
     setLoading(true);
     try {
-      let url = `/api/v1/admin/users/getAllUsers?pageNo=${page}&limit=${pageSize}`;
+      let url = `/api/v1/admin/getAllUsers?pageNo=${page}&limit=${pageSize}`;
 
       if (searchQuery) {
         url = `${url}&global_search=${searchQuery}`;
       }
 
       const response = await axiosInstance.get(url);
-      setRows((response.data.data?.data ?? []) as UserRow[]);
+      setRows((response.data.data?.users ?? []) as UserRow[]);
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
       console.error(e);

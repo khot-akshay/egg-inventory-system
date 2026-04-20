@@ -73,7 +73,19 @@ const RHFAutoComplete = ({
 
         const url = `${apiUrl}?${new URLSearchParams(params)}`
         const res = await axiosInstance.get(url)
-        const data = res?.data?.data?.data || []
+        
+        let data = res?.data?.data?.data;
+        if (!Array.isArray(data)) {
+          const responseData = res?.data?.data;
+          if (Array.isArray(responseData)) {
+            data = responseData;
+          } else if (responseData && typeof responseData === 'object') {
+            const possibleArray = Object.values(responseData).find(Array.isArray);
+            data = possibleArray || [];
+          } else {
+            data = [];
+          }
+        }
 
         setOptions(prev => (pageNo === 0 ? data : [...prev, ...data]))
         setHasMore(data.length === pageSize)
