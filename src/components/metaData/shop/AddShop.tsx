@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup'
-import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, Box, IconButton, Typography, Switch, FormControlLabel } from '@mui/material'
+import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, Box, IconButton, Typography, Switch, FormControlLabel, Button } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import SubmitButton from 'src/components/common/button/Button'
@@ -7,10 +7,11 @@ import RHFInput from 'src/hook-forms/RHFInput'
 import axiosInstance from 'src/services/axios'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+
 import toast, { Toaster } from 'react-hot-toast'
 
 const schema = yup.object().shape({
-  code: yup.string().required('Shop Code is required.').trim(),
   name: yup.string().required('Shop Name is required.').trim(),
   address_line1: yup.string().required('Address is required.').trim(),
   city: yup.string().required('City is required.').trim(),
@@ -77,7 +78,6 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
 
     try {
       let payload = {
-        code: data.code,
         name: data.name,
         address_line1: data.address_line1,
         city: data.city,
@@ -86,7 +86,7 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
       }
 
       let url = selectedItem 
-        ? `/api/v1/admin/updateShop/${selectedItem.id}` 
+        ? `/api/v1/admin/updateShop?id=${selectedItem.id}` 
         : `/api/v1/admin/createShop`
 
       const response = await axiosInstance.post(url, payload)
@@ -125,20 +125,18 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           backgroundColor: '#3A4E7C0F'
         }}
       >
-        <Typography sx={{ fontSize: '25px', fontWeight: 'bold', textAlign: 'center', flexGrow: 1 }}>
+        <Typography sx={{ fontSize: '25px', fontWeight: 'bold', flexGrow: 1,paddingLeft: '10px' }}>
           {selectedItem ? 'Update' : 'Add'} Shop
         </Typography>
-        <IconButton onClick={handleClose}>
-          <Icon icon='bx:x' style={{ fontSize: '30px' }} />
+         <IconButton onClick={handleClose}>
+          <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
         </IconButton>
+         
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
           <Toaster position="top-right" reverseOrder={false} />
           <Grid container spacing={4}>
-            <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='code' label='Shop Code' placeholder='Shop Code' mandatory />
-            </Grid>
             <Grid item xs={12} sm={6}>
               <RHFInput control={control} name='name' label='Shop Name' placeholder='Shop Name' mandatory />
             </Grid>
@@ -148,7 +146,7 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
             <Grid item xs={12} sm={6}>
               <RHFInput control={control} name='city' label='City' placeholder='City' mandatory />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={6}>
               <RHFInput control={control} name='address_line1' label='Address Line 1' placeholder='Address Line 1' mandatory />
             </Grid>
             <Grid item xs={12}>
@@ -167,6 +165,12 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
+            <Button
+            variant='outlined'
+            onClick={handleClose}
+          >
+            Cancel
+          </Button>
           <SubmitButton label={selectedItem ? 'Update Shop' : 'Add Shop'} isLoading={isLoading} isWidth={false} />
         </DialogActions>
       </form>

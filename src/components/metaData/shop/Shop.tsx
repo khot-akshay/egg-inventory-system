@@ -58,7 +58,7 @@ const Shop = () => {
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: GridColDef[]) => {
       const { checked } = event.target;
       try {
-          await axiosInstance.post(`/api/v1/admin/updateShop/${params.id}`, { is_active: checked ? 1 : 0 })
+          await axiosInstance.post(`/api/v1/admin/updateShop?id=${params.id}`, { is_active: checked ? 1 : 0 })
           fetchShops()
           toast.success('Status updated successfully.')
       } catch (e) {

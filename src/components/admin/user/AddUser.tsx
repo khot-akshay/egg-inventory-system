@@ -20,7 +20,7 @@ import axiosInstance from "src/services/axios";
 import * as yup from "yup";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import toast, { Toaster } from "react-hot-toast";
-import SubmitButton from "../common/button/Button";
+import SubmitButton from "../../common/button/Button";
 
 const schema = yup.object().shape({
   name: yup
@@ -137,8 +137,8 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         delete payload.password;
       }
 
-      let url = selectedItem 
-        ? `/api/v1/updateUser/${selectedItem.id}` 
+      let url = selectedItem
+        ? `/api/v1/updateUser/${selectedItem.id}`
         : "/api/v1/registerUser";
 
       const response = await axiosInstance.post(url, payload);
@@ -175,7 +175,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
     <Dialog
       open={open}
       onClose={handleCloseModal}
-      maxWidth="sm"
+       maxWidth={'md'}
       fullWidth
     >
       <DialogTitle
@@ -208,22 +208,22 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
               <RHFInput control={control} name="email" label="Email ID" placeholder="Email ID" mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput 
-                control={control} 
-                name="phone" 
-                label="Mobile Number" 
-                placeholder="Mobile Number" 
-                mandatory 
+              <RHFInput
+                control={control}
+                name="phone"
+                label="Mobile Number"
+                placeholder="Mobile Number"
+                mandatory
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput 
-                control={control} 
-                name="password" 
-                label={isEdit ? "Password (Leave blank to keep current)" : "Password"} 
-                placeholder="Password" 
-                inputType="password" 
-                mandatory={!isEdit} 
+              <RHFInput
+                control={control}
+                name="password"
+                label={isEdit ? "Password (Leave blank to keep current)" : "Password"}
+                placeholder="Password"
+                inputType="password"
+                mandatory={!isEdit}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -258,7 +258,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-               <Box sx={{ mt: 4 }}>
+              <Box sx={{ mt: 4 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -268,7 +268,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                   }
                   label={methods.watch("is_active") ? "Active" : "Inactive"}
                 />
-               </Box>
+              </Box>
             </Grid>
           </Grid>
         </DialogContent>

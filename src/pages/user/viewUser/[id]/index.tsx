@@ -52,10 +52,8 @@ import { get } from "src/services/apiCall";
 import EmailModule from "src/components/common/Links/EmailLink";
 import MobileNumberModule from "src/components/common/Links/MobileNumberModule";
 import ActionButtonBox from "src/components/actionButtonBox";
-import AllDocuments from "src/components/AllDocuments/allDocument";
 import ImageModal from "src/components/ImageModal";
 import Plants from "src/components/plant/Plants";
-import UserPlants from "src/components/userplant/UserPlants";
 import { decodeParams } from "src/utils/encodeid";
 import DateFormateComponent from "src/components/common/dateFormat/DateFromatModule";
 import Loader from "src/utils/Loadar";
@@ -673,7 +671,7 @@ export default function Viewopportunity() {
           (newData?.sub_role === "buyer" && newData?.role === "trader")
         ) && resolvedUserId && (<Grid container spacing={2} padding={2}>
           <Grid item xs={12} md={12}>
-            <UserPlants userId={resolvedUserId} />
+            {/* <UserPlants userId={resolvedUserId} /> */}
           </Grid>
         </Grid>
           )}
