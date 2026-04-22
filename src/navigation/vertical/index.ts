@@ -40,7 +40,7 @@ const tempObject: VerticalNavItemsType = [
     title: "Products",
     icon: "mdi:clipboard-text-outline",
     allowedRoles: ["Administrator", "Staff"],
-    path: "/orders",
+    path: "/products",
     // isPermissionNeeded: true,
     // permissionName: "view_orders", // aligned with backend permission
 

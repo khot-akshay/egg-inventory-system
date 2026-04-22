@@ -51,14 +51,12 @@ const Products = () => {
   const router = useRouter()
   const { control, watch } = useForm({
     defaultValues: {
-      categories_id: null,
-      product_grades_id: null,
-      polish_type_id: null
+      category_id: null,
+      shop_id: null
     }
   })
-  const selectedCategoryId = watch('categories_id') as number | null
-  const selectedGradeId = watch('product_grades_id') as number | null
-  const selectedPolishTypeId = watch('polish_type_id') as number | null
+  const selectedCategoryId = watch('category_id') as number | null
+  const selectedShopId = watch('shop_id') as number | null
 
 
 
@@ -101,15 +99,14 @@ const Products = () => {
       })
 
       if (searchQuery) params.append('global_search', searchQuery)
-      if (selectedCategoryId) params.append('categories_id', String(selectedCategoryId))
-      if (selectedGradeId) params.append('product_grades_id', String(selectedGradeId))
-      if (selectedPolishTypeId) params.append('polish_type_id', String(selectedPolishTypeId))
+      if (selectedCategoryId) params.append('category_id', String(selectedCategoryId))
+      if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/admin/products/getAllProducts?${params.toString()}`
+        `/api/v1/admin/getAllProducts?${params.toString()}`
       )
 
-      setRows(response.data.data?.data ?? [])
+      setRows(response.data.data?.products ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -130,12 +127,12 @@ const Products = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(0)
-  }, [selectedCategoryId, selectedGradeId, selectedPolishTypeId, searchQuery])
+  }, [selectedCategoryId, selectedShopId, searchQuery])
 
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedGradeId, selectedPolishTypeId, searchQuery])
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
 
 
 
@@ -164,7 +161,7 @@ const Products = () => {
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
     try {
-      await axiosInstance.post(`/api/v1/admin/products/updateProducts/${params.id}`, { is_active: checked ? 1 : 0 })
+      await axiosInstance.post(`/api/v1/admin/updateProduct?id=${params.id}`, { is_active: checked ? 1 : 0 })
       fetchGame()
       toast.success('Status updated successfully.')
     } catch (e) {
@@ -190,12 +187,12 @@ const Products = () => {
     },
 
     {
-      field: 'code',
-      headerName: 'Product code ',
+      field: 'sku',
+      headerName: 'SKU',
       flex: 1,
       align: 'center',
       headerAlign: 'center',
-      minWidth: 250,
+      minWidth: 150,
       sortable: false,
       renderCell: (params: GridCellParams) =>
         <Box
@@ -203,83 +200,72 @@ const Products = () => {
           onClick={() => handleViewUser(params.row.id)}
         >
           <Typography color="primary.main">
-            {params.row?.code || 'NA'}
+            {params.row?.sku || 'NA'}
           </Typography>
           <Icon icon="solar:arrow-right-up-linear" style={{ color: 'primary', fontSize: 15 }}></Icon>
         </Box>
-
     },
-
     {
       field: 'name',
       headerName: 'Product Name',
       flex: 1,
-
-      minWidth: 320,
+      minWidth: 250,
       sortable: false,
       renderCell: (params: GridCellParams) =>
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
           {params.row?.name || 'NA'}
         </div>
-
-      //  <Box
-      //               sx={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', alignItems: 'start', height: '100%' }}
-      //               onClick={() => handleViewUser(params.row.id)}
-      //           >
-      //               <Typography color="primary.main">        {params.row?.name || 'NA'}</Typography>
-      //               <Icon icon="solar:arrow-right-up-linear" style={{ color: 'primary', fontSize: 15 }}></Icon>
-      //           </Box>
     },
     {
       field: 'categories.name',
       headerName: 'Category Name',
       flex: 1,
-
-      minWidth: 220,
-      sortable: false,
-
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-
-        {params.row?.categories?.name || 'NA'}
-      </div>
-
-
-    },
-
-    {
-      field: 'default_grade',
-      headerName: 'Product Grade',
-      flex: 1,
-
-      minWidth: 240,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.grade?.name || 'NA'}
-      </div>
-    },
-    {
-      field: 'default_polish_type',
-      headerName: 'Polish Type ',
-      flex: 1,
-
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.polish_type?.name || 'NA'}
+        {params.row?.categories?.name || params.row?.category?.name || 'NA'}
       </div>
     },
-
-    // {
-    //   field: 'code',
-    //   headerName: 'Product code ',
-    //   flex: 1,
-
-    //   minWidth: 250,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //     {params.row?.code || 'NA'}
-    //   </div>
-    // },
+    {
+      field: 'unit',
+      headerName: 'Unit',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.unit || 'NA'}
+      </div>
+    },
+    {
+      field: 'selling_price',
+      headerName: 'Price',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.selling_price || 'NA'}
+      </div>
+    },
+    {
+      field: 'min_stock_level',
+      headerName: 'Min Stock',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.min_stock_level || '0'}
+      </div>
+    },
+    {
+      field: 'shop.name',
+      headerName: 'Shop',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.shop?.name || 'NA'}
+      </div>
+    },
 
     {
       field: 'status',
@@ -405,11 +391,11 @@ const Products = () => {
         </Box>
         <Grid container spacing={2}>
 
-          <Grid item xs={12} md={6}></Grid>
+          <Grid item xs={12} md={8}></Grid>
           <Grid item xs={12} md={2} >
             <RHFAutoComplete
               control={control}
-              name="categories_id"
+              name="category_id"
               apiUrl="/api/v1/admin/categories/getAllCategories"
               extraParams={{ is_active: 1 }}
               placeholder="Select Category"
@@ -422,24 +408,10 @@ const Products = () => {
           <Grid item xs={12} md={2} >
             <RHFAutoComplete
               control={control}
-              name='product_grades_id'
-              apiUrl='/api/v1/admin/productGrades/getAllProductGrades'
-              extraParams={{ is_active: 1 }}
-              placeholder='Select Product Grade'
-              labelinput='Select Product Grade'
-              labelKey="name"
-              valueKey="id"
-              required={false}
-            />
-          </Grid>
-          <Grid item xs={12} md={2} >
-            <RHFAutoComplete
-              control={control}
-              name='polish_type_id'
-              apiUrl='/api/v1/admin/polishTypes/getAllPolishTypes'
-              extraParams={{ is_active: 1 }}
-              placeholder='Select Polish Type'
-              labelinput='Select Polish Type'
+              name="shop_id"
+              apiUrl="/api/v1/admin/getAllShops"
+              placeholder="Select Shop"
+              labelinput="Select Shop"
               labelKey="name"
               valueKey="id"
               required={false}
