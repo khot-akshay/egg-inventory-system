@@ -278,12 +278,12 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
               />
             </Grid>
             
-            <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'name'} label={'Product Name'} placeholder={'Product Name'} mandatory />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'sku'} label={'SKU'} placeholder={'e.g. EGG-001'} mandatory />
-            </Grid>
+              <Grid item xs={12} md={6}>
+                <RHFInput control={control} name={'name'} label={'Product Name'} placeholder={'Product Name'} mandatory />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <RHFInput control={control} name={'sku'} label={'SKU'} placeholder={'e.g. EGG-001'} mandatory />
+              </Grid>
             <Grid item xs={12} md={6}>
               <RHFInput control={control} name={'unit'} label={'Egg Unit'} placeholder={'Egg Unit'} mandatory />
             </Grid>

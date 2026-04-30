@@ -15,7 +15,7 @@ const tempObject: VerticalNavItemsType = [
     title: "Shops",
     icon: "bx:package",
     path: '/products',
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Administrator"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
@@ -39,56 +39,59 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Products",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Administrator"],
     path: "/products",
     // isPermissionNeeded: true,
     // permissionName: "view_orders", // aligned with backend permission
 
   },
   {
-    title: "Stock",
-    icon: "mdi:cash-multiple",
+    title: "Quick Bill",
+    icon: "mdi:clipboard-text-outline",
     allowedRoles: ["Administrator", "Staff"],
-    path: "/commission",
+    path: "/quickBill",
     // isPermissionNeeded: true,
     // permissionName: "view_orders", // aligned with backend permission
 
   },
+
+  {
+    title: "Stock",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Administrator", "Staff"],
+    path: "/stocks",
+  },
   {
     title: "Purchases",
-    icon: "mdi:cash-multiple",
+    icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
-
   },
   {
     title: "Vendors",
-    icon: "mdi:cash-multiple",
+    icon: "mdi:truck-delivery", // suppliers
     allowedRoles: ["Administrator", "Staff"],
-    path: "/commission",
-
+    path: "/vendor",
   },
   {
     title: "Bills",
-    icon: "mdi:cash-multiple",
+    icon: "mdi:file-document-outline", // invoices
     allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
-
   },
   {
     title: "Payments",
-    icon: "mdi:cash-multiple",
+    icon: "mdi:credit-card-outline", // payments
     allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
-
   },
   {
     title: "Expenses",
-    icon: "mdi:cash-multiple",
+    icon: "mdi:cash-minus", // money going out
     allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
-
   },
+
   // {
   //   title: 'Organisations',
   //   icon: 'bx:building-house',
@@ -147,17 +150,17 @@ const tempObject: VerticalNavItemsType = [
     path: '/superAdmin/all-careTaker',
 
     children: [
-      {
+      // {
 
-        title: 'Categories',
-        path: '/metadata/categories',
-        icon: 'carbon:name-space',
-        // permissionName: 'view_brand',
-        // isPermissionNeeded: true,
+      //   title: 'Categories',
+      //   path: '/metadata/categories',
+      //   icon: 'carbon:name-space',
+      //   // permissionName: 'view_brand',
+      //   // isPermissionNeeded: true,
 
 
 
-      },
+      // },
       // {
 
       //   title: 'Products',
@@ -261,19 +264,19 @@ const tempObject: VerticalNavItemsType = [
     ]
   },
 
-  {
-    title: 'Activity Logs ',
-    icon: 'mdi:history',
-    allowedRoles: ["Administrator", "Staff"],
-    path: '/logs',
+  // {
+  //   title: 'Activity Logs ',
+  //   icon: 'mdi:history',
+  //   allowedRoles: ["Administrator", "Staff"],
+  //   path: '/logs',
 
-  },
-  {
-    title: "Roles & Permissions",
-    icon: "oui:app-users-roles",
-    path: "/userManagement",
-    allowedRoles: ["Administrator"],
-  },
+  // },
+  // {
+  //   title: "Roles & Permissions",
+  //   icon: "oui:app-users-roles",
+  //   path: "/userManagement",
+  //   allowedRoles: ["Administrator"],
+  // },
 ];
 
 const navigation = (): VerticalNavItemsType => {
