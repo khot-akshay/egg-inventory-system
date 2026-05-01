@@ -20,12 +20,11 @@ const schema = yup.object().shape({
     .required('Category is required.'),
   sku: yup
     .string()
-    .required('SKU is required.')
+    .nullable()
     .trim(),
   name: yup
     .string()
     .required('Product Name is required.')
-    .matches(/^[a-zA-Z0-9\s-]+$/, 'Product name cannot contain special characters except hyphens.')
     .matches(/^\S(.*\S)?$/, 'Product name cannot have leading or trailing spaces.')
     .matches(/^(?!.*\s{2,}).*$/, 'Product name cannot have excessive spaces between words.')
     .min(3, 'Product name must be at least 3 characters long.')
@@ -33,7 +32,7 @@ const schema = yup.object().shape({
     .trim(),
   unit: yup
     .string()
-    .required('Unit is required.'),
+    .nullable(),
   cost_price: yup
     .number()
     .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))

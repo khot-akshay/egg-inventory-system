@@ -53,8 +53,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const [damaged, setDamaged] = useState(0)
   const [loading, setLoading] = useState(false)
   const [isNewCustomer, setIsNewCustomer] = useState(false)
-  const [minRate, setMinRate] = useState(5)
-  const [maxRate, setMaxRate] = useState(6)
+  const [minRate, setMinRate] = useState<number | null>(null)
+  const [maxRate, setMaxRate] = useState<number | null>(null)
   const [paymentType, setPaymentType] = useState('cash')
 
   const {
@@ -109,28 +109,45 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   useEffect(() => {
     const fetchProductRates = async () => {
       const productId = watch('product_id')
-      const id = typeof productId === 'object' ? productId?.id : productId
+      // Try to get category_id if productId is an object, otherwise use the ID directly
+      const id = typeof productId === 'object' ? (productId?.category_id || productId?.id) : productId
       
       if (id) {
         try {
-          const response = await axiosInstance.get(`/api/v1/admin/products/getProductsById/${id}`)
+          const response = await axiosInstance.get(`/api/v1/shop/getAllEggpriceAsPerCategoryForThatShop?category_id=${id}`)
           if (response.data.success) {
-            const data = response.data.data
-            // Prioritize min_rate/max_rate from API, fallback to selling_price +/- 0.5
-            const min = data.min_rate ?? (data.selling_price ? Number(data.selling_price) - 0.5 : 5)
-            const max = data.max_rate ?? (data.selling_price ? Number(data.selling_price) + 0.5 : 6)
+            // Check if products are in response.data.data.products or response.data.products
+            const products = response.data.data?.products || response.data.products
             
-            setMinRate(Number(min))
-            setMaxRate(Number(max))
+            if (products && products.length > 0) {
+              const product = products[0]
+              const min = parseFloat(product.egg_price_min)
+              const max = parseFloat(product.egg_price_max)
+              
+              if (!isNaN(min) && !isNaN(max)) {
+                setMinRate(min)
+                setMaxRate(max)
+                // Set the default rate to the minimum rate if current rate is invalid or default
+                const currentRate = watch('rate_per_unit')
+                if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
+                  setValue('rate_per_unit', min)
+                }
+              }
+            } else {
+              setMinRate(null)
+              setMaxRate(null)
+            }
           }
         } catch (error) {
           console.error('Error fetching product rates:', error)
+          setMinRate(null)
+          setMaxRate(null)
         }
       }
-    }
+    };
 
     fetchProductRates()
-  }, [watch('product_id')])
+  }, [watch('product_id'), setValue])
 
   const onSubmit = async (data: any) => {
     setLoading(true)
@@ -143,43 +160,38 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       }
 
       const payload = {
-        shop_id: isNewCustomer ? null : extractId(data.shop_id),
+        customer_id: isNewCustomer ? null : extractId(data.shop_id),
         customer_name: isNewCustomer ? data.customer_name : null,
         phone_number: isNewCustomer ? data.phone_number : null,
-        unit_type: unit,
-        unit_value: unitValue,
-        quantity: quantity,
-        total_eggs: totalEggs,
-        rate_per_unit: data.rate_per_unit,
-        damaged_eggs: damaged,
-        final_eggs: finalEggs,
+        product_id: extractId(data.product_id),
+        quantity: quantity, // Number of units (e.g., 2 for 2 trays)
+        total_eggs: totalEggs, // Total calculated eggs (e.g., 60)
+        unit_cost: data.rate_per_unit,
         payment_type: paymentType,
-        status: 1
+        damaged_eggs: damaged,
+        unit_type: unit,
+        unit_value: unitValue
       }
 
-      let response;
-      if (selectedItem) {
-        response = await axiosInstance.post(`/api/v1/admin/stocks/updateStock?id=${selectedItem.id}`, payload)
-      } else {
-        response = await axiosInstance.post('/api/v1/admin/stocks/addStock', payload)
-      }
+      const response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
 
       if (response.data.success) {
-        toast.success(response.data.message || 'Stock added successfully')
+        toast.success(response.data.message || 'Egg purchase recorded successfully')
         reset({
           shop_id: null,
           product_id: null,
-          rate_per_unit: 150
+          rate_per_unit: minRate || 0,
+          customer_name: '',
+          phone_number: ''
         })
         setQuantity(1)
         setDamaged(0)
+        setIsNewCustomer(false)
         if (fetchData) fetchData()
         if (handleClose) handleClose()
-      } else {
-        toast.error(response.data.message || 'Failed to save stock')
       }
     } catch (error: any) {
-      console.error('Error saving stock:', error)
+      console.error('Error recording purchase:', error)
       toast.error(error?.response?.data?.message || 'Something went wrong')
     } finally {
       setLoading(false)

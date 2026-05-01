@@ -3,6 +3,7 @@ import { Grid, Box } from '@mui/material'
 import Stocks from 'src/components/admin/stocks/Stocks'
 import AddStocksForm from 'src/components/admin/stocks/AddStocks'
 import AddQuickBillForm from 'src/components/admin/quickbill/AddQuickBill'
+import QuickBill from 'src/components/admin/quickbill/QuickBill'
 
 const StocksPage = () => {
   return (
@@ -15,7 +16,7 @@ const StocksPage = () => {
 
         {/* Right Side: Stocks Table (8 grid) */}
         <Grid item xs={12} md={8}>
-          <Stocks />
+          <QuickBill />
         </Grid>
       </Grid>
     </Box>

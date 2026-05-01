@@ -8,13 +8,14 @@ const axiosInstance: AxiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('accessToken')
-
+    const token = Cookies.get('accessToken') || window.localStorage.getItem('accessToken')
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
-      // config.headers['Content-Type'] = config.headers['Content-Type'] || 'application/json';
-      // config.headers.orgId = userData?.org_id;
+      if (userData?.shop_id) {
+        config.headers.orgId = userData.shop_id;
+      }
     }
     if (config.headers) {
       config.headers['ngrok-skip-browser-warning'] = 'true';

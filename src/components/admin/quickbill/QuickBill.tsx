@@ -103,10 +103,10 @@ const QuickBill = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/admin/getAllProducts?${params.toString()}`
+        `/api/v1/shop/getAllQuickbills?${params.toString()}`
       )
 
-      setRows(response.data.data?.products ?? [])
+      setRows(response.data.data?.quickbills ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -187,45 +187,76 @@ const QuickBill = () => {
     },
 
     {
-      field: 'name',
-      headerName: 'Shop Name',
-      flex: 1,
-      minWidth: 250,
-      sortable: false,
-      renderCell: (params: GridCellParams) =>
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.name || 'NA'}
-        </div>
-    },
-    {
-      field: 'categories.name',
-      headerName: 'Category Name',
+      field: 'customer_name',
+      headerName: 'customer name',
       flex: 1,
       minWidth: 150,
       sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.categories?.name || params.row?.category?.name || 'NA'}
-      </div>
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.customer.name || 'NA'}
+        </div>
+      )
     },
     {
-      field: 'unit',
-      headerName: 'Unit',
+      field: 'shop',
+      headerName: 'product Name',
       flex: 1,
-      minWidth: 70,
+      minWidth: 150,
       sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.unit || 'NA'}
-      </div>
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.shop?.name || 'NA'}
+        </div>
+      )
     },
     {
-      field: 'selling_price',
-      headerName: 'Price range',
+      field: 'quantity',
+      headerName: 'Total Eggs',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.items?.[0]?.quantity || '0'}
+        </div>
+      )
+    },
+    {
+      field: 'unit_cost',
+      headerName: 'Rate',
+      flex: 1,
+      minWidth: 80,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.items?.[0]?.unit_cost || '0'}
+        </div>
+      )
+    },
+    {
+      field: 'total',
+      headerName: 'Total Bill',
       flex: 1,
       minWidth: 120,
       sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.selling_price || 'NA'}
-      </div>
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          ₹{params.row?.total || '0'}
+        </div>
+      )
+    },
+    {
+      field: 'status',
+      headerName: 'Status',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ textTransform: 'capitalize' }}>
+          {params.row?.status || 'NA'}
+        </div>
+      )
     },
    
 

@@ -71,11 +71,13 @@ const AuthProvider = ({ children }: Props) => {
           .then((response: any) => {
             setLoading(false)
             console.log(response, "responsegetcurent")
-            const userData = response.data.user || response.data
+            const userData = response.data.data
             if (userData) {
               console.log('InitAuth Debug - Setting user from API:', userData)
-              setUser(userData)
-              window.localStorage.setItem('userData', JSON.stringify(userData))
+              const role = userData.roles?.[0]?.slug || 'admin'
+              const fullUserData = { ...userData, role }
+              setUser(fullUserData)
+              window.localStorage.setItem('userData', JSON.stringify(fullUserData))
             }
           })
           .catch((e) => {
