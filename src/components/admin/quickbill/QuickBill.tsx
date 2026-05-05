@@ -206,7 +206,7 @@ const QuickBill = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.shop?.name || 'NA'}
+          {params.row?.items?.[0]?.product?.name || 'NA'}
         </div>
       )
     },
@@ -332,7 +332,7 @@ const QuickBill = () => {
       <Card sx={{ p: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} >
-            <GoBack label="Stocks" isBack={false} />
+            <GoBack label="Quick Bill List" isBack={false} />
           </Grid>
               <Grid item xs={12} md={3}>
                 <SearchInput handleSearch={handleSearch} placeHolder="Search..." />

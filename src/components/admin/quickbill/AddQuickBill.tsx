@@ -2,8 +2,11 @@ import {
   Card, Typography, Button,
   TextField, ToggleButton, ToggleButtonGroup,
   Box, useTheme, useMediaQuery, CircularProgress,
-  Grid, Divider
+  Grid, Divider, IconButton, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Paper
 } from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete'
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import React, { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -56,6 +59,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const [minRate, setMinRate] = useState<number | null>(null)
   const [maxRate, setMaxRate] = useState<number | null>(null)
   const [paymentType, setPaymentType] = useState('cash')
+  const [cart, setCart] = useState<any[]>([])
 
   const {
     control,
@@ -100,9 +104,15 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const handleUnitChange = (_: any, value: any) => {
     if (!value) return
     setUnit(value)
-    if (value === 'tray') setUnitValue(30)
-    if (value === 'dozen') setUnitValue(12)
-    if (value === 'single') setUnitValue(1)
+    let val = 1
+    if (value === 'tray') val = 30
+    if (value === 'dozen') val = 12
+    if (value === 'half_dozen') val = 6
+    
+    // We set quantity directly to the unit value as requested
+    setQuantity(val)
+    // Keep unitValue as 1 so that totalEggs (quantity * unitValue) remains correct
+    setUnitValue(1)
   }
 
   // Fetch min/max rates when product changes
@@ -149,6 +159,47 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     fetchProductRates()
   }, [watch('product_id'), setValue])
 
+  const handleAddToCart = () => {
+    const product = watch('product_id')
+    const rate_per_unit = watch('rate_per_unit')
+
+    if (!product) {
+      toast.error('Please select a product')
+      return
+    }
+
+    const productName = typeof product === 'object' ? (product.name || product.category?.name) : 'Product'
+    const productId = typeof product === 'object' ? product.id : product
+
+    const newItem = {
+      product_id: productId,
+      product_name: productName,
+      quantity,
+      unit,
+      unit_value: unitValue,
+      total_eggs: totalEggs,
+      damaged_eggs: damaged,
+      rate: rate_per_unit,
+      total: quantity * rate_per_unit
+    }
+
+    setCart([...cart, newItem])
+
+    // Reset product selection for next item
+    setValue('product_id', null)
+    setQuantity(1)
+    setDamaged(0)
+    toast.success('Added to list')
+  }
+
+  const removeFromCart = (index: number) => {
+    const newCart = [...cart]
+    newCart.splice(index, 1)
+    setCart(newCart)
+  }
+
+  const grandTotal = cart.reduce((sum, item) => sum + item.total, 0)
+
   const onSubmit = async (data: any) => {
     setLoading(true)
     try {
@@ -159,31 +210,40 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         return Number(value)
       }
 
+      if (cart.length === 0) {
+        toast.error('Please add at least one product to the list')
+        setLoading(false)
+        return
+      }
+
       const payload = {
         customer_id: isNewCustomer ? null : extractId(data.shop_id),
         customer_name: isNewCustomer ? data.customer_name : null,
         phone_number: isNewCustomer ? data.phone_number : null,
-        product_id: extractId(data.product_id),
-        quantity: quantity, // Number of units (e.g., 2 for 2 trays)
-        total_eggs: totalEggs, // Total calculated eggs (e.g., 60)
-        unit_cost: data.rate_per_unit,
         payment_type: paymentType,
-        damaged_eggs: damaged,
-        unit_type: unit,
-        unit_value: unitValue
+        items: cart.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          total_eggs: item.total_eggs,
+          unit_cost: item.rate,
+          damaged_eggs: item.damaged_eggs,
+          unit_type: item.unit,
+          unit_value: item.unit_value
+        }))
       }
 
       const response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
 
       if (response.data.success) {
-        toast.success(response.data.message || 'Egg purchase recorded successfully')
+        toast.success(response.data.message || 'Bill confirmed successfully')
         reset({
           shop_id: null,
           product_id: null,
-          rate_per_unit: minRate || 0,
+          rate_per_unit: 150,
           customer_name: '',
           phone_number: ''
         })
+        setCart([])
         setQuantity(1)
         setDamaged(0)
         setIsNewCustomer(false)
@@ -261,9 +321,11 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               placeholder="Select Product"
               labelinput="Product Name"
               apiUrl="/api/v1/admin/getAllProducts"
-              labelKey="name"
+              dataKey="data.products"
+              labelKey="category.name"
               valueKey="id"
               required
+              multiple={false}
             />
           </Grid>
 
@@ -289,6 +351,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                       >
                         {r.toFixed(2)}
                       </Button>
+
+                      
                     </Grid>
                   ))}
                 </Grid>
@@ -298,89 +362,180 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
            
           </Grid>
 
-          {/* Quantity Selection */}
-          <Grid item xs={12} >
-            <Typography className="input-label">
-              Quantity
-            </Typography>
-            <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={2}></Grid>
-
-              <Grid item xs={2}>
-                <Button
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+          {/* Integrated Unit and Quantity Selection */}
+          <Grid item xs={12}>
+            <Grid container spacing={2} alignItems="flex-end">
+              <Grid item xs={6}>
+                <Typography className="input-label">
+                  Unit Type
+                </Typography>
+                <ToggleButtonGroup
+                  value={unit}
+                  exclusive
+                  onChange={handleUnitChange}
                   fullWidth
-                  sx={{
-                    height: 40,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 2,
+                  size="small"
+                  color="success"
+                  sx={{ 
                     bgcolor: 'white',
-                    color: 'text.primary',
-                    fontSize: '2rem',
-                    fontWeight: 'light',
-                    '&:hover': { bgcolor: '#f5f5f5' }
-                  }}
-                >
-                  −
-                </Button>
-              </Grid>
-              <Grid item xs={4}>
-                <Box
-                  sx={{
                     height: 40,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 2,
-                    bgcolor: 'white'
+                    '& .MuiToggleButton-root': {
+                      borderRadius: 2,
+                      mx: 0.2,
+                      border: '1px solid !important',
+                      borderColor: 'divider',
+                      fontSize: '0.75rem',
+                      px: 1
+                    }
                   }}
                 >
-                  <TextField
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value))}
-                    variant="standard"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: {
-                        fontSize: '1rem',
-                        fontWeight: 'bold',
-                        color: 'text.primary',
-                        width: '100%',
-                        '& input': {
-                          textAlign: 'center',
-                          p: 0
-                        }
-                      }
-                    }}
-                    fullWidth
-                  />
-                </Box>
+                  <ToggleButton value="tray">30</ToggleButton>
+                  <ToggleButton value="dozen">12</ToggleButton>
+                  <ToggleButton value="half_dozen">6</ToggleButton>
+                </ToggleButtonGroup>
               </Grid>
-              <Grid item xs={2}>
-                <Button
-                  onClick={() => setQuantity(q => q + 1)}
-                  fullWidth
-                  sx={{
-                    height: 40,
-                    borderRadius: 2,
-                    bgcolor: 'success.main',
-                    color: 'white',
-                    fontSize: '2rem',
-                    fontWeight: 'light',
-                    '&:hover': { bgcolor: 'success.dark' }
-                  }}
-                >
-                  +
-                </Button>
-              </Grid>
-                                          <Grid item xs={2}></Grid>
 
+              <Grid item xs={6}>
+                <Typography className="input-label">
+                  Quantity
+                </Typography>
+                <Grid container spacing={1} alignItems="center">
+                  <Grid item xs={3}>
+                    <Button
+                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                      fullWidth
+                      sx={{
+                        height: 40,
+                        minWidth: 0,
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        bgcolor: 'white',
+                        color: 'text.primary',
+                        fontSize: '1.5rem',
+                        '&:hover': { bgcolor: '#f5f5f5' }
+                      }}
+                    >
+                      −
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box
+                      sx={{
+                        height: 40,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 2,
+                        bgcolor: 'white'
+                      }}
+                    >
+                      <TextField
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setQuantity(val);
+                          // Clear unit selection if manual value doesn't match presets
+                          if (val !== 30 && val !== 12 && val !== 6) {
+                            setUnit('custom');
+                          } else if (val === 30) setUnit('tray');
+                          else if (val === 12) setUnit('dozen');
+                          else if (val === 6) setUnit('half_dozen');
+                        }}
+                        variant="standard"
+                        InputProps={{
+                          disableUnderline: true,
+                          sx: {
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            color: 'text.primary',
+                            width: '100%',
+                            '& input': {
+                              textAlign: 'center',
+                              p: 0
+                            }
+                          }
+                        }}
+                        fullWidth
+                      />
+                    </Box>
+                  </Grid>
+                  <Grid item xs={3}>
+                    <Button
+                      onClick={() => setQuantity(q => q + 1)}
+                      fullWidth
+                      sx={{
+                        height: 40,
+                        minWidth: 0,
+                        borderRadius: 2,
+                        bgcolor: 'success.main',
+                        color: 'white',
+                        fontSize: '1.5rem',
+                        '&:hover': { bgcolor: 'success.dark' }
+                      }}
+                    >
+                      +
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
+
+          {/* Add to List Button */}
+          <Grid item xs={12}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="primary"
+              onClick={handleAddToCart}
+              startIcon={<ShoppingCartIcon />}
+              sx={{ mt: 1, borderRadius: 2, height: 45, borderWidth: 2, '&:hover': { borderWidth: 2 } }}
+            >
+              Add to Bill
+            </Button>
+          </Grid>
+
+          {/* Cart Table */}
+          {cart.length > 0 && (
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                Added Products
+              </Typography>
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <Table size="small">
+                  <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Qty</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Rate</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'bold' }}></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {cart.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell sx={{ fontSize: '0.8rem' }}>{item.product_name}</TableCell>
+                        <TableCell align="center" sx={{ fontSize: '0.8rem' }}>{item.quantity}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.8rem' }}>₹{item.rate.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.8rem', fontWeight: 'bold' }}>₹{item.total.toFixed(2)}</TableCell>
+                        <TableCell align="center">
+                          <IconButton size="small" color="error" onClick={() => removeFromCart(index)}>
+                            <DeleteIcon fontSize="inherit" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Grid>
+          )}
 
           {/* Price and Total Amount Displays */}
           <Grid item xs={12}>
@@ -417,7 +572,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 Total Amount
               </Typography>
               <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                ₹{(quantity * (watch('rate_per_unit') || 0)).toFixed(2)}
+                ₹{grandTotal.toFixed(2)}
               </Typography>
             </Box>
           </Grid>

@@ -12,15 +12,10 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import toast, { Toaster } from 'react-hot-toast'
 
 const schema = yup.object().shape({
-  code: yup.string().required('Shop Code is required.').trim(),
-  name: yup.string().required('Shop Name is required.').trim(),
-  address_line1: yup.string().required('Address is required.').trim(),
-  city: yup.string().required('City is required.').trim(),
-  phone: yup
-    .string()
-    .required('Phone Number is required.')
-    .matches(/^\d{10}$/, 'Phone Number must be exactly 10 digits.')
-    .trim()
+  sku: yup.string().required('SKU is required.').trim(),
+  name: yup.string().required('Product Name is required.').trim(),
+  egg_price_min: yup.number().required('Min Price is required.').min(0, 'Min Price must be positive'),
+  egg_price_max: yup.number().required('Max Price is required.').min(yup.ref('egg_price_min'), 'Max Price must be greater than or equal to Min Price'),
 })
 
 interface Props {
@@ -30,7 +25,7 @@ interface Props {
   selectedItem?: any
 }
 
-const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
+const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const {
@@ -43,11 +38,10 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
   } = useForm({ 
     resolver: yupResolver(schema),
     defaultValues: {
-      code: '',
+      sku: '',
       name: '',
-      address_line1: '',
-      city: '',
-      phone: '',
+      egg_price_min: 0,
+      egg_price_max: 0,
       is_active: true
     }
   })
@@ -55,20 +49,18 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
   useEffect(() => {
     if (selectedItem) {
       reset({
-        code: selectedItem.code || '',
+        sku: selectedItem.sku || '',
         name: selectedItem.name || '',
-        address_line1: selectedItem.address_line1 || '',
-        city: selectedItem.city || '',
-        phone: selectedItem.phone || '',
+        egg_price_min: selectedItem.egg_price_min || 0,
+        egg_price_max: selectedItem.egg_price_max || 0,
         is_active: selectedItem.isActive === true || selectedItem.is_active == 1 ? true : false,
       })
     } else {
       reset({
-        code: '',
+        sku: '',
         name: '',
-        address_line1: '',
-        city: '',
-        phone: '',
+        egg_price_min: 0,
+        egg_price_max: 0,
         is_active: true
       })
     }
@@ -79,17 +71,16 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
 
     try {
       let payload = {
-        code: data.code,
+        sku: data.sku,
         name: data.name,
-        address_line1: data.address_line1,
-        city: data.city,
-        phone: data.phone,
+        egg_price_min: data.egg_price_min,
+        egg_price_max: data.egg_price_max,
         is_active: data.is_active ? 1 : 0
       }
 
       let url = selectedItem 
-        ? `/api/v1/admin/updateShop?id=${selectedItem.id}` 
-        : `/api/v1/admin/createShop`
+        ? `/api/v1/admin/updateShopEggPrices?id=${selectedItem.id}` 
+        : `/api/v1/admin/createProduct`
 
       const response = await axiosInstance.post(url, payload)
       if (response.data.success || response.status === 200 || response.status === 201) {
@@ -128,7 +119,7 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         }}
       >
         <Typography sx={{ fontSize: '25px', fontWeight: 'bold', flexGrow: 1,paddingLeft: '10px' }}>
-          {selectedItem ? 'Update' : 'Add'} Shop
+          {selectedItem ? 'Update' : 'Add'} Egg Prices
         </Typography>
          <IconButton onClick={handleClose}>
           <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
@@ -140,19 +131,16 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           <Toaster position="top-right" reverseOrder={false} />
           <Grid container spacing={4}>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='code' label='Shop Code' placeholder='Shop Code' mandatory />
+              <RHFInput control={control} name='sku' label='SKU' placeholder='SKU' mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='name' label='Shop Name' placeholder='Shop Name' mandatory />
+              <RHFInput control={control} name='name' label='Product Name' placeholder='Product Name' mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='phone' label='Phone Number' placeholder='Phone Number' mandatory />
+              <RHFInput control={control} name='egg_price_min' label='Min Egg Price' type='number' placeholder='Min Price' mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='city' label='City' placeholder='City' mandatory />
-            </Grid>
-            <Grid item xs={6}>
-              <RHFInput control={control} name='address_line1' label='Address Line 1' placeholder='Address Line 1' mandatory />
+              <RHFInput control={control} name='egg_price_max' label='Max Egg Price' type='number' placeholder='Max Price' mandatory />
             </Grid>
             <Grid item xs={12}>
                <Box sx={{ mt: 1 }}>
@@ -176,11 +164,11 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           >
             Cancel
           </Button>
-          <SubmitButton label={selectedItem ? 'Update Shop' : 'Add Shop'} isLoading={isLoading} isWidth={false} />
+          <SubmitButton label={selectedItem ? 'Update Prices' : 'Add Prices'} isLoading={isLoading} isWidth={false} />
         </DialogActions>
       </form>
     </Dialog>
   )
 }
 
-export default AddShop
+export default AddUpdatePrice

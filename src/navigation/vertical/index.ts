@@ -14,7 +14,7 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Shops",
     icon: "bx:package",
-    path: '/products',
+    path: '/shop',
     allowedRoles: ["Administrator"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
@@ -24,6 +24,15 @@ const tempObject: VerticalNavItemsType = [
     title: "Users",
     icon: "bx:group",
     path: '/user',
+    allowedRoles: ["Administrator"],
+    // isPermissionNeeded: true,
+    // permissionName: "dashboard",
+  },
+
+  {
+    title: "Price",
+    icon: "mdi:credit-card-outline",
+    path: '/price',
     allowedRoles: ["Administrator"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
@@ -48,7 +57,7 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Quick Bill",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Staff"],
     path: "/quickBill",
     // isPermissionNeeded: true,
     // permissionName: "view_orders", // aligned with backend permission
