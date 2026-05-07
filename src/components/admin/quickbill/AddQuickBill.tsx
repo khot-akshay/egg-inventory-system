@@ -18,6 +18,7 @@ import RHFInput from 'src/hook-forms/RHFInput'
 import LocalAtmIcon from '@mui/icons-material/LocalAtm'
 import PhonelinkRingIcon from '@mui/icons-material/PhonelinkRing'
 import EventNoteIcon from '@mui/icons-material/EventNote'
+import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 const schema = yup.object().shape({
   shop_id: yup.mixed().test('shop-required', 'Shop is required', function (value) {
@@ -76,7 +77,9 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       product_id: null,
       rate_per_unit: 150,
       customer_name: '',
-      phone_number: ''
+      phone_number: '',
+      mixed_cash: 0,
+      mixed_online: 0
     }
   })
 
@@ -108,7 +111,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     if (value === 'tray') val = 30
     if (value === 'dozen') val = 12
     if (value === 'half_dozen') val = 6
-    
+
     // We set quantity directly to the unit value as requested
     setQuantity(val)
     // Keep unitValue as 1 so that totalEggs (quantity * unitValue) remains correct
@@ -121,19 +124,19 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       const productId = watch('product_id')
       // Try to get category_id if productId is an object, otherwise use the ID directly
       const id = typeof productId === 'object' ? (productId?.category_id || productId?.id) : productId
-      
+
       if (id) {
         try {
           const response = await axiosInstance.get(`/api/v1/shop/getAllEggpriceAsPerCategoryForThatShop?category_id=${id}`)
           if (response.data.success) {
             // Check if products are in response.data.data.products or response.data.products
             const products = response.data.data?.products || response.data.products
-            
+
             if (products && products.length > 0) {
               const product = products[0]
               const min = parseFloat(product.egg_price_min)
               const max = parseFloat(product.egg_price_max)
-              
+
               if (!isNaN(min) && !isNaN(max)) {
                 setMinRate(min)
                 setMaxRate(max)
@@ -220,16 +223,22 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         customer_id: isNewCustomer ? null : extractId(data.shop_id),
         customer_name: isNewCustomer ? data.customer_name : null,
         phone_number: isNewCustomer ? data.phone_number : null,
-        payment_type: paymentType,
-        items: cart.map(item => ({
+        paid_amount: grandTotal,
+        payment_type: paymentType === 'mixed' ? 'cash,upi' : paymentType,
+        lines: cart.map(item => ({
           product_id: item.product_id,
-          quantity: item.quantity,
-          total_eggs: item.total_eggs,
+          quantity: item.total_eggs,
           unit_cost: item.rate,
           damaged_eggs: item.damaged_eggs,
           unit_type: item.unit,
           unit_value: item.unit_value
-        }))
+        })),
+        payments: paymentType === 'mixed' ? [
+          { amount: Number(data.mixed_cash), payment_type: 'cash' },
+          { amount: Number(data.mixed_online), payment_type: 'upi' }
+        ] : [
+          { amount: grandTotal, payment_type: paymentType }
+        ]
       }
 
       const response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
@@ -241,7 +250,9 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
           product_id: null,
           rate_per_unit: 150,
           customer_name: '',
-          phone_number: ''
+          phone_number: '',
+          mixed_cash: 0,
+          mixed_online: 0
         })
         setCart([])
         setQuantity(1)
@@ -334,7 +345,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
             {(minRate !== null && maxRate !== null) && (
               <>
                 <Typography className="input-label">
-                 Price per Egg
+                  Price per Egg
                 </Typography>
                 <Grid container spacing={1}>
                   {Array.from(
@@ -345,21 +356,19 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                       <Button
                         fullWidth
                         variant={watch('rate_per_unit') === r ? "contained" : "outlined"}
-                        size="small"
                         onClick={() => setValue('rate_per_unit', r)}
-                        sx={{ fontSize: '0.75rem', py: 0.5 }}
                       >
                         {r.toFixed(2)}
                       </Button>
 
-                      
+
                     </Grid>
                   ))}
                 </Grid>
               </>
             )}
 
-           
+
           </Grid>
 
           {/* Integrated Unit and Quantity Selection */}
@@ -374,13 +383,12 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   exclusive
                   onChange={handleUnitChange}
                   fullWidth
-                  size="small"
                   color="success"
-                  sx={{ 
-                    bgcolor: 'white',
+                  sx={{
+                    bgcolor: 'background.paper',
                     height: 40,
                     '& .MuiToggleButton-root': {
-                      borderRadius: 2,
+                      borderRadius: 1,
                       mx: 0.2,
                       border: '1px solid !important',
                       borderColor: 'divider',
@@ -401,19 +409,18 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </Typography>
                 <Grid container spacing={1} alignItems="center">
                   <Grid item xs={3}>
-                    <Button
+                     <Button
                       onClick={() => setQuantity(q => Math.max(1, q - 1))}
                       fullWidth
-                      sx={{
-                        height: 40,
-                        minWidth: 0,
-                        border: '1px solid',
+                      variant='outlined'
+                      sx={{ 
+                        height: 40, 
+                        minWidth: 0, 
+                        borderRadius: 1,
+                        fontSize: '1.2rem',
                         borderColor: 'divider',
-                        borderRadius: 2,
-                        bgcolor: 'white',
                         color: 'text.primary',
-                        fontSize: '1.5rem',
-                        '&:hover': { bgcolor: '#f5f5f5' }
+                        '&:hover': { bgcolor: 'action.hover', borderColor: 'divider' }
                       }}
                     >
                       −
@@ -428,8 +435,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                         alignItems: 'center',
                         border: '1px solid',
                         borderColor: 'divider',
-                        borderRadius: 2,
-                        bgcolor: 'white'
+                        borderRadius: 1,
+                        bgcolor: 'background.paper'
                       }}
                     >
                       <TextField
@@ -467,14 +474,14 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                     <Button
                       onClick={() => setQuantity(q => q + 1)}
                       fullWidth
-                      sx={{
-                        height: 40,
-                        minWidth: 0,
-                        borderRadius: 2,
-                        bgcolor: 'success.main',
-                        color: 'white',
-                        fontSize: '1.5rem',
-                        '&:hover': { bgcolor: 'success.dark' }
+                      variant='contained'
+                      color='success'
+                      sx={{ 
+                        height: 40, 
+                        minWidth: 0, 
+                        borderRadius: 1,
+                        fontSize: '1.2rem',
+                        boxShadow: 'none'
                       }}
                     >
                       +
@@ -508,7 +515,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               </Typography>
               <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
                 <Table size="small">
-                  <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                  <TableHead sx={{ bgcolor: hexToRGBA(theme.palette.success.main, 0.12) }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
                       <TableCell align="center" sx={{ fontWeight: 'bold' }}>Qty</TableCell>
@@ -545,7 +552,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 p: 1.5,
-                bgcolor: '#F5F5F5',
+                bgcolor: 'action.hover',
                 borderRadius: 2,
                 mb: 2
               }}
@@ -564,7 +571,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 p: 2,
-                bgcolor: '#E8F5E9',
+                bgcolor: hexToRGBA(theme.palette.success.main, 0.12),
                 borderRadius: 2
               }}
             >
@@ -585,26 +592,16 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
             <Grid container spacing={2}>
               {[
                 { id: 'cash', label: 'Cash', icon: <LocalAtmIcon /> },
-                { id: 'online', label: 'Online', icon: <PhonelinkRingIcon /> },
-                { id: 'credit', label: 'Credit', icon: <EventNoteIcon /> }
+                { id: 'upi', label: 'Online', icon: <PhonelinkRingIcon /> },
+                { id: 'credit', label: 'Credit', icon: <EventNoteIcon /> },
+                { id: 'mixed', label: 'Mixed', icon: <EventNoteIcon /> }
               ].map(type => (
-                <Grid item xs={4} key={type.id}>
+                <Grid item xs={3} key={type.id}>
                   <Button
                     fullWidth
                     variant={paymentType === type.id ? 'contained' : 'outlined'}
                     onClick={() => setPaymentType(type.id)}
-                    sx={{
-                      height: 40,
-                      borderRadius: 3,
-                      bgcolor: paymentType === type.id ? 'success.main' : 'white',
-                      borderColor: 'divider',
-                      color: paymentType === type.id ? 'white' : 'text.secondary',
-                      '&:hover': {
-                        bgcolor: paymentType === type.id ? 'success.dark' : '#f8f9fa',
-                        borderColor: 'divider'
-                      },
-                      textTransform: 'none'
-                    }}
+                  
                   >
                     <Typography variant="body2" sx={{ fontWeight: 500, color: 'inherit' }}>
                       {type.label}
@@ -614,13 +611,40 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               ))}
             </Grid>
           </Grid>
+          
+          {/* Mixed Payment Details */}
+          {paymentType === 'mixed' && (
+            <Grid item xs={12}>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <RHFInput
+                    control={control}
+                    name="mixed_cash"
+                    label="Cash Amount"
+                    type="number"
+                    placeholder="Enter Cash"
+                    fullWidth
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <RHFInput
+                    control={control}
+                    name="mixed_online"
+                    label="UPI Amount"
+                    type="number"
+                    placeholder="Enter UPI"
+                    fullWidth
+                  />
+                </Grid>
+              </Grid>
+            </Grid>
+          )}
 
           {/* Confirm Bill Button */}
           <Grid item xs={12} sx={{ mt: 3 }}>
             <Button
               fullWidth
               variant="contained"
-              color="success"
               type="submit"
               disabled={loading}
             >
