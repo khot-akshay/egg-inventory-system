@@ -83,6 +83,12 @@ const tempObject: VerticalNavItemsType = [
     path: "/vendor",
   },
   {
+    title: "Vehicles",
+    icon: "mdi:truck-delivery", // suppliers
+    allowedRoles: ["Administrator", "Staff"],
+    path: "/vehicles",
+  },
+  {
     title: "Bills",
     icon: "mdi:file-document-outline", // invoices
     allowedRoles: ["Administrator", "Staff"],
