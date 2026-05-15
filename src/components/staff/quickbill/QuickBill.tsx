@@ -1,8 +1,12 @@
-import { Box, Button, Card, Grid, InputAdornment, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, Grid, IconButton, InputAdornment, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material'
 import { GridCellParams, GridColDef, GridSearchIcon } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTheme } from '@mui/material/styles'
+import CommonSkeleton from 'src/@core/components/common-skeleton/CommonSkeleton'
+import CommonCard from 'src/@core/components/common-card/CommonCard'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
+import CommonExport from 'src/@core/components/common-export/CommonExport'
 
 import GoBack from 'src/components/common/goBack/GoBackButton';
 import axiosInstance from 'src/services/axios'
@@ -41,13 +45,15 @@ const QuickBill = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(10)
+  const [pageSize, setPageSize] = useState(6)
   const [page, setPage] = useState(0)
   const [openAdd, setOpenAdd] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
   const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const theme = useTheme();
   const router = useRouter()
   const { control, watch } = useForm({
     defaultValues: {
@@ -337,6 +343,73 @@ const QuickBill = () => {
               <Grid item xs={12} md={3}>
                 <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
               </Grid>
+               <Grid item xs={4} md={1} sx={{display:'flex', gap:1, alignItems:'center'}}>
+                  {/* List View */}
+                  <IconButton
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "6px",
+                      border: viewMode === "list" ? "none" : "1px solid #D1D5DB",
+                      bgcolor: viewMode === "list" ? theme.palette.primary.main : "transparent",
+                      color: viewMode === "list" ? "#FFFFFF" : undefined,
+                      transition: "all 0.25s ease",
+                      "&:hover": {
+                        bgcolor: theme.palette.primary.main,
+                        color: "#FFFFFF",
+                        border: "none",
+                      },
+                    }}
+                    onClick={() => {
+                      setViewMode("list");
+                      setPage(0);
+                    }}
+                  >
+                    <Icon icon="material-symbols:list" width={20} />
+                  </IconButton>
+
+                  {/* Grid View */}
+                  <IconButton
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "6px",
+                      border: viewMode === "grid" ? "none" : "1px solid #D1D5DB",
+                      bgcolor: viewMode === "grid" ? theme.palette.primary.main : "transparent",
+                      color: viewMode === "grid" ? "#FFFFFF" : undefined,
+                      transition: "all 0.25s ease",
+                      "&:hover": {
+                        bgcolor: theme.palette.primary.main,
+                        color: "#FFFFFF",
+                        border: "none",
+                      },
+                    }}
+                    onClick={() => {
+                      setViewMode("grid");
+                      setPage(0);
+                    }}
+                  >
+                    <Icon icon="material-symbols:apps" width={20} />
+                  </IconButton>
+
+                  {/* Download Button */}
+                  <CommonExport
+                    data={rows}
+                    fileName="QuickBills"
+                    columns={columns}
+                    transform={(row, index) => [
+                      index + 1,
+                      `"${row.customer?.name || 'NA'}"`,
+                      `"${row.items?.[0]?.product?.name || 'NA'}"`,
+                      row.items?.[0]?.quantity || '0',
+                      row.items?.[0]?.unit_cost || '0',
+                      row.total || '0',
+                      row.status || 'NA',
+                      row.created_at ? new Date(row.created_at).toLocaleDateString() : 'NA'
+                    ]}
+                  />
+              </Grid>
+              
               <Grid item xs={12} md={3}>
                 <RHFAutoComplete
                   control={control}
@@ -350,19 +423,122 @@ const QuickBill = () => {
                   required={false}
                 />
               </Grid>
+             
            
             </Grid>
-        <CommonDatagrid
-          totalRows={totalRows}
-          pageSize={pageSize}
-          currentPage={page}
-          handleChangePage={handlePageChange}
-          handleChangeRowsPerPage={handlePageSizeChange}
-          columns={columns}
-          rows={rows}
-          checkboxSelection={false}
-          loading={loading}
-        />
+        {viewMode === 'list' ? (
+          <CommonDatagrid
+            totalRows={totalRows}
+            pageSize={pageSize}
+            currentPage={page}
+            handleChangePage={handlePageChange}
+            handleChangeRowsPerPage={handlePageSizeChange}
+            columns={columns}
+            rows={rows}
+            checkboxSelection={false}
+            loading={loading}
+          />
+        ) : (
+          <Grid container spacing={3}>
+            {loading ? (
+              Array.from({ length: 8 }).map((_, index) => (
+                <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
+                  <CommonCard sx={{ '&:hover': { transform: 'none', boxShadow: theme.shadows[2], borderColor: theme.palette.divider } }}>
+                    <Box display="flex" alignItems="center" gap={1.5}>
+                      <CommonSkeleton variant="rectangular" width={40} height={40} sx={{ borderRadius: 1 }} />
+                      <CommonSkeleton variant="text" width="60%" />
+                    </Box>
+                    <CommonSkeleton variant="text" width="80%" />
+                    <Box sx={{ mt: 2 }}>
+                      <CommonSkeleton variant="text" width="40%" />
+                      <CommonSkeleton variant="text" width="90%" />
+                    </Box>
+                  </CommonCard>
+                </Grid>
+              ))
+            ) : rows.length > 0 ? (
+              rows.map((item) => (
+                <Grid item key={item.id} xs={12} sm={6} md={3} lg={3}>
+                  <CardActionArea onClick={() => handleViewUser(item.id)} sx={{ height: "100%" }}>
+                    <CommonCard>
+                      <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: 1, minWidth: 0 }}>
+                          <Icon icon="solar:bill-list-linear" fontSize={24} color={theme.palette.primary.main} />
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              fontSize: "16px",
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {item.customer?.name || "NA"}
+                          </Typography>
+                        </Box>
+                        <Box onClick={(e) => e.stopPropagation()}>
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setSelectedItem(item)
+                              setOpenEdit(true)
+                            }}
+                          >
+                            <Icon icon="circum:edit" fontSize={20} />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Product: {item.items?.[0]?.product?.name || 'NA'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Quantity: {item.items?.[0]?.quantity || '0'}
+                        </Typography>
+                        <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700, mt: 1 }}>
+                          ₹{item.total || '0'}
+                        </Typography>
+                      </Box>
+
+                      <Box sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <Typography variant="caption" sx={{ textTransform: 'capitalize', px: 1, py: 0.5, borderRadius: 1, bgcolor: theme.palette.action.hover }}>
+                          {item.status || 'NA'}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          {new Date(item.created_at).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    </CommonCard>
+                  </CardActionArea>
+                </Grid>
+              ))
+            ) : (
+              <Grid item xs={12}>
+                <Box sx={{ textAlign: 'center', py: 5 }}>
+                  <Typography color="text.secondary">No bills found</Typography>
+                </Box>
+              </Grid>
+            )}
+            
+            {totalRows > pageSize && (
+               <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant="body2">
+                      Page {page + 1} of {Math.ceil(totalRows / pageSize)}
+                    </Typography>
+                    <IconButton disabled={page === 0} onClick={() => setPage(page - 1)}>
+                      <Icon icon="mdi:chevron-left" />
+                    </IconButton>
+                    <IconButton disabled={(page + 1) * pageSize >= totalRows} onClick={() => setPage(page + 1)}>
+                      <Icon icon="mdi:chevron-right" />
+                    </IconButton>
+                  </Box>
+               </Grid>
+            )}
+          </Grid>
+        )}
       </Card>
       {openAdd && <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
       {openDelete && (

@@ -270,7 +270,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   }
 
   return (
-    <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 3, height: '100%' }}>
+    <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
       <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
         🥚 Quick Bill
       </Typography>

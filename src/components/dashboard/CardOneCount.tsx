@@ -28,8 +28,8 @@ const CardOneCount = ({
     return (
         <Card
             sx={{
-                borderRadius: 4,
-                boxShadow: 3,
+                borderRadius: 2,
+                boxShadow: 2,
                 transition: '0.2s',
                 '&:hover': { boxShadow: 6 }
             }}
