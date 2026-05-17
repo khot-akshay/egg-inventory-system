@@ -302,12 +302,12 @@ const QuickBill = () => {
         <>
           {/* {checkPermission('update_brand') && ( */}
           <Button
-            style={{ color: '#84919d', margin: '-10px' }}
+            sx={{ color: 'text.secondary', margin: '-10px' }}
             onClick={() => handleViewUser(params.row.id)}>
             <Icon icon={'ph:eye'} fontSize={24} />
           </Button>
           <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
               <Icon icon={'circum:edit'} fontSize={24} />
             </Button>
           </Tooltip>
@@ -316,10 +316,10 @@ const QuickBill = () => {
 
           <Tooltip title='Delete Product.' placement='bottom'>
             <Button
-              style={{ color: '#84919d', margin: '-10px' }}
+              sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
-              <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
+              <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
             </Button>
           </Tooltip>
           {/* )} */}
@@ -352,11 +352,11 @@ const QuickBill = () => {
                       borderRadius: "6px",
                       border: viewMode === "list" ? "none" : "1px solid #D1D5DB",
                       bgcolor: viewMode === "list" ? theme.palette.primary.main : "transparent",
-                      color: viewMode === "list" ? "#FFFFFF" : undefined,
+                      color: viewMode === "list" ? "common.white" : undefined,
                       transition: "all 0.25s ease",
                       "&:hover": {
                         bgcolor: theme.palette.primary.main,
-                        color: "#FFFFFF",
+                        color: "common.white",
                         border: "none",
                       },
                     }}
@@ -376,11 +376,11 @@ const QuickBill = () => {
                       borderRadius: "6px",
                       border: viewMode === "grid" ? "none" : "1px solid #D1D5DB",
                       bgcolor: viewMode === "grid" ? theme.palette.primary.main : "transparent",
-                      color: viewMode === "grid" ? "#FFFFFF" : undefined,
+                      color: viewMode === "grid" ? "common.white" : undefined,
                       transition: "all 0.25s ease",
                       "&:hover": {
                         bgcolor: theme.palette.primary.main,
-                        color: "#FFFFFF",
+                        color: "common.white",
                         border: "none",
                       },
                     }}

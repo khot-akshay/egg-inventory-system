@@ -185,31 +185,22 @@ const Products = () => {
       },
       hideable: false
     },
-
-    {
-      field: 'sku',
-      headerName: 'SKU',
+  {
+      field: 'shop.name',
+      headerName: 'Shop',
       flex: 1,
-      align: 'center',
-      headerAlign: 'center',
-      minWidth: 150,
+      minWidth: 200,
       sortable: false,
-      renderCell: (params: GridCellParams) =>
-        <Box
-          sx={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', alignItems: 'center', height: '100%', gap: 2 }}
-          onClick={() => handleViewUser(params.row.id)}
-        >
-          <Typography color="primary.main">
-            {params.row?.sku || 'NA'}
-          </Typography>
-          <Icon icon="solar:arrow-right-up-linear" style={{ color: 'primary', fontSize: 15 }}></Icon>
-        </Box>
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.shop?.name || 'NA'}
+      </div>
     },
+ 
     {
       field: 'name',
       headerName: 'Product Name',
       flex: 1,
-      minWidth: 250,
+      minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) =>
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
@@ -226,26 +217,7 @@ const Products = () => {
         {params.row?.categories?.name || params.row?.category?.name || 'NA'}
       </div>
     },
-    {
-      field: 'unit',
-      headerName: 'Unit',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.unit || 'NA'}
-      </div>
-    },
-    {
-      field: 'selling_price',
-      headerName: 'Price',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.selling_price || 'NA'}
-      </div>
-    },
+  
     {
       field: 'min_stock_level',
       headerName: 'Min Stock',
@@ -253,19 +225,10 @@ const Products = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.min_stock_level || '0'}
+        {Math.floor(Number(params.row?.min_stock_level || 0))}
       </div>
     },
-    {
-      field: 'shop.name',
-      headerName: 'Shop',
-      flex: 1,
-      minWidth: 200,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.shop?.name || 'NA'}
-      </div>
-    },
+  
 
     {
       field: 'status',
@@ -287,7 +250,7 @@ const Products = () => {
       field: 'created_at',
       headerName: 'Created Date',
       flex: 1,
-      minWidth: 150,
+      minWidth: 180,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <DateFormateComponent date={params.row?.created_at ?? ''} />
@@ -303,12 +266,12 @@ const Products = () => {
         <>
           {/* {checkPermission('update_brand') && ( */}
           <Button
-            style={{ color: '#84919d', margin: '-10px' }}
+            sx={{ color: 'text.secondary', margin: '-10px' }}
             onClick={() => handleViewUser(params.row.id)}>
             <Icon icon={'ph:eye'} fontSize={24} />
           </Button>
           <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
               <Icon icon={'circum:edit'} fontSize={24} />
             </Button>
           </Tooltip>
@@ -317,10 +280,10 @@ const Products = () => {
 
           <Tooltip title='Delete Product.' placement='bottom'>
             <Button
-              style={{ color: '#84919d', margin: '-10px' }}
+              sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
-              <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
+              <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
             </Button>
           </Tooltip>
           {/* )} */}
@@ -434,7 +397,7 @@ const Products = () => {
       {openDelete && (
         <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem?.id}
           fetchData={fetchGame}
-          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/products/deleteProducts/'} />
+          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/deleteProductById?id='} />
       )}
       {openEdit && (
         <AddProducts open={openEdit} handleClose={() => setOpenEdit(false)}

@@ -17,40 +17,39 @@ type OptionItem = { label: string; value: number | string }
 const schema = yup.object().shape({
   registration_number: yup
     .string()
-    .required('Registration number is required.')
+    .required('Vehicle Number is required.')
     .trim(),
   name: yup
     .string()
-    .required('Vehicle name is required.')
-    .matches(/^\S(.*\S)?$/, 'Vehicle name cannot have leading or trailing spaces.')
-    .matches(/^(?!.*\s{2,}).*$/, 'Vehicle name cannot have excessive spaces between words.')
-    .min(3, 'Vehicle name must be at least 3 characters long.')
-    .max(100, 'Vehicle name cannot be more than 100 characters long.')
+    .required('Vehicle Name is required.')
+    .matches(/^\S(.*\S)?$/, 'Vehicle Name cannot have leading or trailing spaces.')
+    .matches(/^(?!.*\s{2,}).*$/, 'Vehicle Name cannot have excessive spaces between words.')
+    .max(100, 'Vehicle Name cannot be more than 100 characters long.')
     .trim(),
-  vehicle_type: yup
-    .string()
-    .required('Vehicle type is required.')
-    .trim(),
-  capacity_kg: yup
-    .number()
-    .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
-    .nullable()
-    .required('Capacity is required.')
-    .min(0, 'Capacity must be 0 or greater.')
-    .typeError('Capacity must be a valid number'),
+  // vehicle_type: yup
+  //   .string()
+  //   .required('Vehicle type is required.')
+  //   .trim(),
+  // capacity_kg: yup
+  //   .number()
+  //   .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
+  //   .nullable()
+  //   .required('Capacity is required.')
+  //   .min(0, 'Capacity must be 0 or greater.')
+  //   .typeError('Capacity must be a valid number'),
   assigned_user_id: yup
     .mixed()
-    .required('Assigned user is required.'),
+    .required('Assigned User is required.'),
   driver_id: yup
     .mixed()
     .required('Driver is required.'),
-  shop_id: yup
-    .mixed()
-    .required('Shop is required.'),
-  notes: yup
-    .string()
-    .nullable()
-    .trim(),
+  // shop_id: yup
+  //   .mixed()
+  //   .required('Shop is required.'),
+  // notes: yup
+  //   .string()
+  //   .nullable()
+  //   .trim(),
   is_active: yup.boolean().required('Please set the vehicle status.')
 })
 
@@ -132,7 +131,7 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         capacity_kg: data.capacity_kg,
         assigned_user_id: extractId(data.assigned_user_id),
         driver_id: extractId(data.driver_id),
-        shop_id: extractId(data.shop_id),
+        // shop_id: extractId(data.shop_id),
         notes: data.notes?.trim() || '',
         is_active: data.is_active
       }
@@ -233,7 +232,7 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#3A4E7C0F'
+          backgroundColor: theme => theme.palette.action.hover
         }}
         id='customized-dialog-title'
       >
@@ -242,30 +241,19 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           {selectedItem ? 'Update' : 'Add'} Vehicle{' '}
         </Typography>
         <IconButton onClick={handleCloseModal}>
-          <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
+          <HighlightOffIcon sx={{ color: 'error.main' }} fontSize="large" />
         </IconButton>
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'registration_number'} label={'Registration Number'} placeholder={'e.g. MH12AB1234'} mandatory />
+              <RHFInput control={control} name={'registration_number'} label={'Vehicle Number'} placeholder={'Vehicle Number'} mandatory />
             </Grid>
             <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'name'} label={'Vehicle Name'} placeholder={'e.g. Tata Ace'} mandatory />
+              <RHFInput control={control} name={'name'} label={'Vehicle Name'} placeholder={'Vehicle Name'} mandatory />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'vehicle_type'} label={'Vehicle Type'} placeholder={'e.g. Mini Truck'} mandatory />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <RHFNumberInput
-                control={control}
-                name={'capacity_kg'}
-                label={'Capacity (kg)'}
-                placeholder={'e.g. 1200'}
-                min={0}
-              />
-            </Grid>
+          
             <Grid item xs={12} md={6}>
               <RHFAutoComplete
                 control={control}
@@ -290,7 +278,19 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 required
               />
             </Grid>
+              <Grid item xs={12} md={6}>
+              <RHFInput control={control} name={'vehicle_type'} label={'Vehicle Type'} placeholder={'Vehicle Type'} mandatory={false} />
+            </Grid>
             <Grid item xs={12} md={6}>
+              <RHFNumberInput
+                control={control}
+                name={'capacity_kg'}
+                label={'Capacity (kg)'}
+                placeholder={'Capacity (kg)'}
+                min={0}
+              />
+            </Grid>
+            {/* <Grid item xs={12} md={6}>
               <RHFAutoComplete
                 control={control}
                 name="shop_id"
@@ -301,9 +301,9 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 valueKey="id"
                 required
               />
-            </Grid>
+            </Grid> */}
             <Grid item xs={12} md={12}>
-              <RHFInput control={control} name={'notes'} label={'Notes'} placeholder={'Enter any notes...'} multiline rows={3} />
+              <RHFInput control={control} name={'notes'} label={'Notes'} placeholder={'Enter any notes...'} multiline rows={3} mandatory={false} />
             </Grid>
             
           

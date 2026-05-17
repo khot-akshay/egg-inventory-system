@@ -9,7 +9,7 @@ import {
   Typography,
 } from "@mui/material";
 import { GridCellParams, GridColDef } from "@mui/x-data-grid";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import CommonDatagrid from "src/components/common/DatagridData.tsx/CommonDatagrid";
 
 import GoBack from "src/components/common/goBack/GoBackButton";
@@ -23,6 +23,7 @@ import SearchInput from "src/components/common/SearchInput";
 import toast from "react-hot-toast";
 import AddUser from "./AddUser";
 import { useRouter } from "next/router";
+import TooltipOnly from "src/components/common/TooltipOnly/TooltipOnly";
 
 interface UserRow {
   id: number;
@@ -51,7 +52,7 @@ const User = () => {
 
   const router = useRouter();
 
-  const fetchGame = async () => {
+  const fetchGame = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
     try {
       let url = `/api/v1/admin/getAllUsers?pageNo=${page}&limit=${pageSize}`;
@@ -60,19 +61,28 @@ const User = () => {
         url = `${url}&global_search=${searchQuery}`;
       }
 
-      const response = await axiosInstance.get(url);
+      const response = await axiosInstance.get(url, { signal });
       setRows((response.data.data?.users ?? []) as UserRow[]);
       setTotalRows(response.data.data?.count ?? 0);
-    } catch (e) {
-      console.error(e);
+    } catch (e: any) {
+      if (e.name === 'CanceledError' || e.name === 'AbortError') {
+        console.log('Fetch aborted');
+      } else {
+        console.error(e);
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, searchQuery]);
 
   useEffect(() => {
-    fetchGame();
-  }, [page, pageSize, searchQuery]);
+    const controller = new AbortController();
+    fetchGame(controller.signal);
+
+    return () => {
+      controller.abort();
+    };
+  }, [fetchGame]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -117,7 +127,7 @@ const User = () => {
     {
       field: "id",
       headerName: "Sr. No.",
-      flex: 1,
+      flex: 0.5,
       minWidth: 80,
       sortable: false,
       renderCell: (index) => {
@@ -140,36 +150,41 @@ const User = () => {
             cursor: "pointer",
             alignItems: "center",
             height: "100%",
+            width: "100%"
           }}
           onClick={() => handleViewUser(params.row.id)}
         >
-          <Typography color="primary.main">
-            {params.row?.name || "NA"}
-          </Typography>
+          <TooltipOnly title={params.row?.name || "NA"}>
+            <Typography color="primary.main" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {params.row?.name || "NA"}
+            </Typography>
+          </TooltipOnly>
           <Icon
             icon="solar:arrow-right-up-linear"
-            style={{ color: "primary", fontSize: 15 }}
+            style={{ color: "primary", fontSize: 15, marginLeft: '4px' }}
           />
         </Box>
       ),
     },
     {
       field: "email",
-      headerName: "Email",
+      headerName: "Email ID",
       flex: 1,
       minWidth: 220,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.5 }}>
-          {params.row?.email || "NA"}
-        </div>
+        <TooltipOnly title={params.row?.email || "NA"}>
+          <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.5 }}>
+            {params.row?.email || "NA"}
+          </div>
+        </TooltipOnly>
       ),
     },
     {
       field: "phone",
-      headerName: "Phone Number",
+      headerName: "Mobile Number",
       flex: 1,
-      minWidth: 150,
+      minWidth: 140,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.5 }}>
@@ -181,30 +196,34 @@ const User = () => {
       field: "role",
       headerName: "Role",
       flex: 1,
-      minWidth: 150,
+      minWidth: 110,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.5, textTransform: "capitalize" }}>
-          {params.row?.roles?.[0]?.name || params.row?.role || "NA"}
-        </div>
+        <TooltipOnly title={params.row?.roles?.[0]?.name || params.row?.role || "NA"}>
+          <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.5, textTransform: "capitalize" }}>
+            {params.row?.roles?.[0]?.name || params.row?.role || "NA"}
+          </div>
+        </TooltipOnly>
       ),
     },
     {
       field: "shop",
       headerName: "Shop",
       flex: 1,
-      minWidth: 150,
+      minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: "normal", wordBreak: "break-word", lineHeight: 1.5 }}>
-          {params.row?.shop?.name || "NA"}
-        </div>
+        <TooltipOnly title={params.row?.shop?.name || "NA"}>
+          <div style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.5 }}>
+            {params.row?.shop?.name || "NA"}
+          </div>
+        </TooltipOnly>
       ),
     },
     {
       field: "status",
       headerName: "Status",
-      minWidth: 150,
+      minWidth: 130,
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const isActive =
@@ -227,7 +246,7 @@ const User = () => {
       field: "created_at",
       headerName: "Created Date",
       flex: 1,
-      minWidth: 150,
+      minWidth: 180,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <DateFormateComponent date={params.row?.created_at ?? ""} />
@@ -241,28 +260,30 @@ const User = () => {
       flex: 1,
       renderCell: (params: GridCellParams) => (
         <>
-          <Button
-            style={{ color: "#84919d", margin: "-10px" }}
-            onClick={() => handleViewUser(params.row.id)}
-          >
-            <Icon icon={"ph:eye"} fontSize={24} />
-          </Button>
-          <Tooltip title="Update User." placement="bottom">
+          <TooltipOnly title="View User.">
             <Button
-              sx={{ color: "#84919d", margin: "-10px" }}
+              sx={{ color: "text.secondary", margin: "-10px" }}
+              onClick={() => handleViewUser(params.row.id)}
+            >
+              <Icon icon={"ph:eye"} fontSize={24} />
+            </Button>
+          </TooltipOnly>
+          <TooltipOnly title="Update User.">
+            <Button
+              sx={{ color: "text.secondary", margin: "-10px" }}
               onClick={() => handleEditClick(params)}
             >
               <Icon icon={"circum:edit"} fontSize={24} />
             </Button>
-          </Tooltip>
-          <Tooltip title="Delete User." placement="bottom">
+          </TooltipOnly>
+          <TooltipOnly title="Delete User.">
             <Button
-              style={{ color: "#84919d", margin: "-10px" }}
+              sx={{ color: "text.secondary", margin: "-10px" }}
               onClick={() => handleDeleteOpen(params)}
             >
-              <Icon icon={"ic:outline-delete"} fontSize={24} color="#FC4E4E" />
+              <Icon icon={"ic:outline-delete"} fontSize={24} sx={{ color: "error.main" }} />
             </Button>
-          </Tooltip>
+          </TooltipOnly>
         </>
       ),
     },

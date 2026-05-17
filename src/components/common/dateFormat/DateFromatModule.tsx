@@ -14,7 +14,7 @@ export default function DateFormateComponent({ date }: Props) {
                 <Tooltip title={`${moment(date).format('MMMM Do YYYY, h:mm:ss ')}`}>
 
                     {/* <p >{moment(date).format('DD/MM/YY')}</p> */}
-                    <p>{moment(date).format("DD/MM/YYYY")}</p>
+                    <p>{moment(date).format("DD/MM/YYYY h:mm A")}</p>
                 </Tooltip>
             ) : (
                 <Typography>NA</Typography>

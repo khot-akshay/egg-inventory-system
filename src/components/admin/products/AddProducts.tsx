@@ -18,10 +18,10 @@ const schema = yup.object().shape({
   category_id: yup
     .mixed()
     .required('Category is required.'),
-  sku: yup
-    .string()
-    .nullable()
-    .trim(),
+  // sku: yup
+  //   .string()
+  //   .nullable()
+  //   .trim(),
   name: yup
     .string()
     .required('Product Name is required.')
@@ -30,23 +30,23 @@ const schema = yup.object().shape({
     .min(3, 'Product name must be at least 3 characters long.')
     .max(100, 'Product name cannot be more than 100 characters long.')
     .trim(),
-  unit: yup
-    .string()
-    .nullable(),
-  cost_price: yup
-    .number()
-    .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
-    .nullable()
-    .required('Cost price is required.')
-    .min(0, 'Cost price must be 0 or greater.')
-    .typeError('Cost price must be a valid number'),
-  selling_price: yup
-    .number()
-    .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
-    .nullable()
-    .required('Selling price is required.')
-    .min(0, 'Selling price must be 0 or greater.')
-    .typeError('Selling price must be a valid number'),
+  // unit: yup
+  //   .string()
+  //   .nullable(),
+  // cost_price: yup
+  //   .number()
+  //   .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
+  //   .nullable()
+  //   .required('Cost price is required.')
+  //   .min(0, 'Cost price must be 0 or greater.')
+  //   .typeError('Cost price must be a valid number'),
+  // selling_price: yup
+  //   .number()
+  //   .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
+  //   .nullable()
+  //   .required('Selling price is required.')
+  //   .min(0, 'Selling price must be 0 or greater.')
+  //   .typeError('Selling price must be a valid number'),
   min_stock_level: yup
     .number()
     .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : Number(value)))
@@ -130,16 +130,16 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         if (typeof value === 'object' && value.id) return Number(value.id)
         return Number(value)
       }
-      const payload = {
+      const payload: any = {
         category_id: extractId(data.category_id),
-        sku: data.sku.trim(),
         name: data.name.trim(),
-        unit: data.unit.trim(),
-        cost_price: data.cost_price,
-        selling_price: data.selling_price,
         min_stock_level: data.min_stock_level,
         shop_id: extractId(data.shop_id),
         is_active: data.is_active ? 1 : 0
+      }
+
+      if (selectedItem) {
+        payload.id = selectedItem.id
       }
       let url = ''
       if (selectedItem) {
@@ -235,7 +235,7 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#3A4E7C0F'
+          backgroundColor: theme => theme.palette.action.hover
         }}
         id='customized-dialog-title'
       >
@@ -245,7 +245,7 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
 
         </Typography>
         <IconButton onClick={handleCloseModal}>
-          <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
+          <HighlightOffIcon sx={{ color: 'error.main' }} fontSize="large" />
         </IconButton>
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -280,7 +280,7 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
               <Grid item xs={12} md={6}>
                 <RHFInput control={control} name={'name'} label={'Product Name'} placeholder={'Product Name'} mandatory />
               </Grid>
-              <Grid item xs={12} md={6}>
+              {/* <Grid item xs={12} md={6}>
                 <RHFInput control={control} name={'sku'} label={'SKU'} placeholder={'e.g. EGG-001'} mandatory />
               </Grid>
             <Grid item xs={12} md={6}>
@@ -304,8 +304,8 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 placeholder={'Selling Price'}
                 min={0}
               />
-            </Grid>
-            <Grid item xs={12} md={4}>
+            </Grid> */}
+            <Grid item xs={12} md={6}>
               <RHFNumberInput
                 control={control}
                 name={'min_stock_level'}

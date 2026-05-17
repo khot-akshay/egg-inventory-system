@@ -48,10 +48,10 @@ const schema = yup.object().shape({
     .number()
     .required("Role is required.")
     .typeError("Role is required."),
-  shop_id: yup
-    .number()
-    .required("Shop is required.")
-    .typeError("Shop is required."),
+  // shop_id: yup
+  //   .number()
+  //   .required("Shop is required.")
+  //   .typeError("Shop is required."),
   // supplier_id: yup
   //   .number()
   //   .nullable()
@@ -117,7 +117,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         shop_id: selectedItem.shop_id || (selectedItem.shop?.id) || null,
         supplier_id: selectedItem.supplier_id || null,
         is_active: selectedItem.is_active === true || selectedItem.is_active === 1,
-        password: "", // Don't populate password on edit
+        password: selectedItem.password || "",
       });
     } else {
       reset(defaultValues);
@@ -186,14 +186,14 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          backgroundColor: "#3A4E7C0F",
+          backgroundColor: theme => theme.palette.action.hover,
         }}
       >
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {selectedItem ? "Update" : "Add"} User
+          {selectedItem ? "Edit" : "Add"} User
         </Typography>
         <IconButton onClick={handleCloseModal}>
-          <HighlightOffIcon sx={{ color: "#f52d2de0" }} fontSize="large" />
+          <HighlightOffIcon sx={{ color: "error.main" }} fontSize="large" />
         </IconButton>
       </DialogTitle>
 
@@ -220,7 +220,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
               <RHFInput
                 control={control}
                 name="password"
-                label={isEdit ? "Password (Leave blank to keep current)" : "Password"}
+                label={"Password"}
                 placeholder="Password"
                 inputType="password"
                 mandatory={!isEdit}
@@ -236,7 +236,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            {/* <Grid item xs={12} sm={6}>
               <RHFAutoComplete
                 control={control}
                 name="shop_id"
@@ -256,7 +256,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 placeholder="Select Supplier"
                 apiUrl="/api/v1/admin/suppliers/getAllSuppliers"
               />
-            </Grid>
+            </Grid> */}
             <Grid item xs={12} sm={6}>
               <Box sx={{ mt: 4 }}>
                 <FormControlLabel
@@ -276,7 +276,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
           <Button onClick={handleCloseModal} variant="outlined" color="secondary">
             Cancel
           </Button>
-          <SubmitButton isLoading={isLoading} label={selectedItem ? "Update User" : "Add User"} />
+          <SubmitButton isLoading={isLoading} label={selectedItem ? "Edit User" : "Add User"} />
         </DialogActions>
       </form>
     </Dialog>

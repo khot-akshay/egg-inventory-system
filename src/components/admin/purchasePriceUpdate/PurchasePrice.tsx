@@ -1,17 +1,18 @@
-import { Box, Button, Card, Stack, Switch, Tooltip, Tab, Tabs } from '@mui/material'
+import { Box, Button, Card, Stack, Switch, Tooltip } from '@mui/material'
 import { GridCellParams, GridColDef } from '@mui/x-data-grid'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
 
 import GoBack from 'src/components/common/goBack/GoBackButton';
 import axiosInstance from 'src/services/axios'
-import AddShop from './AddUpdatePrice'
+import AddShop from './AddPurchaseUpdatePrice'
 import Icon from 'src/@core/components/icon'
 import DeleteDialogPopup from 'src/components/common/DeletePopup/DeleteModalPopup'
 import checkPermission from 'src/configs/CheckPermisstion';
 import toast from 'react-hot-toast';
+import AddPurchaseUpdatePrice from './AddPurchaseUpdatePrice';
 
-const Price = () => {
+const PurchasePrice = () => {
   const [rows, setRows] = useState([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -21,70 +22,24 @@ const Price = () => {
   const [openDelete, setOpenDelete] = useState(false)
   const [selectedItem, setSelectedItem] = useState({})
   const [openEdit, setOpenEdit] = useState(false)
-  const [shops, setShops] = useState<any[]>([])
-  const [activeShopId, setActiveShopId] = useState<number | string>('')
-
-  const fetchShopsList = async () => {
-    try {
-      const response = await axiosInstance.get('/api/v1/admin/getAllShops')
-      let data = response.data.data?.data || response.data.data
-      if (Array.isArray(data)) {
-        setShops(data)
-        if (data.length > 0) {
-          setActiveShopId(data[0].id)
-        }
-      } else if (data && typeof data === 'object') {
-        const possibleArray = Object.values(data).find(Array.isArray)
-        if (Array.isArray(possibleArray)) {
-          setShops(possibleArray)
-          if (possibleArray.length > 0) {
-            setActiveShopId(possibleArray[0].id)
-          }
-        } else {
-          setShops([])
-        }
-      } else {
-        setShops([])
-      }
-    } catch (e) {
-      console.error('Failed to fetch shops', e)
-      setShops([])
-    }
-  }
-
-  const fetchPrices = useCallback(async (signal?: AbortSignal) => {
-    if (!activeShopId) return; // Wait for activeShopId to be set
-
+  
+  const fetchShops = async () => {
     setLoading(true)
     try {
-      let url = `/api/v1/admin/getShopEggPrices?pageNo=${page}&limit=${pageSize}&shop_id=${activeShopId}`
-      const response = await axiosInstance.get(url, { signal })
+      const response = await axiosInstance.get(`/api/v1/admin/getShopEggPrices?pageNo=${page}&limit=${pageSize}`)
       let data = response.data.data?.products || response.data.data?.data || response.data.data || []
       setRows(data)
       setTotalRows(response.data.data?.count || data.length || 0)
-    } catch (e: any) {
-      if (e.name !== 'CanceledError' && e.name !== 'AbortError') {
-        console.log(e)
-      }
+    } catch (e) {
+      console.log(e)
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, activeShopId])
-
-  useEffect(() => {
-    fetchShopsList()
-  }, [])
-
-  useEffect(() => {
-    const controller = new AbortController()
-    fetchPrices(controller.signal)
-    return () => controller.abort()
-  }, [fetchPrices])
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: number | string) => {
-    setActiveShopId(newValue)
-    setPage(0)
   }
+
+  useEffect(() => {
+    fetchShops()
+  }, [page, pageSize])
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
@@ -105,7 +60,7 @@ const Price = () => {
       const { checked } = event.target;
       try {
       await axiosInstance.post(`/api/v1/admin/updateShopEggPrices?id=${params.id}`, { is_active: checked ? 1 : 0 })
-          fetchPrices()
+          fetchShops()
           toast.success('Status updated successfully.')
       } catch (e) {
           toast.error('Failed to set active status')
@@ -205,7 +160,7 @@ const Price = () => {
         <>
           {/* {checkPermission('update-shop') && ( */}
             <Tooltip title='Update Prices' placement='bottom'>
-              <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+              <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
                 <Icon icon={'circum:edit'} fontSize={24} />
               </Button>
             </Tooltip>
@@ -213,10 +168,10 @@ const Price = () => {
           {/* {checkPermission('delete-shop') && ( */}
             <Tooltip title='Delete Shop.' placement='bottom'>
               <Button
-                sx={{ color: 'text.secondary', margin: '-10px' }}
+                style={{ color: '#84919d', margin: '-10px' }}
                 onClick={() => handleDeleteOpen(params)}
               >
-                <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+                <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
               </Button>
             </Tooltip>
           {/* )} */}
@@ -228,21 +183,14 @@ const Price = () => {
   return (
     <>   
       <Card sx={{ p: 5 }}>
-        <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'} sx={{ mb: 4 }}>
+        <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'}>
           <GoBack label={' Price'} isBack={false} />
+          {/* {checkPermission('create-shop') && ( */}
+            {/* <Button onClick={() => setOpenAdd(true)} variant='contained'>
+              Add Shop
+            </Button> */}
+          {/* )} */}
         </Box>
-
-        <Tabs
-          value={activeShopId}
-          onChange={handleTabChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}
-        >
-          {Array.isArray(shops) && shops.map((shop) => (
-            <Tab key={shop.id} label={shop.name} value={shop.id} />
-          ))}
-        </Tabs>
         <CommonDatagrid
           totalRows={totalRows}
           pageSize={pageSize}
@@ -255,19 +203,19 @@ const Price = () => {
           loading={loading}
         />
       </Card>
-      {openAdd && <AddShop open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchPrices} />}
+      {openAdd && <AddPurchaseUpdatePrice open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchShops} />}
       {openDelete && (
         <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem.id} 
-        fetchData={fetchPrices} 
+        fetchData={fetchShops} 
         label={'Are you sure! You want to delete this shop?'} apiUrl={'/api/v1/admin/deleteShop?id='} />
       )}
       {openEdit && (
-        <AddShop open={openEdit} handleClose={() => setOpenEdit(false)} 
-        fetchData={fetchPrices}
+        <AddPurchaseUpdatePrice open={openEdit} handleClose={() => setOpenEdit(false)} 
+        fetchData={fetchShops}
         selectedItem={selectedItem} />
       )}
     </>
   )
 }
 
-export default Price
+export default PurchasePrice

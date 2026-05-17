@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import AddVehicles from './AddVehicles'
+import TooltipOnly from 'src/components/common/TooltipOnly/TooltipOnly';
 
 
 
@@ -186,20 +187,26 @@ const Vehicles = () => {
 
     {
       field: 'registration_number',
-      headerName: 'Reg. Number',
+      headerName: 'Vehicle Number',
       flex: 1,
       minWidth: 150,
       sortable: false,
-      renderCell: (params: GridCellParams) =>
-        <Box
-          sx={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', alignItems: 'center', height: '100%', gap: 2 }}
-          onClick={() => handleViewUser(params.row.id)}
-        >
-          <Typography color="primary.main">
-            {params.row?.registration_number || 'NA'}
-          </Typography>
-          <Icon icon="solar:arrow-right-up-linear" style={{ color: 'primary', fontSize: 15 }}></Icon>
-        </Box>
+      renderCell: (params: GridCellParams) => {
+        const value = params.row?.registration_number || 'NA';
+        return (
+          <TooltipOnly title={value}>
+            <Box
+              sx={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', alignItems: 'center', height: '100%', gap: 2 }}
+              onClick={() => handleViewUser(params.row.id)}
+            >
+              <Typography color="primary.main" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {value}
+              </Typography>
+              <Icon icon="solar:arrow-right-up-linear" style={{ color: 'primary', fontSize: 15 }}></Icon>
+            </Box>
+          </TooltipOnly>
+        )
+      }
     },
     {
       field: 'name',
@@ -207,40 +214,67 @@ const Vehicles = () => {
       flex: 1,
       minWidth: 200,
       sortable: false,
-      renderCell: (params: GridCellParams) =>
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.name || 'NA'}
-        </div>
+      renderCell: (params: GridCellParams) => {
+        const value = params.row?.name || 'NA';
+        return (
+          <TooltipOnly title={value}>
+            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
+              {value}
+            </div>
+          </TooltipOnly>
+        )
+      }
     },
-    {
-      field: 'vehicle_type',
-      headerName: 'Type',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.vehicle_type || 'NA'}
-      </div>
-    },
-    {
-      field: 'capacity_kg',
-      headerName: 'Capacity (kg)',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.capacity_kg || 'NA'}
-      </div>
-    },
+    // {
+    //   field: 'vehicle_type',
+    //   headerName: 'Type',
+    //   flex: 1,
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => {
+    //     const value = params.row?.vehicle_type || 'NA';
+    //     return (
+    //       <TooltipOnly title={value}>
+    //         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
+    //           {value}
+    //         </div>
+    //       </TooltipOnly>
+    //     )
+    //   }
+    // },
+    // {
+    //   field: 'capacity_kg',
+    //   headerName: 'Capacity (kg)',
+    //   flex: 1,
+    //   minWidth: 120,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => {
+    //     const value = String(params.row?.capacity_kg || 'NA');
+    //     return (
+    //       <TooltipOnly title={value}>
+    //         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
+    //           {value}
+    //         </div>
+    //       </TooltipOnly>
+    //     )
+    //   }
+    // },
     {
       field: 'assigned_user.name',
       headerName: 'Assigned User',
       flex: 1,
       minWidth: 150,
       sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.assigned_user?.name || 'NA'}
-      </div>
+      renderCell: (params: GridCellParams) => {
+        const value = params.row?.assigned_user?.name || 'NA';
+        return (
+          <TooltipOnly title={value}>
+            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
+              {value}
+            </div>
+          </TooltipOnly>
+        )
+      }
     },
     {
       field: 'driver.name',
@@ -248,20 +282,18 @@ const Vehicles = () => {
       flex: 1,
       minWidth: 150,
       sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.driver?.name || 'NA'}
-      </div>
+      renderCell: (params: GridCellParams) => {
+        const value = params.row?.driver?.name || 'NA';
+        return (
+          <TooltipOnly title={value}>
+            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
+              {value}
+            </div>
+          </TooltipOnly>
+        )
+      }
     },
-    {
-      field: 'shop.name',
-      headerName: 'Shop',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.shop?.name || 'NA'}
-      </div>
-    },
+   
 
     {
       field: 'status',
@@ -299,12 +331,12 @@ const Vehicles = () => {
         <>
           {/* {checkPermission('update_brand') && ( */}
           <Button
-            style={{ color: '#84919d', margin: '-10px' }}
+            sx={{ color: 'text.secondary', margin: '-10px' }}
             onClick={() => handleViewUser(params.row.id)}>
             <Icon icon={'ph:eye'} fontSize={24} />
           </Button>
           <Tooltip title='Update Vehicle.' placement='bottom'>
-            <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
               <Icon icon={'circum:edit'} fontSize={24} />
             </Button>
           </Tooltip>
@@ -313,10 +345,10 @@ const Vehicles = () => {
 
           <Tooltip title='Delete Vehicle.' placement='bottom'>
             <Button
-              style={{ color: '#84919d', margin: '-10px' }}
+              sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
-              <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
+              <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
             </Button>
           </Tooltip>
           {/* )} */}
