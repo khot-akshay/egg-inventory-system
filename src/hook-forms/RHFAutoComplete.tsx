@@ -33,7 +33,8 @@ const RHFAutoComplete = ({
 
   multiple = false,
   options: staticOptions = [],
-  dataKey = '', // ✅ add this to specify where the array is
+  dataKey = '',
+  returnObject = false, // ✅ add returnObject prop
   ...rest
 }) => {
   // Helper to get nested values like 'category.name'
@@ -79,7 +80,7 @@ const RHFAutoComplete = ({
 
         const url = `${apiUrl}?${new URLSearchParams(params)}`
         const res = await axiosInstance.get(url)
-        
+
         let data = [];
         const responseData = res?.data;
 
@@ -110,7 +111,8 @@ const RHFAutoComplete = ({
         setLoading(false)
       }
     },
-    [apiUrl, pageSize]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [apiUrl, pageSize, JSON.stringify(extraParams)]
   )
 
   /* 🔍 Search debounce */
@@ -138,7 +140,7 @@ const RHFAutoComplete = ({
     ? (Array.isArray(field.value) ? field.value : [])
       .map(v => (typeof v === 'object' ? v : options.find(opt => getNestedValue(opt, valueKey) === v)))
       .filter(Boolean)
-    : options.find(opt => getNestedValue(opt, valueKey) === field.value) ||
+    : options.find(opt => getNestedValue(opt, valueKey) === (typeof field.value === 'object' && field.value !== null ? getNestedValue(field.value, valueKey) : field.value)) ||
     (typeof field.value === 'object' ? field.value : null)
 
   return (
@@ -168,9 +170,9 @@ const RHFAutoComplete = ({
         onClose={() => setOpen(false)}
         onChange={(_, val) => {
           if (multiple) {
-            field.onChange(val ? val.map(v => getNestedValue(v, valueKey)) : [])
+            field.onChange(val ? val.map(v => returnObject ? v : getNestedValue(v, valueKey)) : [])
           } else {
-            field.onChange(val ? getNestedValue(val, valueKey) : null)
+            field.onChange(val ? (returnObject ? val : getNestedValue(val, valueKey)) : null)
           }
         }}
         onInputChange={(_, val, reason) => {

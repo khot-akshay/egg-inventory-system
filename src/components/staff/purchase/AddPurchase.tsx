@@ -22,26 +22,16 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { useAuth } from 'src/hooks/useAuth'
 
 const schema = yup.object().shape({
-  customer_id: yup.mixed().test('shop-required', 'Customer is required for 100+ eggs', function (value) {
-    const { isNewCustomer, totalCartEggs } = this.options.context as any || {};
-    if (totalCartEggs < 100) return true;
-    if (!isNewCustomer && !value) return false;
-    return true;
-  }),
-  customer_name: yup.string().test('name-required', 'Name is required for 100+ eggs', function (value) {
-    const { isNewCustomer, totalCartEggs } = this.options.context as any || {};
-    if (totalCartEggs < 100) return true;
-    if (isNewCustomer && !value) return false;
-    return true;
-  }),
-  phone_number: yup.string().test('phone-required', 'Phone is required for 100+ eggs', function (value) {
-    const { isNewCustomer, totalCartEggs } = this.options.context as any || {};
-    if (totalCartEggs < 100) return true;
-    if (isNewCustomer && !value) return false;
-    return true;
-  }),
+  vendor_id: yup.mixed().required('Vendor is required'),
+  vehicle_id: yup.mixed().required('Vehicle is required'),
+  driver_id: yup.mixed().nullable(),
+  purchase_date: yup.string().nullable(),
+  notes: yup.string().nullable(),
+  load_immediately: yup.boolean().default(true),
   product_id: yup.mixed().nullable(),
   rate_per_unit: yup.number().nullable(),
+  mixed_cash: yup.number().nullable(),
+  mixed_online: yup.number().nullable()
 })
 
 interface AddStocksFormProps {
@@ -51,7 +41,7 @@ interface AddStocksFormProps {
   selectedItem?: any
 }
 
-const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps) => {
+const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -66,8 +56,6 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const [paymentType, setPaymentType] = useState('cash')
   const [cart, setCart] = useState<any[]>([])
 
-  const totalCartEggs = cart.reduce((sum, item) => sum + item.total_eggs, 0)
-
   const {
     control,
     handleSubmit,
@@ -77,36 +65,62 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     formState: { errors }
   } = useForm({
     resolver: yupResolver(schema),
-    context: { isNewCustomer, totalCartEggs },
     defaultValues: {
-      customer_id: null,
+      vendor_id: null,
+      vehicle_id: null,
+      driver_id: null,
+      purchase_date: new Date().toISOString().split('T')[0],
+      notes: '',
+      load_immediately: true,
       product_id: null,
       rate_per_unit: 150,
-      customer_name: '',
-      phone_number: '',
       mixed_cash: 0,
       mixed_online: 0
     }
   })
 
   const rate = watch('rate_per_unit')
-  
+
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id
 
   useEffect(() => {
     if (selectedItem) {
-      if (selectedItem.shop_id) {
-        setValue('customer_id', { id: selectedItem.shop_id, name: selectedItem.shop?.name || 'Shop' })
+      if (selectedItem.vendor_id) {
+        setValue('vendor_id', { id: selectedItem.vendor_id, name: selectedItem.vendor?.name || 'Vendor' })
       }
-      if (selectedItem.product_id) {
-        setValue('product_id', { id: selectedItem.product_id, name: selectedItem.product?.name || 'Product' })
+      if (selectedItem.vehicle_id) {
+        setValue('vehicle_id', { id: selectedItem.vehicle_id, name: selectedItem.vehicle?.name || selectedItem.vehicle?.registration_number || 'Vehicle' })
       }
-      setValue('rate_per_unit', selectedItem.rate || 150)
-      setUnit(selectedItem.unit_type || 'tray')
-      setUnitValue(selectedItem.unit_value || 30)
-      setQuantity(selectedItem.quantity || 1)
-      setDamaged(selectedItem.damaged_eggs || 0)
+      if (selectedItem.driver_id) {
+        setValue('driver_id', { id: selectedItem.driver_id, name: selectedItem.driver?.name || 'Driver' })
+      }
+      if (selectedItem.purchase_date) {
+        const dateStr = new Date(selectedItem.purchase_date).toISOString().split('T')[0]
+        setValue('purchase_date', dateStr)
+      }
+      if (selectedItem.notes) {
+        setValue('notes', selectedItem.notes)
+      }
+      if (selectedItem.load_immediately !== undefined) {
+        setValue('load_immediately', Boolean(selectedItem.load_immediately))
+      }
+      if (selectedItem.items && Array.isArray(selectedItem.items)) {
+        const existingCart = selectedItem.items.map((item: any) => ({
+          category_id: item.category_id,
+          product_name: item.category?.name || 'Category ' + item.category_id,
+          total_eggs: item.total_eggs || item.quantity || 0,
+          price_per_egg: item.price_per_egg || item.unit_cost || 0,
+          total_trays: item.total_trays || Math.floor((item.total_eggs || 0) / 30),
+          eggs_per_tray: item.eggs_per_tray || 30,
+          quantity: item.total_trays || Math.floor((item.total_eggs || 0) / 30) || 1,
+          unit: item.unit_type || 'tray',
+          unit_value: item.unit_value || 30,
+          rate: item.price_per_egg || item.unit_cost || 0,
+          total: (item.total_eggs || item.quantity || 0) * (item.price_per_egg || item.unit_cost || 0)
+        }))
+        setCart(existingCart)
+      }
     }
   }, [selectedItem, setValue])
 
@@ -121,9 +135,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     if (value === 'dozen') val = 12
     if (value === 'half_dozen') val = 6
 
-    // We set quantity directly to the unit value as requested
     setQuantity(val)
-    // Keep unitValue as 1 so that totalEggs (quantity * unitValue) remains correct
     setUnitValue(1)
   }
 
@@ -131,14 +143,12 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   useEffect(() => {
     const fetchProductRates = async () => {
       const productId = watch('product_id')
-      // Try to get category_id if productId is an object, otherwise use the ID directly
       const id = typeof productId === 'object' ? (productId?.category_id || productId?.id) : productId
 
       if (id) {
         try {
           const response = await axiosInstance.get(`/api/v1/shop/getAllEggpriceAsPerCategoryForThatShop?category_id=${id}`)
           if (response.data.success) {
-            // Check if products are in response.data.data.products or response.data.products
             const products = response.data.data?.products || response.data.products
 
             if (products && products.length > 0) {
@@ -149,7 +159,6 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               if (!isNaN(min) && !isNaN(max)) {
                 setMinRate(min)
                 setMaxRate(max)
-                // Set the default rate to the minimum rate if current rate is invalid or default
                 const currentRate = watch('rate_per_unit')
                 if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
                   setValue('rate_per_unit', min)
@@ -166,7 +175,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
           setMaxRate(null)
         }
       }
-    };
+    }
 
     fetchProductRates()
   }, [watch('product_id'), setValue])
@@ -180,28 +189,33 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       return
     }
 
-    const productName = typeof product === 'object' ? (product.name || product.category?.name) : 'Product'
-    const productId = typeof product === 'object' ? product.id : product
+    const productName = typeof product === 'object' ? (product.name || product.category?.name || 'Product') : 'Product'
+    const categoryId = typeof product === 'object' ? (product.category_id || product.category?.id || product.id) : product
+
+    const calculatedTotalEggs = quantity * unitValue
 
     const newItem = {
-      product_id: productId,
+      category_id: categoryId,
+      product_id: typeof product === 'object' ? product.id : product,
       product_name: productName,
       quantity,
       unit,
       unit_value: unitValue,
-      total_eggs: totalEggs,
+      total_eggs: calculatedTotalEggs,
       damaged_eggs: damaged,
-      rate: rate_per_unit,
-      total: quantity * rate_per_unit
+      price_per_egg: Number(rate_per_unit || 0),
+      rate: Number(rate_per_unit || 0),
+      total_trays: quantity,
+      eggs_per_tray: unitValue,
+      total: calculatedTotalEggs * Number(rate_per_unit || 0)
     }
 
     setCart([...cart, newItem])
 
-    // Reset product selection for next item
     setValue('product_id', null)
     setQuantity(1)
     setDamaged(0)
-    toast.success('Added to list')
+    toast.success('Added to order')
   }
 
   const removeFromCart = (index: number) => {
@@ -223,43 +237,48 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       }
 
       if (cart.length === 0) {
-        toast.error('Please add at least one product to the list')
+        toast.error('Please add at least one product to the order')
         setLoading(false)
         return
       }
 
       const payload = {
-        customer_id: isNewCustomer ? null : extractId(data.customer_id),
-        customer_name: isNewCustomer ? data.customer_name : null,
-        phone_number: isNewCustomer ? data.phone_number : null,
+        vendor_id: extractId(data.vendor_id),
+        vehicle_id: extractId(data.vehicle_id),
+        driver_id: extractId(data.driver_id) || 5,
+        purchase_date: data.purchase_date || new Date().toISOString().split('T')[0],
+        notes: data.notes?.trim() || 'Purchase Order',
+        load_immediately: data.load_immediately !== undefined ? Boolean(data.load_immediately) : true,
         paid_amount: grandTotal,
         payment_type: paymentType === 'mixed' ? 'cash,upi' : paymentType,
-        lines: cart.map(item => ({
-          product_id: item.product_id,
-          quantity: item.total_eggs,
-          unit_cost: item.rate,
-          damaged_eggs: item.damaged_eggs,
-          unit_type: item.unit,
-          unit_value: item.unit_value
-        })),
         payments: paymentType === 'mixed' ? [
           { amount: Number(data.mixed_cash), payment_type: 'cash' },
           { amount: Number(data.mixed_online), payment_type: 'upi' }
         ] : [
           { amount: grandTotal, payment_type: paymentType }
-        ]
+        ],
+        items: cart.map(item => ({
+          category_id: item.category_id,
+          total_eggs: item.total_eggs,
+          price_per_egg: item.price_per_egg,
+          total_trays: item.total_trays,
+          eggs_per_tray: item.eggs_per_tray
+        }))
       }
 
-      const response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
+      const response = await axiosInstance.post('/api/v1/shop/eggPurchaseFromVendor', payload)
 
       if (response.data.success) {
-        toast.success(response.data.message || 'Bill confirmed successfully')
+        toast.success(response.data.message || 'Order confirmed successfully')
         reset({
-          customer_id: null,
+          vendor_id: null,
+          vehicle_id: null,
+          driver_id: null,
+          purchase_date: new Date().toISOString().split('T')[0],
+          notes: '',
+          load_immediately: true,
           product_id: null,
           rate_per_unit: 150,
-          customer_name: '',
-          phone_number: '',
           mixed_cash: 0,
           mixed_online: 0
         })
@@ -281,59 +300,38 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   return (
     <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
       <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
-        🥚 Quick Bill
+        🥚 Purchase Order
       </Typography>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
           {/* Shop Selection */}
-          <Grid item xs={8}>
+          <Grid item xs={6}>
             <RHFAutoComplete
               control={control}
-              name="customer_id"
-              placeholder="Customer Name"
-              labelinput="Customer Name"
-              apiUrl="/api/v1/shop/getAllCustomers"
+              name="vehicle_id"
+              placeholder="Vehicle Name"
+              labelinput="Vehicle Name"
+              apiUrl="/api/v1/admin/getAllVehicles"
               labelKey="name"
               valueKey="id"
               required={!isNewCustomer}
               disabled={isNewCustomer}
             />
           </Grid>
-          <Grid item xs={4}>
-            <Button
-              variant='contained'
-              onClick={() => setIsNewCustomer(!isNewCustomer)}
-              fullWidth
-              sx={{ mt: 6 }}
-            >
-              {isNewCustomer ? 'Cancel' : '+ New'}
-            </Button>
+          <Grid item xs={6}>
+            <RHFAutoComplete
+              control={control}
+              name="vendor_id"
+              placeholder="Vendor Name"
+              labelinput="Vendor Name"
+              apiUrl="/api/v1/admin/getAllVendors"
+              labelKey="name"
+              valueKey="id"
+              required={!isNewCustomer}
+              disabled={isNewCustomer}
+            />
           </Grid>
-
-          {isNewCustomer && (
-            <>
-              <Grid item xs={6}>
-                <RHFInput
-                  control={control}
-                  name="customer_name"
-                  label="Customer Name"
-                  placeholder="Enter Name"
-                  mandatory
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <RHFInput
-                  control={control}
-                  name="phone_number"
-                  label="Phone Number"
-                  placeholder="Enter Phone"
-                  mandatory
-                />
-              </Grid>
-            </>
-          )}
-          {/* Product Selection */}
           <Grid item xs={12}>
             <RHFAutoComplete
               control={control}
@@ -350,8 +348,10 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               multiple={false}
             />
           </Grid>
+         
+          
 
-
+{/* 
           <Grid item xs={12}>
             {(minRate !== null && maxRate !== null) && (
               <>
@@ -393,13 +393,13 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </Grid>
               </>
             )}
-          </Grid>
+          </Grid> */}
 
           {/* Integrated Unit and Quantity Selection */}
           <Grid item xs={12}>
             <Grid container spacing={2} alignItems="flex-end">
-              <Grid item xs={6}>
-                <Typography className="input-label">
+              <Grid item xs={3}>
+                {/* <Typography className="input-label">
                   Unit Type
                 </Typography>
                 <ToggleButtonGroup
@@ -424,7 +424,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   <ToggleButton value="tray">30</ToggleButton>
                   <ToggleButton value="dozen">12</ToggleButton>
                   <ToggleButton value="half_dozen">6</ToggleButton>
-                </ToggleButtonGroup>
+                </ToggleButtonGroup> */}
               </Grid>
 
               <Grid item xs={6}>
@@ -499,7 +499,6 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                       onClick={() => setQuantity(q => q + 1)}
                       fullWidth
                       variant='contained'
-                      color='success'
                       sx={{
                         height: 40,
                         minWidth: 0,
@@ -513,6 +512,9 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   </Grid>
                 </Grid>
               </Grid>
+               <Grid item xs={6}>
+                
+            </Grid>
             </Grid>
           </Grid>
 
@@ -526,7 +528,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               startIcon={<ShoppingCartIcon />}
               sx={{ mt: 1, borderRadius: 2, height: 45, borderWidth: 2, '&:hover': { borderWidth: 2 } }}
             >
-              Add to Bill
+              Add to order
             </Button>
           </Grid>
 
@@ -654,7 +656,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   <RHFInput
                     control={control}
                     name="mixed_online"
-                    label="UPI Amount"
+                    label="Online Amount"
                     type="number"
                     placeholder="Enter UPI"
                     fullWidth
@@ -672,7 +674,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               type="submit"
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Bill'}
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Order'}
             </Button>
           </Grid>
         </Grid>
@@ -681,4 +683,4 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   )
 }
 
-export default AddQuickBillForm
+export default AddPurchaseForm

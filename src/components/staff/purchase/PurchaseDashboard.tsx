@@ -18,7 +18,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule';
 import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
-import AddProducts from './AddQuickBill';
+import AddProducts from './AddPurchase';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import CardOneCount from 'src/components/dashboard/CardOneCount'
@@ -42,7 +42,7 @@ type SelectOption = {
   value: number | string
 }
 
-const QuickBillDashboard = () => {
+const PurchaseDashboard = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -341,7 +341,7 @@ const QuickBillDashboard = () => {
         boxShadow: 2,
         transition: '0.2s',
         '&:hover': { boxShadow: 6 },
-        p:4
+        p: 4
       }}>
         <Grid container spacing={1} >
           {/* <Grid item xs={12} md={4} >
@@ -412,7 +412,7 @@ const QuickBillDashboard = () => {
             color="primary"
             link='/user/'
           />
-          </Grid>
+        </Grid>
         <Grid item xs={12} md={3}>
           <CardOneCount
             title="Total Cash"
@@ -422,7 +422,7 @@ const QuickBillDashboard = () => {
             color="primary"
             link='/user/'
           />
-          </Grid>
+        </Grid>
         <Grid item xs={12} md={3}>
           <CardOneCount
             title="Total Online"
@@ -432,7 +432,7 @@ const QuickBillDashboard = () => {
             color="primary"
             link='/user/'
           />
-          </Grid>
+        </Grid>
         <Grid item xs={12} md={3}>
           <CardOneCount
             title="Total Credit"
@@ -441,7 +441,7 @@ const QuickBillDashboard = () => {
             color="primary"
             link='/user/'
           />
-          </Grid>
+        </Grid>
       </Grid>
 
 
@@ -462,4 +462,4 @@ const QuickBillDashboard = () => {
   )
 }
 
-export default QuickBillDashboard   
+export default PurchaseDashboard   
