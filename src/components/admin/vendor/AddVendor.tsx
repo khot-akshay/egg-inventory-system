@@ -19,26 +19,26 @@ const schema = yup.object().shape({
     .trim(),
   phone: yup
     .string()
-    .required('Phone is required.')
-    .matches(/^[0-9]{10}$/, 'Phone must be exactly 10 digits.')
+    .required('Mobile Number is required.')
+    .matches(/^[0-9]{10}$/, 'Mobile Number must be exactly 10 digits.')
     .trim(),
-  email: yup
-    .string()
-    .email('Invalid email address')
-    .required('Email is required.')
-    .trim(),
-  gstin: yup
-    .string()
-    .required('GSTIN is required.')
-    .matches(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTIN format')
-    .trim(),
+  // email: yup
+  //   .string()
+  //   .email('Invalid email address')
+  //   .required('Email is required.')
+  //   .trim(),
+  // gstin: yup
+  //   .string()
+  //   .required('GSTIN is required.')
+  //   .matches(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/, 'Invalid GSTIN format')
+  //   .trim(),
   address: yup
     .string()
     .required('Address is required.')
     .trim(),
-  shop_id: yup
-    .mixed()
-    .required('Shop is required.'),
+  // shop_id: yup
+  //   .mixed()
+  //   .required('Shop is required.'),
   is_active: yup.boolean().required('Please set the status.')
 })
 
@@ -192,7 +192,7 @@ const AddVendor = ({ open, handleClose, fetchData, selectedItem }: Props) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            {/* <Grid item xs={12} md={6}>
               <RHFAutoComplete
                 control={control}
                 name="shop_id"
@@ -203,18 +203,18 @@ const AddVendor = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 valueKey="id"
                 required
               />
-            </Grid>
+            </Grid> */}
             <Grid item xs={12} md={6}>
               <RHFInput control={control} name={'name'} label={'Vendor Name'} placeholder={'Vendor Name'} mandatory />
             </Grid>
             <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'phone'} label={'Phone'} placeholder={'10-digit Phone Number'} mandatory />
+              <RHFInput control={control} name={'phone'} label={'Mobile Number'} placeholder={'Mobile Number'} mandatory />
             </Grid>
             <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'email'} label={'Email'} placeholder={'Email Address'} mandatory />
+              <RHFInput control={control} name={'email'} label={'Email ID'} placeholder={'Email ID'}  mandatory={false} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <RHFInput control={control} name={'gstin'} label={'GSTIN'} placeholder={'GSTIN Number'} mandatory />
+              <RHFInput control={control} name={'gstin'} label={'GST Number'} placeholder={'GST Number'} mandatory={false} />
             </Grid>
             <Grid item xs={12} md={6}>
               <RHFInput control={control} name={'address'} label={'Address'} placeholder={'Address'} mandatory />

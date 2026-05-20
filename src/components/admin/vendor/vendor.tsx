@@ -144,7 +144,7 @@ const Vendor = () => {
     },
     {
       field: 'phone',
-      headerName: 'Phone',
+      headerName: 'Mobile Number',
       flex: 1,
       minWidth: 120,
       sortable: false,
@@ -152,7 +152,7 @@ const Vendor = () => {
     },
     {
       field: 'email',
-      headerName: 'Email',
+      headerName: 'Email ID',
       flex: 1.5,
       minWidth: 200,
       sortable: false,
@@ -160,20 +160,13 @@ const Vendor = () => {
     },
     {
       field: 'gstin',
-      headerName: 'GSTIN',
+      headerName: 'GST Number',
       flex: 1,
       minWidth: 150,
       sortable: false,
       renderCell: (params: GridCellParams) => params.row?.gstin || 'NA'
     },
-    {
-      field: 'shop.name',
-      headerName: 'Shop',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => params.row?.shop?.name || 'NA'
-    },
+  
     {
       field: 'status',
       headerName: 'Status',

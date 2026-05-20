@@ -1,14 +1,11 @@
 import {
   Card, Typography, Button,
-  TextField, ToggleButton, ToggleButtonGroup,
+  TextField,
   Box, useTheme, useMediaQuery, CircularProgress,
-  Grid, Divider, IconButton, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Paper
+  Grid, Divider
 } from '@mui/material'
-import DeleteIcon from '@mui/icons-material/Delete'
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import React, { useState, useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import axiosInstance from 'src/services/axios'
@@ -45,16 +42,15 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const [unit, setUnit] = useState('tray')
-  const [unitValue, setUnitValue] = useState(30)
-  const [quantity, setQuantity] = useState(1)
-  const [damaged, setDamaged] = useState(0)
   const [loading, setLoading] = useState(false)
   const [isNewCustomer, setIsNewCustomer] = useState(false)
-  const [minRate, setMinRate] = useState<number | null>(null)
-  const [maxRate, setMaxRate] = useState<number | null>(null)
   const [paymentType, setPaymentType] = useState('cash')
-  const [cart, setCart] = useState<any[]>([])
+  const [prices, setPrices] = useState<{
+    category_id: number
+    price_per_egg: string
+    name: string
+    quantity: string | number
+  }[]>([])
 
   const {
     control,
@@ -79,11 +75,10 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
     }
   })
 
-  const rate = watch('rate_per_unit')
-
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id
 
+  // Load existing data if selectedItem is present
   useEffect(() => {
     if (selectedItem) {
       if (selectedItem.vendor_id) {
@@ -105,126 +100,108 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
       if (selectedItem.load_immediately !== undefined) {
         setValue('load_immediately', Boolean(selectedItem.load_immediately))
       }
-      if (selectedItem.items && Array.isArray(selectedItem.items)) {
-        const existingCart = selectedItem.items.map((item: any) => ({
-          category_id: item.category_id,
-          product_name: item.category?.name || 'Category ' + item.category_id,
-          total_eggs: item.total_eggs || item.quantity || 0,
-          price_per_egg: item.price_per_egg || item.unit_cost || 0,
-          total_trays: item.total_trays || Math.floor((item.total_eggs || 0) / 30),
-          eggs_per_tray: item.eggs_per_tray || 30,
-          quantity: item.total_trays || Math.floor((item.total_eggs || 0) / 30) || 1,
-          unit: item.unit_type || 'tray',
-          unit_value: item.unit_value || 30,
-          rate: item.price_per_egg || item.unit_cost || 0,
-          total: (item.total_eggs || item.quantity || 0) * (item.price_per_egg || item.unit_cost || 0)
-        }))
-        setCart(existingCart)
-      }
     }
   }, [selectedItem, setValue])
 
-  const totalEggs = quantity * unitValue
-  const finalEggs = totalEggs - damaged
-
-  const handleUnitChange = (_: any, value: any) => {
-    if (!value) return
-    setUnit(value)
-    let val = 1
-    if (value === 'tray') val = 30
-    if (value === 'dozen') val = 12
-    if (value === 'half_dozen') val = 6
-
-    setQuantity(val)
-    setUnitValue(1)
-  }
-
-  // Fetch min/max rates when product changes
+  // Fetch all categories on mount to populate default list
   useEffect(() => {
-    const fetchProductRates = async () => {
-      const productId = watch('product_id')
-      const id = typeof productId === 'object' ? (productId?.category_id || productId?.id) : productId
+    const fetchDefaultCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/api/v1/shop/getAllCategories')
+        if (response.data.success) {
+          const categories = response.data.data?.categories || response.data.categories || []
+          const initialPrices = categories.map((cat: any) => {
+            let existingQty: string | number = ""
+            let existingPrice: string = "0.00"
 
-      if (id) {
-        try {
-          const response = await axiosInstance.get(`/api/v1/shop/getAllEggpriceAsPerCategoryForThatShop?category_id=${id}`)
-          if (response.data.success) {
-            const products = response.data.data?.products || response.data.products
-
-            if (products && products.length > 0) {
-              const product = products[0]
-              const min = parseFloat(product.egg_price_min)
-              const max = parseFloat(product.egg_price_max)
-
-              if (!isNaN(min) && !isNaN(max)) {
-                setMinRate(min)
-                setMaxRate(max)
-                const currentRate = watch('rate_per_unit')
-                if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
-                  setValue('rate_per_unit', min)
-                }
+            if (selectedItem && selectedItem.items && Array.isArray(selectedItem.items)) {
+              const matchedItem = selectedItem.items.find((item: any) => item.category_id === cat.id)
+              if (matchedItem) {
+                existingQty = matchedItem.total_trays || Math.floor((matchedItem.total_eggs || 0) / 30) || ""
+                existingPrice = String(matchedItem.price_per_egg || matchedItem.unit_cost || "0.00")
               }
-            } else {
-              setMinRate(null)
-              setMaxRate(null)
             }
-          }
-        } catch (error) {
-          console.error('Error fetching product rates:', error)
-          setMinRate(null)
-          setMaxRate(null)
+
+            return {
+              category_id: cat.id,
+              price_per_egg: existingPrice,
+              name: cat.name || "Unknown Category",
+              quantity: existingQty
+            }
+          })
+          setPrices(initialPrices)
         }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error)
+      }
+    }
+    fetchDefaultCategories()
+  }, [selectedItem])
+
+  const selectedVendor = watch('vendor_id')
+
+  // Fetch vendor egg prices and merge/update rates in the prices state
+  useEffect(() => {
+    const fetchVendorPrices = async () => {
+      const vendorId = selectedVendor ? (typeof selectedVendor === 'object' ? (selectedVendor as any).id : selectedVendor) : null
+      if (!vendorId) {
+        // If vendor is cleared, reset rates to 0.00
+        setPrices(prev => prev.map(p => ({ ...p, price_per_egg: "0.00" })))
+        return
+      }
+
+      try {
+        const url = `/api/v1/admin/getAllVendorEggPrices?id=${vendorId}`
+        const response = await axiosInstance.get(url)
+        if (response.data.success) {
+          const fetchedPrices = response.data.data?.prices || []
+          
+          setPrices(prev => prev.map(p => {
+            const vendorPriceObj = fetchedPrices.find((fp: any) => fp.category_id === p.category_id)
+            let price = vendorPriceObj?.price_per_egg || "0.00"
+
+            // Check if there is an existing selectedItem (when editing)
+            let qty = p.quantity
+            if (selectedItem && selectedItem.items && Array.isArray(selectedItem.items)) {
+              const matchedItem = selectedItem.items.find((item: any) => item.category_id === p.category_id)
+              if (matchedItem) {
+                qty = matchedItem.total_trays || Math.floor((matchedItem.total_eggs || 0) / 30) || ""
+                price = matchedItem.price_per_egg || matchedItem.unit_cost || price
+              }
+            }
+
+            return {
+              ...p,
+              price_per_egg: String(price),
+              quantity: qty
+            }
+          }))
+        }
+      } catch (error) {
+        console.error("Failed to fetch vendor prices:", error)
       }
     }
 
-    fetchProductRates()
-  }, [watch('product_id'), setValue])
+    fetchVendorPrices()
+  }, [selectedVendor, selectedItem])
 
-  const handleAddToCart = () => {
-    const product = watch('product_id')
-    const rate_per_unit = watch('rate_per_unit')
-
-    if (!product) {
-      toast.error('Please select a product')
-      return
-    }
-
-    const productName = typeof product === 'object' ? (product.name || product.category?.name || 'Product') : 'Product'
-    const categoryId = typeof product === 'object' ? (product.category_id || product.category?.id || product.id) : product
-
-    const calculatedTotalEggs = quantity * unitValue
-
-    const newItem = {
-      category_id: categoryId,
-      product_id: typeof product === 'object' ? product.id : product,
-      product_name: productName,
-      quantity,
-      unit,
-      unit_value: unitValue,
-      total_eggs: calculatedTotalEggs,
-      damaged_eggs: damaged,
-      price_per_egg: Number(rate_per_unit || 0),
-      rate: Number(rate_per_unit || 0),
-      total_trays: quantity,
-      eggs_per_tray: unitValue,
-      total: calculatedTotalEggs * Number(rate_per_unit || 0)
-    }
-
-    setCart([...cart, newItem])
-
-    setValue('product_id', null)
-    setQuantity(1)
-    setDamaged(0)
-    toast.success('Added to order')
+  const handlePriceChange = (index: number, value: string) => {
+    const newPrices = [...prices]
+    newPrices[index].price_per_egg = value
+    setPrices(newPrices)
   }
 
-  const removeFromCart = (index: number) => {
-    const newCart = [...cart]
-    newCart.splice(index, 1)
-    setCart(newCart)
+  const handleQuantityChange = (index: number, value: string) => {
+    const newPrices = [...prices]
+    newPrices[index].quantity = value === "" ? "" : Number(value)
+    setPrices(newPrices)
   }
 
-  const grandTotal = cart.reduce((sum, item) => sum + item.total, 0)
+  const grandTotal = prices.reduce((sum, item) => {
+    const qty = Number(item.quantity) || 0
+    const rate = Number(item.price_per_egg) || 0
+    return sum + (qty * 30 * rate)
+  }, 0)
 
   const onSubmit = async (data: any) => {
     setLoading(true)
@@ -236,8 +213,18 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         return Number(value)
       }
 
-      if (cart.length === 0) {
-        toast.error('Please add at least one product to the order')
+      const activeItems = prices
+        .filter(item => (Number(item.quantity) || 0) > 0)
+        .map(item => ({
+          category_id: item.category_id,
+          total_eggs: (Number(item.quantity) || 0) * 30,
+          price_per_egg: Number(item.price_per_egg) || 0,
+          total_trays: Number(item.quantity) || 0,
+          eggs_per_tray: 30
+        }))
+
+      if (activeItems.length === 0) {
+        toast.error('Please add quantity for at least one product')
         setLoading(false)
         return
       }
@@ -257,13 +244,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         ] : [
           { amount: grandTotal, payment_type: paymentType }
         ],
-        items: cart.map(item => ({
-          category_id: item.category_id,
-          total_eggs: item.total_eggs,
-          price_per_egg: item.price_per_egg,
-          total_trays: item.total_trays,
-          eggs_per_tray: item.eggs_per_tray
-        }))
+        items: activeItems
       }
 
       const response = await axiosInstance.post('/api/v1/shop/eggPurchaseFromVendor', payload)
@@ -282,9 +263,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           mixed_cash: 0,
           mixed_online: 0
         })
-        setCart([])
-        setQuantity(1)
-        setDamaged(0)
+        const clearedPrices = prices.map(p => ({ ...p, quantity: "" }))
+        setPrices(clearedPrices)
         setIsNewCustomer(false)
         if (fetchData) fetchData()
         if (handleClose) handleClose()
@@ -312,7 +292,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               name="vehicle_id"
               placeholder="Vehicle Name"
               labelinput="Vehicle Name"
-              apiUrl="/api/v1/admin/getAllVehicles"
+              apiUrl="/api/v1/shop/getAllVehicles"
               labelKey="name"
               valueKey="id"
               required={!isNewCustomer}
@@ -322,10 +302,10 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           <Grid item xs={6}>
             <RHFAutoComplete
               control={control}
-              name="vendor_id"
-              placeholder="Vendor Name"
-              labelinput="Vendor Name"
-              apiUrl="/api/v1/admin/getAllVendors"
+              name="driver_id"
+              placeholder="Driver Name"
+              labelinput="Driver Name"
+              apiUrl="/api/v1/shop/getAllUsers"
               labelKey="name"
               valueKey="id"
               required={!isNewCustomer}
@@ -335,238 +315,40 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           <Grid item xs={12}>
             <RHFAutoComplete
               control={control}
-              name="product_id"
-              placeholder="Select Product"
-              labelinput="Product Name"
-              apiUrl="/api/v1/admin/getAllProducts"
-              extraParams={{ shop_id: currentStaffShopId || '' }}
-              dataKey="data.products"
-              labelKey="category.name"
+              name="vendor_id"
+              placeholder="Vendor Name"
+              labelinput="Vendor Name"
+              apiUrl="/api/v1/shop/getAllVendors"
+              labelKey="name"
               valueKey="id"
-              returnObject={true}
-              required
-              multiple={false}
+              required={!isNewCustomer}
+              disabled={isNewCustomer}
             />
           </Grid>
-         
-          
-
-{/* 
-          <Grid item xs={12}>
-            {(minRate !== null && maxRate !== null) && (
-              <>
-                <Typography className="input-label">
-                  Price per Egg
-                </Typography>
-                <Grid container spacing={1} alignItems="center">
-                  {Array.from(
-                    { length: Math.max(0, Math.round((maxRate - minRate) / 0.1) + 1) },
-                    (_, i) => parseFloat((minRate + i * 0.1).toFixed(2))
-                  ).map((r) => (
-                    <Grid item xs={3} sm={2} key={r}>
-                      <Button
-                        fullWidth
-                        variant={watch('rate_per_unit') === r ? "contained" : "outlined"}
-                        onClick={() => setValue('rate_per_unit', r)}
-                        sx={{ height: 40 }}
-                      >
-                        {r.toFixed(2)}
-                      </Button>
-                    </Grid>
-                  ))}
-                  <Grid item xs={6} sm={4}>
+          {prices.length > 0 && (
+            <Grid item xs={12}>
+              {/* <Divider sx={{ my: 1 }} /> */}
+              <Typography className="input-label">
+                Egg Quantities 
+              </Typography>
+              <Grid container spacing={2} mt={1}>
+                {prices.map((item, index) => (
+                  <Grid item xs={6} md={6} key={item.category_id}>
+                    <Typography className="input-label">
+                      {item.name}
+                    </Typography>
                     <TextField
-                      placeholder="Custom Rate"
-                      type="number"
-                      value={watch('rate_per_unit') || ''}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        setValue('rate_per_unit', isNaN(val) ? '' : val);
-                      }}
-                      inputProps={{ step: "0.01", min: "0" }}
                       fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
-                      }}
+                      size="small"
+                      type="number"
+                      inputProps={{ min: "0" }}
+                      value={item.quantity}
+                      onChange={(e) => handleQuantityChange(index, e.target.value)}
+                      placeholder="0"
                     />
                   </Grid>
-                </Grid>
-              </>
-            )}
-          </Grid> */}
-
-          {/* Integrated Unit and Quantity Selection */}
-          <Grid item xs={12}>
-            <Grid container spacing={2} alignItems="flex-end">
-              <Grid item xs={3}>
-                {/* <Typography className="input-label">
-                  Unit Type
-                </Typography>
-                <ToggleButtonGroup
-                  value={unit}
-                  exclusive
-                  onChange={handleUnitChange}
-                  fullWidth
-                  color="success"
-                  sx={{
-                    bgcolor: 'background.paper',
-                    height: 40,
-                    '& .MuiToggleButton-root': {
-                      borderRadius: 1,
-                      mx: 0.2,
-                      border: '1px solid !important',
-                      borderColor: 'divider',
-                      fontSize: '0.75rem',
-                      px: 1
-                    }
-                  }}
-                >
-                  <ToggleButton value="tray">30</ToggleButton>
-                  <ToggleButton value="dozen">12</ToggleButton>
-                  <ToggleButton value="half_dozen">6</ToggleButton>
-                </ToggleButtonGroup> */}
+                ))}
               </Grid>
-
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                  Quantity
-                </Typography>
-                <Grid container spacing={1} alignItems="center">
-                  <Grid item xs={3}>
-                    <Button
-                      onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                      fullWidth
-                      variant='outlined'
-                      sx={{
-                        height: 40,
-                        minWidth: 0,
-                        borderRadius: 1,
-                        fontSize: '1.2rem',
-                        borderColor: 'divider',
-                        color: 'text.primary',
-                        '&:hover': { bgcolor: 'action.hover', borderColor: 'divider' }
-                      }}
-                    >
-                      −
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box
-                      sx={{
-                        height: 40,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        border: '1px solid',
-                        borderColor: 'divider',
-                        borderRadius: 1,
-                        bgcolor: 'background.paper'
-                      }}
-                    >
-                      <TextField
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setQuantity(val);
-                          // Clear unit selection if manual value doesn't match presets
-                          if (val !== 30 && val !== 12 && val !== 6) {
-                            setUnit('custom');
-                          } else if (val === 30) setUnit('tray');
-                          else if (val === 12) setUnit('dozen');
-                          else if (val === 6) setUnit('half_dozen');
-                        }}
-                        variant="standard"
-                        InputProps={{
-                          disableUnderline: true,
-                          sx: {
-                            fontSize: '1rem',
-                            fontWeight: 'bold',
-                            color: 'text.primary',
-                            width: '100%',
-                            '& input': {
-                              textAlign: 'center',
-                              p: 0
-                            }
-                          }
-                        }}
-                        fullWidth
-                      />
-                    </Box>
-                  </Grid>
-                  <Grid item xs={3}>
-                    <Button
-                      onClick={() => setQuantity(q => q + 1)}
-                      fullWidth
-                      variant='contained'
-                      sx={{
-                        height: 40,
-                        minWidth: 0,
-                        borderRadius: 1,
-                        fontSize: '1.2rem',
-                        boxShadow: 'none'
-                      }}
-                    >
-                      +
-                    </Button>
-                  </Grid>
-                </Grid>
-              </Grid>
-               <Grid item xs={6}>
-                
-            </Grid>
-            </Grid>
-          </Grid>
-
-          {/* Add to List Button */}
-          <Grid item xs={12}>
-            <Button
-              fullWidth
-              variant="outlined"
-              color="primary"
-              onClick={handleAddToCart}
-              startIcon={<ShoppingCartIcon />}
-              sx={{ mt: 1, borderRadius: 2, height: 45, borderWidth: 2, '&:hover': { borderWidth: 2 } }}
-            >
-              Add to order
-            </Button>
-          </Grid>
-
-          {/* Cart Table */}
-          {cart.length > 0 && (
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                Added Products
-              </Typography>
-              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                <Table size="small">
-                  <TableHead sx={{ bgcolor: hexToRGBA(theme.palette.success.main, 0.12) }}>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Qty</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Rate</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {cart.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell sx={{ fontSize: '0.8rem' }}>{item.product_name}</TableCell>
-                        <TableCell align="center" sx={{ fontSize: '0.8rem' }}>{item.quantity}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.8rem' }}>₹{item.rate.toFixed(2)}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.8rem', fontWeight: 'bold' }}>₹{item.total.toFixed(2)}</TableCell>
-                        <TableCell align="center">
-                          <IconButton size="small" color="error" onClick={() => removeFromCart(index)}>
-                            <DeleteIcon fontSize="inherit" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
             </Grid>
           )}
 
