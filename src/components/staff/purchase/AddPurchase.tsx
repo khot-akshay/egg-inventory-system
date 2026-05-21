@@ -117,7 +117,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
             if (selectedItem && selectedItem.items && Array.isArray(selectedItem.items)) {
               const matchedItem = selectedItem.items.find((item: any) => item.category_id === cat.id)
               if (matchedItem) {
-                existingQty = matchedItem.total_trays || Math.floor((matchedItem.total_eggs || 0) / 30) || ""
+                existingQty = matchedItem.total_eggs || ""
                 existingPrice = String(matchedItem.price_per_egg || matchedItem.unit_cost || "0.00")
               }
             }
@@ -165,7 +165,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
             if (selectedItem && selectedItem.items && Array.isArray(selectedItem.items)) {
               const matchedItem = selectedItem.items.find((item: any) => item.category_id === p.category_id)
               if (matchedItem) {
-                qty = matchedItem.total_trays || Math.floor((matchedItem.total_eggs || 0) / 30) || ""
+                qty = matchedItem.total_eggs || ""
                 price = matchedItem.price_per_egg || matchedItem.unit_cost || price
               }
             }
@@ -200,7 +200,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
   const grandTotal = prices.reduce((sum, item) => {
     const qty = Number(item.quantity) || 0
     const rate = Number(item.price_per_egg) || 0
-    return sum + (qty * 30 * rate)
+    return sum + (qty * rate)
   }, 0)
 
   const onSubmit = async (data: any) => {
@@ -217,10 +217,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         .filter(item => (Number(item.quantity) || 0) > 0)
         .map(item => ({
           category_id: item.category_id,
-          total_eggs: (Number(item.quantity) || 0) * 30,
-          price_per_egg: Number(item.price_per_egg) || 0,
-          total_trays: Number(item.quantity) || 0,
-          eggs_per_tray: 30
+          total_eggs: Number(item.quantity) || 0,
+          price_per_egg: Number(item.price_per_egg) || 0
         }))
 
       if (activeItems.length === 0) {
@@ -344,7 +342,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
                       inputProps={{ min: "0" }}
                       value={item.quantity}
                       onChange={(e) => handleQuantityChange(index, e.target.value)}
-                      placeholder="0"
+                      placeholder="Total eggs"
                     />
                   </Grid>
                 ))}
@@ -392,8 +390,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
             </Box>
           </Grid>
 
-          {/* Payment Type Selection */}
-          <Grid item xs={12}>
+          {/* <Grid item xs={12}>
             <Typography className="input-label">
               Payment Type
             </Typography>
@@ -420,7 +417,6 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
             </Grid>
           </Grid>
 
-          {/* Mixed Payment Details */}
           {paymentType === 'mixed' && (
             <Grid item xs={12}>
               <Grid container spacing={2}>
@@ -446,7 +442,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
                 </Grid>
               </Grid>
             </Grid>
-          )}
+          )} */}
 
           {/* Confirm Bill Button */}
           <Grid item xs={12} sx={{ mt: 3 }}>
