@@ -23,6 +23,29 @@ export type UserDataType = {
   // Backend-provided RBAC fields
   is_super_admin?: boolean
   permission?: { id?: number; display_name?: string; permission_name: string; parent_id?: number | null }[]
+  // New fields from login API response
+  uuid?: string
+  name?: string
+  phone?: string | null
+  shop_id?: number
+  supplier_id?: number | null
+  is_active?: boolean
+  roles?: { id: number; slug: string; name: string; permissions: any[] }[]
+  permissions?: string[]
+  shop?: {
+    id: number
+    uuid: string
+    code: string
+    name: string
+    city: string
+    phone?: string | null
+    is_active: boolean
+    egg_price_range?: {
+      min?: number | null
+      max?: number | null
+      unit: string
+    }
+  }
 }
 
 export type AuthValuesType = {

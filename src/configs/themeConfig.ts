@@ -57,7 +57,7 @@ type ThemeConfig = {
 
 const themeConfig: ThemeConfig = {
   // ** Layout Configs
-  templateName:'GRAIN' /* App Name */,
+  templateName:'Megha Sales' /* App Name */,
   projectFor:'grain',
   templateLogo:'/images/logos/newgrainLogo.png',
   templateDarkLogo:'/images/logos/newgrainLogo.png',

@@ -28,7 +28,7 @@ export default function TestBottomNav() {
             <h2 className="font-semibold mb-2">Instructions:</h2>
             <ol className="list-decimal list-inside space-y-1 text-sm">
               <li>Click the button above to toggle bottom nav visibility</li>
-              <li>Resize browser window to mobile width (<= 768px)</li>
+              <li>Resize browser window to mobile width (&lt;= 768px)</li>
               <li>Bottom navigation should appear at bottom of screen</li>
               <li>Test navigation by clicking menu items</li>
             </ol>

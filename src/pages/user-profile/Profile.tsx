@@ -9,7 +9,7 @@ export default function Profile() {
     const fetchData = async () => {
 
         try {
-            const response = await axiosInstance.get(`/api/v1/admin/getCurrentProfile`)
+            const response = await axiosInstance.get(`/api/v1/admin/getCurrentUser`)
             setUserData(response.data?.data?.userData)
         }
         catch (error) {

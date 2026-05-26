@@ -1,45 +1,76 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import Icon from 'src/@core/components/icon';
+import { useAuth } from 'src/hooks/useAuth';
 
 const BottomNav = ({ menuItems = null }) => {
   const router = useRouter();
+  const { user } = useAuth();
 
-  // Default menu items - matching your existing navbar structure
+  const hasRole = (roleName) => {
+    if (user?.is_super_admin) return true;
+    const targetRole = roleName.toLowerCase();
+    
+    // Check direct role string
+    if (user?.role?.toLowerCase() === targetRole || 
+        (user?.role?.toLowerCase() === 'admin' && targetRole === 'administrator')) {
+      return true;
+    }
+
+    // Check roles array
+    if (user?.roles?.length) {
+      return user.roles.some((role) => {
+        const name = role.name?.toLowerCase();
+        const slug = role.slug?.toLowerCase();
+        return name === targetRole || slug === targetRole || (name === 'admin' && targetRole === 'administrator');
+      });
+    }
+
+    return false;
+  };
+
+  // Default menu items with allowedRoles
   const defaultMenuItems = [
     {
       name: 'Dashboards',
       icon: 'bx:home-circle',
       href: '/dashboards',
-      label: 'Dashboards'
+      label: 'Dashboards',
+      allowedRoles: ['Administrator', 'Staff', 'Distributor']
     },
     {
       name: 'Product',
       icon: 'bx:package',
       href: '/products',
-      label: 'Product'
+      label: 'Product',
+      allowedRoles: ['Administrator', 'Staff']
     },
     {
       name: 'Orders',
       icon: 'mdi:clipboard-text-outline',
       href: '/orders',
-      label: 'Orders'
+      label: 'Orders',
+      allowedRoles: ['Administrator', 'Staff']
     },
     {
       name: 'Query Requests',
       icon: 'mdi:information-outline',
       href: '/query',
-      label: 'Query'
+      label: 'Query',
+      allowedRoles: ['Administrator', 'Staff', 'Distributor']
     },
     {
       name: 'Activity Logs',
       icon: 'mdi:history',
       href: '/logs',
-      label: 'Logs'
+      label: 'Logs',
+      allowedRoles: ['Administrator', 'Staff']
     }
   ];
 
-  const navigationItems = menuItems || defaultMenuItems;
+  const navigationItems = (menuItems || defaultMenuItems).filter(item => 
+    !item.allowedRoles || item.allowedRoles.some(role => hasRole(role))
+  );
 
   const handleNavigation = (href) => {
     router.push(href);

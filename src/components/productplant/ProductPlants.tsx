@@ -19,7 +19,7 @@ import { encodeParams, decodeParams } from 'src/utils/encodeid'
 import AddProductPlant from './AddProductPlant';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import { useForm } from 'react-hook-form'
-import AddProducts from '../metaData/products/AddProducts';
+import AddProducts from '../admin/products/AddProducts';
 import AddNewProductPlant from './AddNewProductPlant';
 
 
@@ -359,7 +359,7 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
       </div>
     },
 
-    
+
     {
       field: 'actions',
       headerName: 'Actions',

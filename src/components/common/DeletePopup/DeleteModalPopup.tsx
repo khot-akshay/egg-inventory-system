@@ -58,7 +58,7 @@ export default function DeleteDialogPopup({ show, handleclose, selectedItems, fe
                 }}>
                     <Typography variant='h6' sx={{ fontWeight: 700, ml: '10px' }}>Confirmation </Typography>
                     <IconButton aria-label="delete" size="medium" onClick={handleclose} sx={{ marginRight: '10px' }}>
-                        <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
+                        <HighlightOffIcon sx={{ color: 'error.main' }} fontSize="large" />
                     </IconButton>
                 </Box>
                 <Divider />

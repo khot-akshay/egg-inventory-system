@@ -45,7 +45,21 @@ const AuthProvider = ({ children }: Props) => {
   useEffect(() => {
     const initAuth = async (): Promise<void> => {
       const storedToken = Cookies.get('accessToken')
-      console.log(storedToken,"storedToken")
+      const storedUserData = localStorage.getItem('userData')
+
+      // If we have stored user data, use it first
+      if (storedUserData) {
+        try {
+          const userData = JSON.parse(storedUserData)
+          console.log('InitAuth Debug - Using stored user data:', userData)
+          setUser(userData)
+        } catch (e) {
+          console.error('Failed to parse stored user data:', e)
+          localStorage.removeItem('userData')
+        }
+      }
+
+      console.log(storedToken, "storedToken")
       if (storedToken) {
         setLoading(true)
         await axiosInstance
@@ -56,13 +70,18 @@ const AuthProvider = ({ children }: Props) => {
           })
           .then((response: any) => {
             setLoading(false)
-            console.log(response,"responsegetcurent")
-            setUser({ ...response.data.data?.userData,...response.data.data?.userData?.is_super_admin, permission:response?.data?.data?.permission })
-            window.localStorage.setItem('userData', JSON.stringify({ ...response.data.data?.userData,...response.data.data?.userData?.is_super_admin, permission:response?.data?.data?.permission }))
-
+            console.log(response, "responsegetcurent")
+            const userData = response.data.data
+            if (userData) {
+              console.log('InitAuth Debug - Setting user from API:', userData)
+              const role = userData.roles?.[0]?.slug || 'admin'
+              const fullUserData = { ...userData, role }
+              setUser(fullUserData)
+              window.localStorage.setItem('userData', JSON.stringify(fullUserData))
+            }
           })
           .catch((e) => {
-            console.log(e,"error1")
+            console.log(e, "error1")
             setLoading(false)
             signOut()
             setUser(null)
@@ -90,11 +109,12 @@ const AuthProvider = ({ children }: Props) => {
         window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
 
         const returnUrl = router.query.returnUrl
-    console.log(response,response.data.userData,"login")
-        window.localStorage.setItem('userData', JSON.stringify(response.data.userData))
-                setUser({ ...response.data.userData })
+        console.log(response, response.data.user, "login")
+        const userData = response.data.user
+        window.localStorage.setItem('userData', JSON.stringify(userData))
+        setUser(userData)
 
-            // setUser({ ...response.data.data?.user,...response.data.data?.is_super_admin, permission:response?.data?.data?.permission })
+        // setUser({ ...response.data.data?.user,...response.data.data?.is_super_admin, permission:response?.data?.data?.permission })
 
         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
         setLoading(false)
@@ -102,7 +122,7 @@ const AuthProvider = ({ children }: Props) => {
       })
 
       .catch(err => {
-        
+
         if (errorCallback) errorCallback(err)
       })
   }

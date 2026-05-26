@@ -33,8 +33,15 @@ const RHFAutoComplete = ({
 
   multiple = false,
   options: staticOptions = [],
+  dataKey = '',
+  returnObject = false, // ✅ add returnObject prop
   ...rest
 }) => {
+  // Helper to get nested values like 'category.name'
+  const getNestedValue = (obj, path) => {
+    if (!obj || !path) return obj;
+    return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj);
+  };
   const { field, fieldState } = useController({
     name,
     control,
@@ -73,7 +80,28 @@ const RHFAutoComplete = ({
 
         const url = `${apiUrl}?${new URLSearchParams(params)}`
         const res = await axiosInstance.get(url)
-        const data = res?.data?.data?.data || []
+
+        let data = [];
+        const responseData = res?.data;
+
+        if (dataKey) {
+          // If dataKey is provided, use it to find the array (e.g., 'data.products')
+          data = getNestedValue(responseData, dataKey) || [];
+        } else {
+          // Fallback to existing heuristic
+          data = res?.data?.data?.data;
+          if (!Array.isArray(data)) {
+            const nestedData = res?.data?.data;
+            if (Array.isArray(nestedData)) {
+              data = nestedData;
+            } else if (nestedData && typeof nestedData === 'object') {
+              const possibleArray = Object.values(nestedData).find(Array.isArray);
+              data = possibleArray || [];
+            } else {
+              data = [];
+            }
+          }
+        }
 
         setOptions(prev => (pageNo === 0 ? data : [...prev, ...data]))
         setHasMore(data.length === pageSize)
@@ -83,7 +111,8 @@ const RHFAutoComplete = ({
         setLoading(false)
       }
     },
-    [apiUrl, pageSize]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [apiUrl, pageSize, JSON.stringify(extraParams)]
   )
 
   /* 🔍 Search debounce */
@@ -109,9 +138,9 @@ const RHFAutoComplete = ({
   /* ✅ RHF stores ID → Autocomplete needs OBJECT */
   const selectedValue = multiple
     ? (Array.isArray(field.value) ? field.value : [])
-      .map(v => (typeof v === 'object' ? v : options.find(opt => opt[valueKey] === v)))
+      .map(v => (typeof v === 'object' ? v : options.find(opt => getNestedValue(opt, valueKey) === v)))
       .filter(Boolean)
-    : options.find(opt => opt[valueKey] === field.value) ||
+    : options.find(opt => getNestedValue(opt, valueKey) === (typeof field.value === 'object' && field.value !== null ? getNestedValue(field.value, valueKey) : field.value)) ||
     (typeof field.value === 'object' ? field.value : null)
 
   return (
@@ -131,8 +160,8 @@ const RHFAutoComplete = ({
         options={options}
         loading={loading}
         filterOptions={x => x}
-        isOptionEqualToValue={(o, v) => o?.[valueKey] === v?.[valueKey]}
-        getOptionLabel={o => o?.[labelKey] ?? ''}
+        isOptionEqualToValue={(o, v) => getNestedValue(o, valueKey) === getNestedValue(v, valueKey)}
+        getOptionLabel={o => getNestedValue(o, labelKey) || ''}
         onOpen={() => {
           setOpen(true)
           setPage(0)
@@ -141,9 +170,9 @@ const RHFAutoComplete = ({
         onClose={() => setOpen(false)}
         onChange={(_, val) => {
           if (multiple) {
-            field.onChange(val ? val.map(v => v[valueKey]) : [])
+            field.onChange(val ? val.map(v => returnObject ? v : getNestedValue(v, valueKey)) : [])
           } else {
-            field.onChange(val ? val[valueKey] : null)
+            field.onChange(val ? (returnObject ? val : getNestedValue(val, valueKey)) : null)
           }
         }}
         onInputChange={(_, val, reason) => {

@@ -37,70 +37,48 @@ const DefaultPalette = (mode: PaletteMode, skin: Skin) => {
       black: '#000',
       white: whiteColor
     },
-    // primary: {
-    //   light: '#8082FF',
-    //   main: '#3598DB',
-    //   dark: '#3598DB',
-    //   contrastText: whiteColor
-    // },
-    // secondary: {
-    //   light: '#97A2B1',
-    //   main: '#8592A3',
-    //   dark: '#798594',
-    //   contrastText: whiteColor
-    // },
+    
+primary: {
+  light: '#FF8A50',
+  main: '#F25C05',       // Main orange
+  dark: '#D94E04',
+  contrastText: '#FFFFFF'
+},
 
-//     primary: {
-//   light: '#33C675',      // lighter version of #00B750
-//   main: '#00B750',       // your primary color
-//   dark: '#009242',       // darker version
-//   contrastText: whiteColor
-// },
+secondary: {
+  light: '#FFF3E0',
+  main: '#FFE0B2',       // Soft cream/beige
+  dark: '#FFCC80',
+  contrastText: '#1E293B'
+},
 
-// secondary: {
-//   light: '#FFAD4C',      // lighter version of #FF981F
-//   main: '#FF981F',       // your secondary color
-//   dark: '#D6770A',       // darker version
-//   contrastText: whiteColor
-// },
+success: {
+  light: '#81C784',
+  main: '#4CAF50',
+  dark: '#388E3C',
+  contrastText: '#FFFFFF'
+},
 
- primary: {
-      light: '#2FA36E',
-      main: '#03753C',
-      dark: '#02552B',
-      contrastText: '#FFFFFF'
-    },
-    secondary: {
-      light: '#4D8DFF',
-      main: '#0B5ED7',
-      dark: '#084298',
-      contrastText: '#FFFFFF'
-    },
+warning: {
+  light: '#FFD180',
+  main: '#FFB300',
+  dark: '#FF8F00',
+  contrastText: '#1E293B'
+},
 
-    error: {
-      light: '#FF5B3F',
-      main: '#FF3E1D',
-      dark: '#E8381A',
-      contrastText: whiteColor
-    },
-    warning: {
-      light: '#FFB826',
-      main: '#FFAB00',
-      dark: '#E89C00',
-      contrastText: whiteColor
-    },
-    info: {
-      light: '#29CCEF',
-      main: '#03C3EC',
-      dark: '#03B1D7',
-      contrastText: whiteColor
-    },
-    success: {
-      light: '#86E255',
-      main: '#71DD37',
-      dark: '#67C932',
-      contrastText: whiteColor
-    },
+info: {
+  light: '#4FC3F7',
+  main: '#0288D1',
+  dark: '#01579B',
+  contrastText: '#FFFFFF'
+},
+
+error: {
+  light: '#FF8A80',
+  main: '#FF5252',
+  dark: '#D32F2F',
+  contrastText: '#FFFFFF'
+},
     grey: {
       50: '#FAFAFA',
       100: '#F5F5F5',

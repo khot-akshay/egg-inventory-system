@@ -36,11 +36,13 @@ import SubmitButton from 'src/components/common/button/Button'
 import RHFInput from 'src/hook-forms/RHFInput'
 import axiosInstance from 'src/services/axios'
 import { post } from 'src/services/apiCall'
+import RoleSelector from 'src/components/loginRole/RoleSelector'
 
 // ** Styled Components
 const LoginIllustration = styled('img')({
-  height: 'auto',
-  maxWidth: '100%'
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover'
 })
 
 const RightWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -85,6 +87,7 @@ interface FormData {
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState<boolean>(false)
   const [loading, setLoading] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<string>('admin')
   // ** Hooks
   const auth = useAuth()
   const theme = useTheme()
@@ -106,21 +109,29 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
   function logInUser(data: any) {
-    console.log(data,"data")
-    // const  = JSON.stringify(deviceInfo);
-    const returnUrl = router.query.returnUrl
-    const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+    console.log(data, "Login Data Debug");
+    const returnUrl = router.query.returnUrl;
+    const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/';
+
+    // Extracting data based on your specific API response structure
+    const userData = data.user;
+    const token = data.access_token;
+    
+    // Get the first role name if available, otherwise default to a role
+    const primaryRole = (userData?.roles && userData.roles.length > 0) 
+      ? userData.roles[0].name 
+      : 'Staff'; 
 
     try {
       auth.handleSignIn(
-        { ...data['userData'], permission: data['permission'], ...data['is_super_admin'] },
-        data['token'],
+        userData,
+        token,
         redirectURL as string,
         rememberMe,
-        data['role']
-      )
+        primaryRole
+      );
     } catch (error) {
-      console.error('Error in handleSignIn:', error)
+      console.error('Error in handleSignIn:', error);
     }
   }
   const onSubmit = async (data: any) => {
@@ -129,15 +140,16 @@ const LoginPage = () => {
     setLoading(true)
 
     try {
-    
-      const response = await post('/api/v1/admin/userLogin', {
+      const response = await post('/api/v1/auth/login', {
         email,
         password,
-     
       })
-      console.log(response,"response")
+      
+      console.log(response, "Full API Response");
+      
       if (response?.success) {
-        logInUser(response?.data)
+        // response.data contains { access_token, user, etc }
+        logInUser(response.data)
       }
     } catch (e: any) {
       console.log(e,"event")
@@ -154,13 +166,13 @@ const LoginPage = () => {
   }
 
   return (
-    <Box className='content-right'>
+    <Box className='content-right' sx={{ height: '100vh', overflow: 'hidden' }}>
       {!hidden ? (
-        <Box sx={{ p: 12, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <LoginIllustration
             width={700}
             alt='login-illustration'
-            src={`/images/pages/boy-with-rocket-${theme.palette.mode}.png`}
+            src={`/images/pages/login.png`}
           />
         </Box>
       ) : null}
@@ -191,10 +203,10 @@ const LoginPage = () => {
               width={50}
               height={50}
             /> */}
-            <img
+            {/* <img
               src={settings.mode == 'dark' ? themeConfig.templateDarkLogo : themeConfig.templateLogo}
               width={200}
-              alt={themeConfig.templateName} />
+              alt={themeConfig.templateName} /> */}
           </Box>
           <Typography variant='h6' sx={{ mb: 1.5 }}>
             Welcome to {themeConfig.templateName}!
@@ -203,6 +215,8 @@ const LoginPage = () => {
             {/* Please sign-in to your account */}
             Please sign in to your account.
           </Typography>
+
+          {/* <RoleSelector selectedRole={selectedRole} onRoleChange={setSelectedRole} /> */}
 
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* <FormControl fullWidth sx={{ mb: 4 }}>

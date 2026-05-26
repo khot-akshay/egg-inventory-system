@@ -44,6 +44,7 @@ export type NavSectionTitle = {
   isPermissionNeeded?: boolean;
   permissionName?: string;
   projectFor?: string[];
+  allowedRoles?: string[];
 };
 
 export type NavGroup = {
@@ -55,6 +56,7 @@ export type NavGroup = {
   subject?: string;
   badgeContent?: string;
   projectFor?: string[];
+  allowedRoles?: string[];
   children?: (NavGroup | NavLink)[];
   badgeColor?:
     | "default"
@@ -79,6 +81,7 @@ export type NavLink = {
   externalLink?: boolean;
   openInNewTab?: boolean;
   projectFor?: string[];
+  allowedRoles?: string[];
   badgeColor?:
     | "default"
     | "primary"

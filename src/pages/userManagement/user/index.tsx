@@ -8,8 +8,8 @@ import Typography from "@mui/material/Typography";
 import MuiLink from "@mui/material/Link";
 import PageHeader from "../../../@core/components/page-header";
 // import PromocodeList from 'src/components/promocode/PromocodeList';
-import UserList from 'src/components/userManagement/User/UserList';
 import checkPermission from 'src/configs/CheckPermisstion';
+import UserList from 'src/views/apps/roles/Table';
 export default function Promocodes() {
   return (
     <div>
