@@ -21,17 +21,45 @@ import toast from 'react-hot-toast';
 import AddProducts from './AddPurchase';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import AddPurchaseForm from './AddPurchase'
 
 
 
 
-interface CategoryRow {
+interface PurchaseRow {
   id: number
-  name: string
-  slug?: string
-  description?: string | null
-  image_url?: string | null
-  is_active?: boolean
+  uuid?: string
+  purchase_no?: string
+  total_trays?: number | null
+  total_eggs?: number
+  price_per_egg?: string
+  total_amount?: string
+  paid_amount?: string
+  due_amount?: string
+  purchase_date?: string
+  status?: string
+  notes?: string
+  vendor?: {
+    id: number
+    name: string
+  }
+  vehicle?: {
+    id: number
+    registration_number: string
+  }
+  items?: Array<{
+    id: number
+    category_id: number
+    total_trays?: number | null
+    eggs_per_tray?: number | null
+    total_eggs: number
+    price_per_egg: string
+    line_amount: string
+    category?: {
+      id: number
+      name: string
+    }
+  }>
   created_at?: string | null
   [key: string]: any
 }
@@ -42,14 +70,14 @@ type SelectOption = {
 }
 
 const Purchase = () => {
-  const [rows, setRows] = useState<CategoryRow[]>([])
+  const [rows, setRows] = useState<PurchaseRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
   const [pageSize, setPageSize] = useState(6)
   const [page, setPage] = useState(0)
   const [openAdd, setOpenAdd] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
+  const [selectedItem, setSelectedItem] = useState<PurchaseRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
@@ -109,10 +137,10 @@ const Purchase = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/shop/getAllQuickbills?${params.toString()}`
+        `/api/v1/shop/getAllEggVendorPurchases?${params.toString()}`
       )
 
-      setRows(response.data.data?.quickbills ?? [])
+      setRows(response.data.data?.purchases ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -154,12 +182,12 @@ const Purchase = () => {
     setPageSize(newPageSize)
   }
   const handleEditClick = (params: GridCellParams) => {
-    setSelectedItem(params.row as CategoryRow)
+    setSelectedItem(params.row as PurchaseRow)
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
     console.log('Delete Clicked:', params.row)
-    setSelectedItem(params.row as CategoryRow)
+    setSelectedItem(params.row as PurchaseRow)
     setOpenDelete(true)
     console.log('Selected Item for delete:', selectedItem)
   }
@@ -193,62 +221,86 @@ const Purchase = () => {
     },
 
     {
-      field: 'customer_name',
-      headerName: 'customer name',
+      field: 'purchase_no',
+      headerName: 'Purchase No.',
       flex: 1,
-      minWidth: 150,
+      minWidth: 180,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.customer.name || 'NA'}
+          {params.row?.purchase_no || 'NA'}
         </div>
       )
     },
     {
-      field: 'shop',
-      headerName: 'product Name',
+      field: 'vendor_name',
+      headerName: 'Vendor',
       flex: 1,
-      minWidth: 150,
+      minWidth: 140,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.items?.[0]?.product?.name || 'NA'}
+          {params.row?.vendor?.name || 'NA'}
         </div>
       )
     },
     {
-      field: 'quantity',
+      field: 'vehicle',
+      headerName: 'Vehicle',
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.vehicle?.registration_number || 'NA'}
+        </div>
+      )
+    },
+    {
+      field: 'total_eggs',
       headerName: 'Total Eggs',
-      flex: 1,
-      minWidth: 100,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.items?.[0]?.quantity || '0'}
-        </div>
-      )
-    },
-    {
-      field: 'unit_cost',
-      headerName: 'Rate',
-      flex: 1,
-      minWidth: 80,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.items?.[0]?.unit_cost || '0'}
-        </div>
-      )
-    },
-    {
-      field: 'total',
-      headerName: 'Total Bill',
       flex: 1,
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{params.row?.total || '0'}
+          {params.row?.total_eggs ?? 0}
+        </div>
+      )
+    },
+    {
+      field: 'price_per_egg',
+      headerName: 'Rate/egg',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          ₹{params.row?.price_per_egg || '0.00'}
+        </div>
+      )
+    },
+    {
+      field: 'total_amount',
+      headerName: 'Total Amount',
+      flex: 1,
+      minWidth: 130,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          ₹{params.row?.total_amount || '0.00'}
+        </div>
+      )
+    },
+    {
+      field: 'due_amount',
+      headerName: 'Due Amount',
+      flex: 1,
+      minWidth: 130,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          ₹{params.row?.due_amount || '0.00'}
         </div>
       )
     },
@@ -319,7 +371,7 @@ const Purchase = () => {
               sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
-              <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+              <Icon icon={'ic:outline-delete'} fontSize={24} style={{ color: theme.palette.error.main }} />
             </Button>
           </Tooltip>
           {/* )} */}
@@ -338,10 +390,10 @@ const Purchase = () => {
       <Card sx={{ p: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} >
-            <GoBack label="Quick Bill List" isBack={false} />
+            <GoBack label="Egg Vendor Purchases" isBack={false} />
           </Grid>
           <Grid item xs={12} md={3}>
-            <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
+            <SearchInput handleSearch={handleSearch} placeHolder="Search purchase no, vendor..." />
           </Grid>
           <Grid item xs={4} md={1} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             {/* List View */}
@@ -395,17 +447,19 @@ const Purchase = () => {
             {/* Download Button */}
             <CommonExport
               data={rows}
-              fileName="QuickBills"
+              fileName="EggVendorPurchases"
               columns={columns}
               transform={(row, index) => [
                 index + 1,
-                `"${row.customer?.name || 'NA'}"`,
-                `"${row.items?.[0]?.product?.name || 'NA'}"`,
-                row.items?.[0]?.quantity || '0',
-                row.items?.[0]?.unit_cost || '0',
-                row.total || '0',
+                `"${row.purchase_no || 'NA'}"`,
+                `"${row.vendor?.name || 'NA'}"`,
+                row.vehicle?.registration_number || 'NA',
+                row.total_eggs ?? 0,
+                row.price_per_egg || '0.00',
+                row.total_amount || '0.00',
+                row.due_amount || '0.00',
                 row.status || 'NA',
-                row.created_at ? new Date(row.created_at).toLocaleDateString() : 'NA'
+                row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : 'NA'
               ]}
             />
           </Grid>
@@ -421,6 +475,7 @@ const Purchase = () => {
               labelKey="name"
               valueKey="id"
               required={false}
+              handlebtnclick={() => {}}
             />
           </Grid>
 
@@ -458,7 +513,7 @@ const Purchase = () => {
               ))
             ) : rows.length > 0 ? (
               rows.map((item) => (
-                <Grid item key={item.id} xs={12} sm={6} md={3} lg={3}>
+                <Grid item key={item.id} xs={12} sm={6} md={4} lg={4}>
                   <CardActionArea onClick={() => handleViewUser(item.id)} sx={{ height: "100%" }}>
                     <CommonCard>
                       <Box display="flex" justifyContent="space-between" alignItems="flex-start">
@@ -474,7 +529,7 @@ const Purchase = () => {
                               textOverflow: "ellipsis",
                             }}
                           >
-                            {item.customer?.name || "NA"}
+                            {item.vendor?.name || "NA"}
                           </Typography>
                         </Box>
                         <Box onClick={(e) => e.stopPropagation()}>
@@ -492,13 +547,30 @@ const Purchase = () => {
 
                       <Box sx={{ mt: 1 }}>
                         <Typography variant="body2" color="text.secondary">
-                          Product: {item.items?.[0]?.product?.name || 'NA'}
+                          Total Eggs: {item.total_eggs ?? 0}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Quantity: {item.items?.[0]?.quantity || '0'}
-                        </Typography>
+                        
+                        {/* Items Breakdown */}
+                        {item.items && item.items.length > 0 && (
+                          <Box sx={{ mt: 1.5 }}>
+                            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}>
+                              Items:
+                            </Typography>
+                            {item.items.map((purchaseItem: any, index: number) => (
+                              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.3 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {purchaseItem.category?.name || 'NA'}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                                  {purchaseItem.total_eggs || 0} eggs
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                        
                         <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700, mt: 1 }}>
-                          ₹{item.total || '0'}
+                          ₹{item.total_amount || '0.00'}
                         </Typography>
                       </Box>
 
@@ -507,7 +579,7 @@ const Purchase = () => {
                           {item.status || 'NA'}
                         </Typography>
                         <Typography variant="caption" color="text.disabled">
-                          {new Date(item.created_at).toLocaleDateString()}
+                          {item.purchase_date ? new Date(item.purchase_date).toLocaleDateString() : 'NA'}
                         </Typography>
                       </Box>
                     </CommonCard>
@@ -540,14 +612,14 @@ const Purchase = () => {
           </Grid>
         )}
       </Card>
-      {openAdd && <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
+      {openAdd && <AddPurchaseForm open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
       {openDelete && (
         <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem?.id}
           fetchData={fetchGame}
           label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/products/deleteProducts/'} />
       )}
       {openEdit && (
-        <AddProducts open={openEdit} handleClose={() => setOpenEdit(false)}
+        <AddPurchaseForm open={openEdit} handleClose={() => setOpenEdit(false)}
           fetchData={fetchGame}
           selectedItem={selectedItem ?? undefined} />
       )}

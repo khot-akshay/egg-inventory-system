@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid, Box } from '@mui/material'
 import AddPurchaseForm from 'src/components/staff/purchase/AddPurchase'
-import PurchaseDashboard from 'src/components/staff/purchase/PurchaseDashboard'
+import Purchase from 'src/components/staff/purchase/Purchase'
 
 const PurchasePage = () => {
   return (
@@ -14,7 +14,7 @@ const PurchasePage = () => {
 
         {/* Right Side: Stocks Table (8 grid) */}
         <Grid item xs={12} md={8}>
-          <PurchaseDashboard />
+          <Purchase />
         </Grid>
       </Grid>
     </Box>

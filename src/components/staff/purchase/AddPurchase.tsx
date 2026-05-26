@@ -34,7 +34,7 @@ const schema = yup.object().shape({
 interface AddStocksFormProps {
   open?: boolean
   handleClose?: () => void
-  fetchData?: () => void
+  fetchData?: () => Promise<void>
   selectedItem?: any
 }
 
@@ -203,6 +203,10 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
     return sum + (qty * rate)
   }, 0)
 
+  const totalQuantity = prices.reduce((sum, item) => {
+    return sum + (Number(item.quantity) || 0)
+  }, 0)
+
   const onSubmit = async (data: any) => {
     setLoading(true)
     try {
@@ -264,7 +268,9 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         const clearedPrices = prices.map(p => ({ ...p, quantity: "" }))
         setPrices(clearedPrices)
         setIsNewCustomer(false)
-        if (fetchData) fetchData()
+        if (fetchData) {
+          await fetchData()
+        }
         if (handleClose) handleClose()
       }
     } catch (error: any) {
@@ -371,23 +377,45 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               </Typography>
             </Box> */}
 
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                p: 2,
-                bgcolor: hexToRGBA(theme.palette.success.main, 0.12),
-                borderRadius: 2
-              }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                Total Amount
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                ₹{grandTotal.toFixed(2)}
-              </Typography>
-            </Box>
+            <Grid item xs={12} sx={{ mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 2,
+                  bgcolor: hexToRGBA(theme.palette.info.main, 0.12),
+                  borderRadius: 2
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                  Total Quantity
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                  {totalQuantity}
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  p: 2,
+                  bgcolor: hexToRGBA(theme.palette.success.main, 0.12),
+                  borderRadius: 2
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                  Total Eggs
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                  ₹{grandTotal.toFixed(2)}
+                </Typography>
+              </Box>
+            </Grid> */}
           </Grid>
 
           {/* <Grid item xs={12}>
