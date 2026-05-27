@@ -40,7 +40,7 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Customers",
     icon: "bx:buildings",
-    path: '/plants',
+    path: '/customer',
     allowedRoles: ["Administrator", "Staff", "Distributor"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
@@ -67,25 +67,31 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Stock",
     icon: "mdi:warehouse", // inventory / storage
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Staff","Distributor"],
     path: "/stocks",
+  },
+  {
+    title: "Stock History",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Administrator"],
+    path: "/stockhistory",
   },
   {
     title: "Purchases",
     icon: "mdi:cart-arrow-down", // buying items
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
   },
   {
     title: "Vendors",
     icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Administrator", "Staff","Distributor"],
     path: "/vendor",
   },
   {
     title: "Vehicles",
     icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Administrator", "Distributor"],
     path: "/vehicles",
   },
   {
@@ -94,17 +100,17 @@ const tempObject: VerticalNavItemsType = [
     allowedRoles: ["Administrator", "Staff"],
     path: "/commission",
   },
-  {
-    title: "Payments",
-    icon: "mdi:credit-card-outline", // payments
-    allowedRoles: ["Administrator", "Staff"],
-    path: "/commission",
-  },
+  // {
+  //   title: "Payments",
+  //   icon: "mdi:credit-card-outline", // payments
+  //   allowedRoles: ["Administrator", "Staff"],
+  //   path: "/commission",
+  // },
   {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
-    allowedRoles: ["Administrator", "Staff"],
-    path: "/commission",
+    allowedRoles: ["Administrator", "Staff", "Distributor"],
+    path: "/expense",
   },
 
   // {
