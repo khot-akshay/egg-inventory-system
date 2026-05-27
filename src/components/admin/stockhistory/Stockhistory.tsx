@@ -1,12 +1,8 @@
-import { Box, Button, Card, CardActionArea, Grid, IconButton, InputAdornment, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Card, Grid, InputAdornment, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material'
 import { GridCellParams, GridColDef, GridSearchIcon } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useTheme } from '@mui/material/styles'
-import CommonSkeleton from 'src/@core/components/common-skeleton/CommonSkeleton'
-import CommonCard from 'src/@core/components/common-card/CommonCard'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
-import CommonExport from 'src/@core/components/common-export/CommonExport'
 
 import GoBack from 'src/components/common/goBack/GoBackButton';
 import axiosInstance from 'src/services/axios'
@@ -18,12 +14,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule';
 import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
-import AddProducts from './AddQuickBill';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
-import CardOneCount from 'src/components/dashboard/CardOneCount'
-import { useAuth } from 'src/hooks/useAuth'
-import CategoryStockCard from 'src/components/dashboard/CategoryStockCard'
 
 
 
@@ -44,46 +36,18 @@ type SelectOption = {
   value: number | string
 }
 
-interface StockCategory {
-  id: number
-  category_id: number
-  category_name: string
-  remaining_count: number
-  sale_count: number
-  sold_count: number
-  total_amount: number
-}
-
-interface StockData {
-  shop_id: number
-  count: number
-  categories: StockCategory[]
-  totals: {
-    remaining_count: number
-    sale_count: number
-    sold_count: number
-    total_amount: number
-  }
-}
-
-const QuickBillDashboard = () => {
+const Stockhistory = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(6)
+  const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(0)
   const [openAdd, setOpenAdd] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
   const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [stockData, setStockData] = useState<StockData | null>(null)
-  const [stockLoading, setStockLoading] = useState(false)
-  const theme = useTheme();
   const router = useRouter()
-  const { user } = useAuth()
-  const currentStaffShopId = user?.shop_id || user?.shop?.id
   const { control, watch } = useForm({
     defaultValues: {
       category_id: null,
@@ -138,10 +102,10 @@ const QuickBillDashboard = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/shop/getAllQuickbills?${params.toString()}`
+        `/api/v1/admin/getStockMovements?${params.toString()}`
       )
 
-      setRows(response.data.data?.quickbills ?? [])
+      setRows(response.data.data?.stock_movements ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -168,27 +132,6 @@ const QuickBillDashboard = () => {
   useEffect(() => {
     fetchGame()
   }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
-
-  const fetchInventoryStock = async () => {
-    if (!currentStaffShopId) return
-
-    setStockLoading(true)
-    try {
-      const response = await axiosInstance.get(`/api/v1/shop/getInventoryStock?shop_id=${currentStaffShopId}`)
-      if (response.data?.success) {
-        setStockData(response.data.data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch inventory stock:', error)
-      toast.error('Failed to load stock data')
-    } finally {
-      setStockLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchInventoryStock()
-  }, [currentStaffShopId])
 
 
 
@@ -227,7 +170,126 @@ const QuickBillDashboard = () => {
   const handleViewUser = (id: number) => {
     router.push(`products/viewProduct/${(id)}`)
   }
+  const columns: GridColDef[] = [
+    {
+      field: 'id',
+      headerName: 'Sr. No.',
+      flex: 1,
+      minWidth: 100,
 
+      sortable: false,
+      renderCell: index => {
+        const rowIndex = index.api.getRowIndex(index.row.id)
+        return page * pageSize + (rowIndex % pageSize) + 1
+      },
+      hideable: false
+    },
+  {
+      field: 'shop.name',
+      headerName: ' Shop Name',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.shop?.name || 'NA'}
+      </div>
+    },
+ 
+    {
+      field: 'name',
+      headerName: 'movement type',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) =>
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize' }}>
+          {params.row?.movement_type || 'NA'}
+        </div>
+    },
+    {
+      field: 'categories.name',
+      headerName: 'Product Name',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.categories?.name || params.row?.category?.name || 'NA'}
+      </div>
+    },
+    {
+      field: 'creator.name',
+      headerName: 'Creator Name',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.creator?.name ||'NA'}
+      </div>
+    },
+  
+   
+
+    // {
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => {
+    //     const isActive = params.row.is_active === true || params.row.is_active === 1 || params.row.is_active === '1';
+    //     return (
+    //       <Stack direction='row' alignItems='center' spacing={5}>
+    //         <p>{isActive ? 'Active' : 'Inactive'}</p>
+    //         <Switch checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
+    //       </Stack>
+    //     );
+    //   },
+    //   flex: 1,
+    // },
+    {
+      field: 'created_at',
+      headerName: 'Created Date',
+      flex: 1,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <DateFormateComponent date={params.row?.created_at ?? ''} />
+      )
+    },
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   flex: 1,
+    //   renderCell: (params: GridCellParams) => (
+    //     <>
+    //       {/* {checkPermission('update_brand') && ( */}
+    //       <Button
+    //         sx={{ color: 'text.secondary', margin: '-10px' }}
+    //         onClick={() => handleViewUser(params.row.id)}>
+    //         <Icon icon={'ph:eye'} fontSize={24} />
+    //       </Button>
+    //       <Tooltip title='Update Product.' placement='bottom'>
+    //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+    //           <Icon icon={'circum:edit'} fontSize={24} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //       {/* {checkPermission('delete_brand') && (  */}
+
+    //       <Tooltip title='Delete Product.' placement='bottom'>
+    //         <Button
+    //           sx={{ color: 'text.secondary', margin: '-10px' }}
+    //           onClick={() => handleDeleteOpen(params)}
+    //         >
+    //           <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //     </>
+    //   ),
+    // },
+  ]
   const handleSearch = (query: string) => {
     setPage(0)
     setQuery(query);
@@ -236,147 +298,69 @@ const QuickBillDashboard = () => {
   return (
     <>
 
-      {/* <Card sx={{
-        borderRadius: 2,
-        boxShadow: 2,
-        transition: '0.2s',
-        '&:hover': { boxShadow: 6 },
-        p:4
-      }}>
-        <Grid container spacing={1} >
-          <Grid item xs={12} md={4} >
-            <GoBack label="Quick Bill List" isBack={false} />
-          </Grid>
-         
+      <Card sx={{ p: 5 }}>
+      
+        <Grid container spacing={2}>
+ 
+          <Grid item xs={12} md={6}>
+                        <GoBack label="Stock History" isBack={false} />
 
-          <Grid item xs={12} md={3}>
+          </Grid>
+          <Grid item xs={12} md={2}>
+              <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
+
+            </Grid>
+          <Grid item xs={12} md={2} >
             <RHFAutoComplete
               control={control}
               name="category_id"
               apiUrl="/api/v1/admin/categories/getAllCategories"
               extraParams={{ is_active: 1 }}
               placeholder="Select Category"
-              labelinput=""
+              labelinput="Select Category"
               labelKey="name"
               valueKey="id"
               required={false}
             />
           </Grid>
-
-          <Grid item xs={12} md={3}>
+          <Grid item xs={12} md={2} >
             <RHFAutoComplete
               control={control}
-              name="category_id"
-              apiUrl="/api/v1/admin/categories/getAllCategories"
-              extraParams={{ is_active: 1 }}
-              placeholder="Select Category"
-              labelinput=""
+              name="shop_id"
+              apiUrl="/api/v1/admin/getAllShops"
+              placeholder="Select Shop"
+              labelinput="Select Shop"
               labelKey="name"
               valueKey="id"
               required={false}
             />
           </Grid>
-          <Grid item xs={12} md={2}><Button variant='contained' fullWidth
-          >
-            Bill list
-          </Button></Grid>
         </Grid>
-
-      </Card> */}
-      <Grid container spacing={3}>
-        {stockLoading ? (
-          Array.from({ length: 4 }).map((_, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <CommonSkeleton variant="rectangular" height={96} sx={{ borderRadius: 4 }} />
-            </Grid>
-          ))
-        ) : (
-          <>
-            <Grid item xs={12} sm={6} md={4}>
-              <CardOneCount
-                title='Total Stock'
-                value={stockData?.totals?.remaining_count || 0}
-                percentage={stockData?.growth || 0}
-                icon='mdi:warehouse'
-                color='success'
-                link='/stocks'
-                items={(stockData?.categories || []).map(item => ({
-                  id: item.id,
-                  label: item.category_name,
-                  value: item.remaining_count
-                }))}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <CardOneCount
-                title='Total Egg Sell'
-                value={stockData?.totals?.sale_count || 0}
-                percentage={stockData?.growth || 0}
-                icon='mdi:warehouse'
-                color='success'
-                link='/stocks'
-                items={(stockData?.categories || []).map(item => ({
-                  id: item.id,
-                  label: item.category_name,
-                  value: item.sale_count
-                }))}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <CardOneCount
-                title='Total Sell'
-                value={`₹ ${stockData?.totals?.total_amount || 0}`}
-                percentage={stockData?.growth || 0}
-                icon='mdi:warehouse'
-                color='success'
-                link='/stocks'
-                items={(stockData?.categories || []).map(item => ({
-                  id: item.id,
-                  label: item.category_name,
-                  value: `₹ ${Number(item.total_amount).toFixed(2) || 0}`
-                }))}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-             <CardOneCount
-  title='Payment Summary'
-  value={`₹${stockData?.totals?.total_amount?.toFixed(2) || 0}`}
-  icon='mdi:cash-multiple'
-  color='success'
-  items={Object.entries(
-    stockData?.totals?.payment_amounts || {}
-  )
-    .filter(([key]) =>
-      ['cash', 'upi', 'credit'].includes(key)
-    )
-    .map(([key, value]) => ({
-      id: key,
-      label: key.charAt(0).toUpperCase() + key.slice(1),
-      value: `₹${Number(value).toFixed(2)}`
-    }))}
-/>
-            </Grid>
-
-          </>
-        )}
-      </Grid>
-
-
-
-
-      {openAdd && <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
+        <CommonDatagrid
+          totalRows={totalRows}
+          pageSize={pageSize}
+          currentPage={page}
+          handleChangePage={handlePageChange}
+          handleChangeRowsPerPage={handlePageSizeChange}
+          columns={columns}
+          rows={rows}
+          checkboxSelection={false}
+          loading={loading}
+        />
+      </Card>
+      {/* {openAdd && <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
       {openDelete && (
         <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem?.id}
           fetchData={fetchGame}
-          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/products/deleteProducts/'} />
+          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/deleteProductById?id='} />
       )}
       {openEdit && (
         <AddProducts open={openEdit} handleClose={() => setOpenEdit(false)}
           fetchData={fetchGame}
           selectedItem={selectedItem ?? undefined} />
-      )}
+      )} */}
     </>
   )
 }
 
-export default QuickBillDashboard   
+export default Stockhistory

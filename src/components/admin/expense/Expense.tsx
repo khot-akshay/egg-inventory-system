@@ -14,9 +14,10 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule';
 import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
-import AddProducts from './AddStocks';
+import AddProducts from './AddExpense';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import AddExpense from './AddExpense'
 
 
 
@@ -37,7 +38,7 @@ type SelectOption = {
   value: number | string
 }
 
-const Stocks = () => {
+const Expense = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -103,10 +104,10 @@ const Stocks = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/shop/getInventoryStockData?${params.toString()}`
+        `/api/v1/admin/getAllExpenses?${params.toString()}`
       )
 
-      setRows(response.data.data?.products ?? [])
+      setRows(response.data.data?.expenses ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -175,8 +176,8 @@ const Stocks = () => {
     {
       field: 'id',
       headerName: 'Sr. No.',
-      flex: 0.5,
-      minWidth: 80,
+      flex: 1,
+      minWidth: 100,
 
       sortable: false,
       renderCell: index => {
@@ -185,110 +186,105 @@ const Stocks = () => {
       },
       hideable: false
     },
-
-    {
-      field: 'name',
-      headerName: 'Shop Name',
+  {
+      field: 'shop.name',
+      headerName: 'Shop',
       flex: 1,
-      minWidth: 250,
+      minWidth: 200,
       sortable: false,
-      renderCell: (params: GridCellParams) =>
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.name || 'NA'}
-        </div>
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.shop?.name || 'NA'}
+      </div>
     },
+ 
+    // {
+    //   field: 'name',
+    //   headerName: 'Product Name',
+    //   flex: 1,
+    //   minWidth: 200,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) =>
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       {params.row?.name || 'NA'}
+    //     </div>
+    // },
     {
       field: 'categories.name',
-      headerName: 'Category Name',
+      headerName: 'Expense Category',
       flex: 1,
-      minWidth: 150,
+      minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.categories?.name || params.row?.category?.name || 'NA'}
+        {params.row?.category || params.row?.category|| 'NA'}
       </div>
     },
+  
     {
-      field: 'unit',
-      headerName: 'Unit',
-      flex: 1,
-      minWidth: 70,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.unit || 'NA'}
-      </div>
-    },
-    {
-      field: 'selling_price',
-      headerName: 'Price range',
+      field: 'min_stock_level',
+      headerName: 'amount ',
       flex: 1,
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.selling_price || 'NA'}
+        {Math.floor(Number(params.row?.amount || 0))}
       </div>
     },
-   
-
-    // {
-    //   field: 'status',
-    //   headerName: 'Status',
-    //   minWidth: 150,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => {
-    //     const isActive = params.row.is_active === true || params.row.is_active === 1 || params.row.is_active === '1';
-    //     return (
-    //       <Stack direction='row' alignItems='center' spacing={5}>
-    //         <p>{isActive ? 'Active' : 'Inactive'}</p>
-    //         <Switch checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
-    //       </Stack>
-    //     );
-    //   },
-    //   flex: 1,
-    // },
+  
+  {
+      field: 'description.name',
+      headerName: 'Description',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.description || params.row?.description|| 'NA'}
+      </div>
+    },
     {
       field: 'created_at',
-      headerName: 'Created Date',
+      headerName: 'expense Date',
       flex: 1,
-      minWidth: 150,
+      minWidth: 180,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <DateFormateComponent date={params.row?.created_at ?? ''} />
+        <DateFormateComponent date={params.row?.expense_date ?? ''} />
       )
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      minWidth: 150,
-      sortable: false,
-      flex: 1,
-      renderCell: (params: GridCellParams) => (
-        <>
-          {/* {checkPermission('update_brand') && ( */}
-          <Button
-            style={{ color: '#84919d', margin: '-10px' }}
-            onClick={() => handleViewUser(params.row.id)}>
-            <Icon icon={'ph:eye'} fontSize={24} />
-          </Button>
-          <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-              <Icon icon={'circum:edit'} fontSize={24} />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-          {/* {checkPermission('delete_brand') && (  */}
 
-          <Tooltip title='Delete Product.' placement='bottom'>
-            <Button
-              style={{ color: '#84919d', margin: '-10px' }}
-              onClick={() => handleDeleteOpen(params)}
-            >
-              <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-        </>
-      ),
-    },
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   flex: 1,
+    //   renderCell: (params: GridCellParams) => (
+    //     <>
+    //       {/* {checkPermission('update_brand') && ( */}
+    //       <Button
+    //         sx={{ color: 'text.secondary', margin: '-10px' }}
+    //         onClick={() => handleViewUser(params.row.id)}>
+    //         <Icon icon={'ph:eye'} fontSize={24} />
+    //       </Button>
+    //       <Tooltip title='Update Product.' placement='bottom'>
+    //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+    //           <Icon icon={'circum:edit'} fontSize={24} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //       {/* {checkPermission('delete_brand') && (  */}
+
+    //       <Tooltip title='Delete Product.' placement='bottom'>
+    //         <Button
+    //           sx={{ color: 'text.secondary', margin: '-10px' }}
+    //           onClick={() => handleDeleteOpen(params)}
+    //         >
+    //           <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //     </>
+    //   ),
+    // },
   ]
   const handleSearch = (query: string) => {
     setPage(0)
@@ -298,29 +294,88 @@ const Stocks = () => {
   return (
     <>
 
-      <Card sx={{ p: 3 }}>
-        <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
-          <Grid item xs={12} md={6} >
-            <GoBack label="Stocks" isBack={false} />
-          </Grid>
-              <Grid item xs={12} md={3}>
-                <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <RHFAutoComplete
-                  control={control}
-                  name="category_id"
-                  apiUrl="/api/v1/admin/categories/getAllCategories"
-                  extraParams={{ is_active: 1 }}
-                  placeholder="Select Category"
-                  labelinput=""
-                  labelKey="name"
-                  valueKey="id"
-                  required={false}
-                />
-              </Grid>
-           
+      <Card sx={{ p: 5 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" sx={{ mb: 3 }}>
+
+          {/* Left Side: Back Button and Title */}
+          <Box display="flex" alignItems="center" gap={2}>
+            <GoBack label="Expense" isBack={false} />
+          </Box>
+
+          {/* Right Side: Search and Add Button */}
+          <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+
+            {/* <Grid item xs={12} sm="auto" sx={{ minWidth: 250 }}>
+              <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setPage(0);
+                  setSearchQuery(e.target.value);
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <GridSearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid> */}
+            <Grid item xs={12} sm="auto">
+              <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
+
             </Grid>
+
+
+
+
+            <Grid item xs={12} sm="auto">
+              {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
+                Add Brand
+              </Button> */}
+              {/* {checkPermission('add_brand') && ( */}
+              <Button onClick={() => setOpenAdd(true)} variant='contained'>
+                Add Expense <AddCircleOutlineIcon sx={{ ml: 1 }} />
+              </Button>
+
+              {/* )} */}
+
+            </Grid>
+          </Box>
+
+        </Box>
+        {/* <Grid container spacing={2}>
+
+          <Grid item xs={12} md={8}></Grid>
+          <Grid item xs={12} md={2} >
+            <RHFAutoComplete
+              control={control}
+              name="category_id"
+              apiUrl="/api/v1/admin/categories/getAllCategories"
+              extraParams={{ is_active: 1 }}
+              placeholder="Select Category"
+              labelinput="Select Category"
+              labelKey="name"
+              valueKey="id"
+              required={false}
+            />
+          </Grid>
+          <Grid item xs={12} md={2} >
+            <RHFAutoComplete
+              control={control}
+              name="shop_id"
+              apiUrl="/api/v1/admin/getAllShops"
+              placeholder="Select Shop"
+              labelinput="Select Shop"
+              labelKey="name"
+              valueKey="id"
+              required={false}
+            />
+          </Grid>
+        </Grid> */}
         <CommonDatagrid
           totalRows={totalRows}
           pageSize={pageSize}
@@ -333,14 +388,14 @@ const Stocks = () => {
           loading={loading}
         />
       </Card>
-      {openAdd && <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
+      {openAdd && <AddExpense open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
       {openDelete && (
         <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem?.id}
           fetchData={fetchGame}
-          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/products/deleteProducts/'} />
+          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/deleteProductById?id='} />
       )}
       {openEdit && (
-        <AddProducts open={openEdit} handleClose={() => setOpenEdit(false)}
+        <AddExpense open={openEdit} handleClose={() => setOpenEdit(false)}
           fetchData={fetchGame}
           selectedItem={selectedItem ?? undefined} />
       )}
@@ -348,4 +403,4 @@ const Stocks = () => {
   )
 }
 
-export default Stocks
+export default Expense
