@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/meghaegg/nextjs-app
+    - /bin/cp -R . $DEPLOYPATH
+    - cd $DEPLOYPATH
+    - npm install
+    - npm run build

@@ -11,7 +11,7 @@ export interface DataTreeNode {
     is_active?: boolean;
     display_order?: number;
     primary_photo?: string;
-    banner_photo?: string;
+    display_name?: string;
     is_banner_category?: boolean;
   }
   
