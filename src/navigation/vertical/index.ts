@@ -20,14 +20,14 @@ const tempObject: VerticalNavItemsType = [
     // permissionName: "dashboard",
   },
 
-  {
-    title: "Users",
-    icon: "bx:group",
-    path: '/user',
-    allowedRoles: ["Administrator"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
-  },
+  // {
+  //   title: "Users",
+  //   icon: "bx:group",
+  //   path: '/user',
+  //   allowedRoles: ["Administrator"],
+  //   // isPermissionNeeded: true,
+  //   // permissionName: "dashboard",
+  // },
 
   {
     title: "Price",
@@ -87,6 +87,12 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:truck-delivery", // suppliers
     allowedRoles: ["Administrator", "Staff","Distributor"],
     path: "/vendor",
+  },
+  {
+    title: "Distributors",
+    icon: "mdi:truck-delivery", // suppliers
+    allowedRoles: ["Administrator", "Staff", "Distributor"],
+    path: "/distributor",
   },
   {
     title: "Vehicles",
@@ -164,6 +170,28 @@ const tempObject: VerticalNavItemsType = [
 
 
   //     },
+   {
+    title: 'Settings',
+    icon: 'icon-park-outline:data-file',
+    allowedRoles: ["Administrator"],
+    path: '/superAdmin/all-careTaker',
+
+    children: [
+     
+      {
+
+        title: 'Roles & Permissions',
+        path: '/rolesandpermission',
+        icon: 'mdi:medal-outline',
+        // permissionName: 'view_truck_model',
+        // isPermissionNeeded: true,
+
+
+      },
+     
+
+    ]
+  },
   {
     title: 'Metadata',
     icon: 'icon-park-outline:data-file',
