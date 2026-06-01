@@ -68,7 +68,7 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
             const response = await axiosInstance.get(`api/v1/admin/getAllPermissions`);
             // Transform modules into tree nodes where each module becomes a parent node and its permissions are children
             const perms = (response.data.data.modules || []).map((mod:any) => ({
-                id: mod.id,
+                id: -mod.id,
                 name: mod.name,
                 display_name: mod.name,
                 children: (mod.permissions || []).map((perm:any) => ({

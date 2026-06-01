@@ -5,7 +5,7 @@ import AddStocksForm from 'src/components/admin/stocks/AddStocks'
 
 const StocksPage = () => {
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 } }}>
+    // <Box sx={{ p: { xs: 2, sm: 3 } }}>
       <Grid container spacing={3}>
         {/* Left Side: Add Stock Design (4 grid) */}
         <Grid item xs={12} md={4}>
@@ -17,7 +17,7 @@ const StocksPage = () => {
           <Stocks />
         </Grid>
       </Grid>
-    </Box>
+    // </Box>
   )
 }
 

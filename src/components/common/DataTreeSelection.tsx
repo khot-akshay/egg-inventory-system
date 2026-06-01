@@ -66,17 +66,6 @@ export default function DataTreeCheckbox(props:any){
     let array = checked
       ? [...selected, ...allNode]
       : selected.filter((value) => !allNode.includes(value));
-      let parentId=nodes?.parent_id
-
-      if(nodes?.parent_id){
-        array.push(+nodes.parent_id)
-      }
-      // for (let eachObject of props.data) {
-      //   if (nodes?.parent_id) {
-      //     parentId = eachObject.id === +nodes.parent_id
-      //   array.push()
-      //     if (parentId) break; 
-      //   }
       // }
     setSelected(array);
     props.onCategorySelect(array)

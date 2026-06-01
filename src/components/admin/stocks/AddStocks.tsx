@@ -14,6 +14,7 @@ import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete'
 import RHFInput from 'src/hook-forms/RHFInput'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { useAuth } from 'src/hooks/useAuth'
+import moment from 'moment'
 
 const schema = yup.object().shape({
   shop_id: yup.mixed().required('Shop is required'),
@@ -71,6 +72,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
 
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id
+  const selectedPurchaseDate = watch('purchase_date')
 
   // Load existing data if selectedItem is present
   useEffect(() => {
@@ -165,8 +167,11 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
         return
       }
 
+      const eggVendorPurchaseId = extractId(data.egg_vendor_purchase_id)
+
       const payload = {
         shop_id: shopId,
+        egg_vendor_purchase_id: eggVendorPurchaseId,
         notes: data.notes?.trim() || '',
         items: activeItems
       }
@@ -210,7 +215,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
-         
+
           <Grid item xs={12}>
             <RHFAutoComplete
               control={control}
@@ -224,11 +229,25 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
               disabled={isNewCustomer}
             />
           </Grid>
+          <Grid item xs={12}>
+            <RHFAutoComplete
+              control={control}
+              name="egg_vendor_purchase_id"
+              placeholder="Vehicle Details"
+              labelinput="Vehicle Name"
+              apiUrl="/api/v1/shop/getAllEggVendorPurchases"
+              extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
+              labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
+              valueKey="id"
+              required={!isNewCustomer}
+              disabled={isNewCustomer}
+            />
+          </Grid>
           {prices.length > 0 && (
             <Grid item xs={12}>
               {/* <Divider sx={{ my: 1 }} /> */}
               <Typography className="input-label">
-                Egg Quantities 
+                Egg Quantities
               </Typography>
               <Grid container spacing={2} mt={1}>
                 {prices.map((item, index) => (

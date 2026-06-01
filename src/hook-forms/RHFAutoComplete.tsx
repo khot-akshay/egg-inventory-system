@@ -161,7 +161,7 @@ const RHFAutoComplete = ({
         loading={loading}
         filterOptions={x => x}
         isOptionEqualToValue={(o, v) => getNestedValue(o, valueKey) === getNestedValue(v, valueKey)}
-        getOptionLabel={o => getNestedValue(o, labelKey) || ''}
+        getOptionLabel={o => typeof labelKey === 'function' ? labelKey(o) : (getNestedValue(o, labelKey) || '')}
         onOpen={() => {
           setOpen(true)
           setPage(0)
