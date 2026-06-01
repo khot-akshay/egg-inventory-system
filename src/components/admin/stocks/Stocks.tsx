@@ -17,6 +17,8 @@ import toast from 'react-hot-toast';
 import AddProducts from './AddStocks';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import { useAuth } from 'src/hooks/useAuth'
+
 
 
 
@@ -58,7 +60,8 @@ const Stocks = () => {
   const selectedCategoryId = watch('category_id') as number | null
   const selectedShopId = watch('shop_id') as number | null
 
-
+ const { user } = useAuth()
+  const currentStaffShopId = user?.shop_id || user?.shop?.id
 
   // const fetchGame = async () => {
   //   setLoading(true)
@@ -103,10 +106,10 @@ const Stocks = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/shop/getInventoryStockData?${params.toString()}`
+        `/api/v1/shop/getInventoryStockData?${params.toString()}&shop_id=${currentStaffShopId}`
       )
 
-      setRows(response.data.data?.products ?? [])
+      setRows(response.data.data ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -190,16 +193,16 @@ const Stocks = () => {
       field: 'name',
       headerName: 'Shop Name',
       flex: 1,
-      minWidth: 250,
+      minWidth: 100,
       sortable: false,
       renderCell: (params: GridCellParams) =>
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.name || 'NA'}
+          {params.row?.shop?.name || 'NA'}
         </div>
     },
     {
       field: 'categories.name',
-      headerName: 'Category Name',
+      headerName: 'Product Name',
       flex: 1,
       minWidth: 150,
       sortable: false,
@@ -214,12 +217,12 @@ const Stocks = () => {
       minWidth: 70,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.unit || 'NA'}
+        {params.row?.eggs_delta || 'NA'}
       </div>
     },
     {
       field: 'selling_price',
-      headerName: 'Price range',
+      headerName: 'Vehicle No.',
       flex: 1,
       minWidth: 120,
       sortable: false,
@@ -255,40 +258,40 @@ const Stocks = () => {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      minWidth: 150,
-      sortable: false,
-      flex: 1,
-      renderCell: (params: GridCellParams) => (
-        <>
-          {/* {checkPermission('update_brand') && ( */}
-          <Button
-            style={{ color: '#84919d', margin: '-10px' }}
-            onClick={() => handleViewUser(params.row.id)}>
-            <Icon icon={'ph:eye'} fontSize={24} />
-          </Button>
-          <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-              <Icon icon={'circum:edit'} fontSize={24} />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-          {/* {checkPermission('delete_brand') && (  */}
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   flex: 1,
+    //   renderCell: (params: GridCellParams) => (
+    //     <>
+    //       {/* {checkPermission('update_brand') && ( */}
+    //       <Button
+    //         style={{ color: '#84919d', margin: '-10px' }}
+    //         onClick={() => handleViewUser(params.row.id)}>
+    //         <Icon icon={'ph:eye'} fontSize={24} />
+    //       </Button>
+    //       <Tooltip title='Update Product.' placement='bottom'>
+    //         <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+    //           <Icon icon={'circum:edit'} fontSize={24} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //       {/* {checkPermission('delete_brand') && (  */}
 
-          <Tooltip title='Delete Product.' placement='bottom'>
-            <Button
-              style={{ color: '#84919d', margin: '-10px' }}
-              onClick={() => handleDeleteOpen(params)}
-            >
-              <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-        </>
-      ),
-    },
+    //       <Tooltip title='Delete Product.' placement='bottom'>
+    //         <Button
+    //           style={{ color: '#84919d', margin: '-10px' }}
+    //           onClick={() => handleDeleteOpen(params)}
+    //         >
+    //           <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //     </>
+    //   ),
+    // },
   ]
   const handleSearch = (query: string) => {
     setPage(0)

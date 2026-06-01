@@ -1,8 +1,15 @@
 ---
+# cPanel deployment configuration for a Next.js application
+# Uses npm ci for clean install, builds the app, and starts it with pm2.
+# Adjust paths and process name as needed for your environment.
+
 deployment:
   tasks:
     - export DEPLOYPATH=/home/meghaegg/nextjs-app
-    - /bin/cp -R . $DEPLOYPATH
     - cd $DEPLOYPATH
-    - npm install
-    - npm run build
+    # Install exact dependencies from lock file in production mode
+    - /usr/local/bin/npm ci --production
+    # Build the Next.js app
+    - /usr/local/bin/npm run build
+    # Start or restart the app using pm2 (install pm2 globally if not present)
+    - /usr/local/bin/pm2 start npm --name "nextapp" -- start || /usr/local/bin/pm2 restart nextapp
