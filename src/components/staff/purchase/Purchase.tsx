@@ -2,7 +2,8 @@ import { Box, Button, Card, CardActionArea, Grid, IconButton, InputAdornment, St
 import { GridCellParams, GridColDef, GridSearchIcon } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles';
+import { useRouter } from 'next/router';
 import CommonSkeleton from 'src/@core/components/common-skeleton/CommonSkeleton'
 import CommonCard from 'src/@core/components/common-card/CommonCard'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
@@ -19,7 +20,7 @@ import DateFormateComponent from 'src/components/common/dateFormat/DateFromatMod
 import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
 import AddProducts from './AddPurchase';
-import { useRouter } from 'next/router';
+import { useAuth } from 'src/hooks/useAuth';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import AddPurchaseForm from './AddPurchase'
 
@@ -81,6 +82,8 @@ const Purchase = () => {
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const { user } = useAuth();
+  const currentStaffShopId = user?.shop_id || user?.shop?.id;
   const theme = useTheme();
   const router = useRouter()
   const { control, watch } = useForm({
@@ -125,29 +128,27 @@ const Purchase = () => {
   //   }
   // };
   const fetchGame = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const params = new URLSearchParams({
-        pageNo: String(page),
-        limit: String(pageSize)
-      })
+      const params: any = {};
+      params.pageNo = String(page);
+      params.limit = String(pageSize);
+      if (searchQuery) params.global_search = searchQuery;
+      if (selectedCategoryId) params.category_id = String(selectedCategoryId);
+      // Use selectedShopId if set, otherwise fallback to current staff shop ID
+      const shopId = selectedShopId ?? currentStaffShopId;
+      if (shopId) params.shop_id = String(shopId);
 
-      if (searchQuery) params.append('global_search', searchQuery)
-      if (selectedCategoryId) params.append('category_id', String(selectedCategoryId))
-      if (selectedShopId) params.append('shop_id', String(selectedShopId))
+      const response = await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases', { params });
 
-      const response = await axiosInstance.get(
-        `/api/v1/shop/getAllEggVendorPurchases?${params.toString()}`
-      )
-
-      setRows(response.data.data?.purchases ?? [])
-      setTotalRows(response.data.data?.count ?? 0)
+      setRows(response.data.data?.purchases ?? []);
+      setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
 
   // useEffect(() => {
@@ -163,10 +164,22 @@ const Purchase = () => {
     setPage(0)
   }, [selectedCategoryId, selectedShopId, searchQuery])
 
-  // Fetch data
+// Fetch data on filters/pagination change
+useEffect(() => {
+  fetchGame();
+}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery]);
+
+// Listen for new purchase events
   useEffect(() => {
-    fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
+    const handlePurchaseAdded = () => {
+      setPage(0);
+      fetchGame();
+    };
+    window.addEventListener('purchaseAdded', handlePurchaseAdded);
+    return () => {
+      window.removeEventListener('purchaseAdded', handlePurchaseAdded);
+    };
+  }, [fetchGame]);
 
 
 
@@ -220,18 +233,18 @@ const Purchase = () => {
       hideable: false
     },
 
-    {
-      field: 'purchase_no',
-      headerName: 'Purchase No.',
-      flex: 1,
-      minWidth: 180,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.purchase_no || 'NA'}
-        </div>
-      )
-    },
+    // {
+    //   field: 'purchase_no',
+    //   headerName: 'Purchase No.',
+    //   flex: 1,
+    //   minWidth: 180,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       {params.row?.purchase_no || 'NA'}
+    //     </div>
+    //   )
+    // },
     {
       field: 'vendor_name',
       headerName: 'Vendor',
@@ -257,6 +270,33 @@ const Purchase = () => {
       )
     },
     {
+      field: 'driver_name',
+      headerName: 'Driver Name',
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.driver?.name || 'NA'}
+        </div>
+      )
+    },
+ 
+    {
+      field: 'category_egg_counts',
+      headerName: 'Category (Eggs)',
+      flex: 1,
+      minWidth: 300,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <Box sx={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row.items?.map((item: any) => (
+            <div key={item.id}>{`${item.category?.name || 'NA'}: ${item.total_eggs || 0}`}</div>
+          )) || 'NA'}
+        </Box>
+      ),
+    },
+       {
       field: 'total_eggs',
       headerName: 'Total Eggs',
       flex: 1,
@@ -268,54 +308,54 @@ const Purchase = () => {
         </div>
       )
     },
-    {
-      field: 'price_per_egg',
-      headerName: 'Rate/egg',
-      flex: 1,
-      minWidth: 100,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{params.row?.price_per_egg || '0.00'}
-        </div>
-      )
-    },
-    {
-      field: 'total_amount',
-      headerName: 'Total Amount',
-      flex: 1,
-      minWidth: 130,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{params.row?.total_amount || '0.00'}
-        </div>
-      )
-    },
-    {
-      field: 'due_amount',
-      headerName: 'Due Amount',
-      flex: 1,
-      minWidth: 130,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{params.row?.due_amount || '0.00'}
-        </div>
-      )
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      flex: 1,
-      minWidth: 100,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ textTransform: 'capitalize' }}>
-          {params.row?.status || 'NA'}
-        </div>
-      )
-    },
+    // {
+    //   field: 'price_per_egg',
+    //   headerName: 'Rate/egg',
+    //   flex: 1,
+    //   minWidth: 100,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       ₹{params.row?.price_per_egg || '0.00'}
+    //     </div>
+    //   )
+    // },
+    // {
+    //   field: 'total_amount',
+    //   headerName: 'Total Amount',
+    //   flex: 1,
+    //   minWidth: 130,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       ₹{params.row?.total_amount || '0.00'}
+    //     </div>
+    //   )
+    // },
+    // {
+    //   field: 'due_amount',
+    //   headerName: 'Due Amount',
+    //   flex: 1,
+    //   minWidth: 130,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       ₹{params.row?.due_amount || '0.00'}
+    //     </div>
+    //   )
+    // },
+    // {
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   flex: 1,
+    //   minWidth: 100,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ textTransform: 'capitalize' }}>
+    //       {params.row?.status || 'NA'}
+    //     </div>
+    //   )
+    // },
 
 
     // {
@@ -344,40 +384,40 @@ const Purchase = () => {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      minWidth: 150,
-      sortable: false,
-      flex: 1,
-      renderCell: (params: GridCellParams) => (
-        <>
-          {/* {checkPermission('update_brand') && ( */}
-          <Button
-            sx={{ color: 'text.secondary', margin: '-10px' }}
-            onClick={() => handleViewUser(params.row.id)}>
-            <Icon icon={'ph:eye'} fontSize={24} />
-          </Button>
-          <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-              <Icon icon={'circum:edit'} fontSize={24} />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-          {/* {checkPermission('delete_brand') && (  */}
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   flex: 1,
+    //   renderCell: (params: GridCellParams) => (
+    //     <>
+    //       {/* {checkPermission('update_brand') && ( */}
+    //       <Button
+    //         sx={{ color: 'text.secondary', margin: '-10px' }}
+    //         onClick={() => handleViewUser(params.row.id)}>
+    //         <Icon icon={'ph:eye'} fontSize={24} />
+    //       </Button>
+    //       <Tooltip title='Update Product.' placement='bottom'>
+    //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+    //           <Icon icon={'circum:edit'} fontSize={24} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //       {/* {checkPermission('delete_brand') && (  */}
 
-          <Tooltip title='Delete Product.' placement='bottom'>
-            <Button
-              sx={{ color: 'text.secondary', margin: '-10px' }}
-              onClick={() => handleDeleteOpen(params)}
-            >
-              <Icon icon={'ic:outline-delete'} fontSize={24} style={{ color: theme.palette.error.main }} />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-        </>
-      ),
-    },
+    //       <Tooltip title='Delete Product.' placement='bottom'>
+    //         <Button
+    //           sx={{ color: 'text.secondary', margin: '-10px' }}
+    //           onClick={() => handleDeleteOpen(params)}
+    //         >
+    //           <Icon icon={'ic:outline-delete'} fontSize={24} style={{ color: theme.palette.error.main }} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //     </>
+    //   ),
+    // },
   ]
   const handleSearch = (query: string) => {
     setPage(0)

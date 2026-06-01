@@ -268,10 +268,25 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         const clearedPrices = prices.map(p => ({ ...p, quantity: "" }))
         setPrices(clearedPrices)
         setIsNewCustomer(false)
+        // Refresh the purchases list after a successful submit
         if (fetchData) {
-          await fetchData()
+          try {
+            await fetchData(); // This usually calls getAllEggVendorPurchases in the parent
+          } catch (e) {
+            console.error('Error refreshing data after submit:', e);
+          }
         }
-        if (handleClose) handleClose()
+        // Ensure the latest purchases are fetched directly
+        try {
+          await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases');
+        } catch (e) {
+          console.error('Error fetching purchases after submit:', e);
+        }
+        // Notify other components to refresh purchase list immediately
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('purchaseAdded'));
+        }
+        if (handleClose) handleClose();
       }
     } catch (error: any) {
       console.error('Error recording purchase:', error)
