@@ -197,6 +197,9 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
         if (fetchData) {
           await fetchData()
         }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('stockAdded'))
+        }
         if (handleClose) handleClose()
       }
     } catch (error: any) {
@@ -234,7 +237,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
               control={control}
               name="egg_vendor_purchase_id"
               placeholder="Vehicle Details"
-              labelinput="Vehicle Name"
+              labelinput="Vehicle Details"
               apiUrl="/api/v1/shop/getAllEggVendorPurchases"
               extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
               labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}

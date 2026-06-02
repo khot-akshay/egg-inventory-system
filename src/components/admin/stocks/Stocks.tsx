@@ -93,7 +93,7 @@ const Stocks = () => {
   //     setLoading(false);
   //   }
   // };
-  const fetchGame = async () => {
+  const fetchGame = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -116,7 +116,7 @@ const Stocks = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, pageSize, searchQuery, selectedCategoryId, selectedShopId, currentStaffShopId])
 
 
   // useEffect(() => {
@@ -135,7 +135,19 @@ const Stocks = () => {
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
+  }, [fetchGame])
+
+  useEffect(() => {
+    const handleStockAdded = () => {
+      setPage(0)
+      fetchGame()
+    }
+
+    window.addEventListener('stockAdded', handleStockAdded)
+    return () => {
+      window.removeEventListener('stockAdded', handleStockAdded)
+    }
+  }, [fetchGame])
 
 
 
@@ -212,7 +224,7 @@ const Stocks = () => {
     },
     {
       field: 'unit',
-      headerName: 'Unit',
+      headerName: 'Total Eggs',
       flex: 1,
       minWidth: 70,
       sortable: false,
@@ -227,7 +239,7 @@ const Stocks = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.selling_price || 'NA'}
+        {params.row?.reference?.vehicle?.registration_number || 'NA'}
       </div>
     },
    
