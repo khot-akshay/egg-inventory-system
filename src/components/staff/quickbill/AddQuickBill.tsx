@@ -282,6 +282,9 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         setDamaged(0)
         setIsNewCustomer(false)
         if (fetchData) fetchData()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('quickBillAdded'))
+        }
         if (handleClose) handleClose()
       }
     } catch (error: any) {

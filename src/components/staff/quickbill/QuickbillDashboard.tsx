@@ -125,7 +125,7 @@ const QuickBillDashboard = () => {
   //     setLoading(false);
   //   }
   // };
-  const fetchGame = async () => {
+  const fetchGame = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -148,7 +148,7 @@ const QuickBillDashboard = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, pageSize, searchQuery, selectedCategoryId, selectedShopId])
 
 
   // useEffect(() => {
@@ -167,9 +167,9 @@ const QuickBillDashboard = () => {
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
+  }, [fetchGame])
 
-  const fetchInventoryStock = async () => {
+  const fetchInventoryStock = useCallback(async () => {
     if (!currentStaffShopId) return
 
     setStockLoading(true)
@@ -184,11 +184,24 @@ const QuickBillDashboard = () => {
     } finally {
       setStockLoading(false)
     }
-  }
+  }, [currentStaffShopId])
 
   useEffect(() => {
     fetchInventoryStock()
-  }, [currentStaffShopId])
+  }, [fetchInventoryStock])
+
+  useEffect(() => {
+    const handleQuickBillAdded = () => {
+      setPage(0)
+      fetchGame()
+      fetchInventoryStock()
+    }
+
+    window.addEventListener('quickBillAdded', handleQuickBillAdded)
+    return () => {
+      window.removeEventListener('quickBillAdded', handleQuickBillAdded)
+    }
+  }, [fetchGame, fetchInventoryStock])
 
 
 
@@ -310,7 +323,7 @@ const QuickBillDashboard = () => {
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title='Total Egg Sell'
-                value={stockData?.totals?.sale_count || 0}
+                value={stockData?.totals?.sold_count || 0}
                 percentage={stockData?.growth || 0}
                 icon='mdi:warehouse'
                 color='success'
@@ -318,7 +331,7 @@ const QuickBillDashboard = () => {
                 items={(stockData?.categories || []).map(item => ({
                   id: item.id,
                   label: item.category_name,
-                  value: item.sale_count
+                  value: item.sold_count
                 }))}
               />
             </Grid>
@@ -338,23 +351,23 @@ const QuickBillDashboard = () => {
               />
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
-             <CardOneCount
-  title='Payment Summary'
-  value={`₹${stockData?.totals?.total_amount?.toFixed(2) || 0}`}
-  icon='mdi:cash-multiple'
-  color='success'
-  items={Object.entries(
-    stockData?.totals?.payment_amounts || {}
-  )
-    .filter(([key]) =>
-      ['cash', 'upi', 'credit'].includes(key)
-    )
-    .map(([key, value]) => ({
-      id: key,
-      label: key.charAt(0).toUpperCase() + key.slice(1),
-      value: `₹${Number(value).toFixed(2)}`
-    }))}
-/>
+              <CardOneCount
+                title="Payment Summary"
+                value={`₹${Number(stockData?.totals?.total_amount || 0).toFixed(2)}`}
+                icon="mdi:cash-multiple"
+                color="success"
+                items={Object.entries(stockData?.totals?.payment_amounts || {})
+                  .filter(([key]) => ["cash", "upi", "credit"].includes(key))
+                  .map(([key, value]) => ({
+                    id: key,
+                    label: key.charAt(0).toUpperCase() + key.slice(1),
+                    value: `₹${Number(
+                      key === "credit"
+                        ? stockData?.totals?.due_amount || 0
+                        : value
+                    ).toFixed(2)}`
+                  }))}
+              />
             </Grid>
 
           </>
