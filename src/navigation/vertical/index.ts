@@ -3,18 +3,18 @@ import themeConfig from "src/configs/themeConfig";
 import { useAuth } from "src/hooks/useAuth";
 
 const tempObject: VerticalNavItemsType = [
+  // {
+  //   title: "Dashboards",
+  //   icon: "bx:home-circle",
+  //   path: "/dashboards",
+  //   allowedRoles: ["Administrator", "Staff", "Distributor"],
+  //   // isPermissionNeeded: true,
+  //   // permissionName: "dashboard",
+  // },
   {
     title: "Dashboards",
-    icon: "bx:home-circle",
-    path: "/dashboards",
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
-  },
-  {
-    title: "Shops",
-    icon: "bx:package",
-    path: '/shop',
+   icon: "bx:home-circle",
+    path: '/dashboards',
     allowedRoles: ["Administrator"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
@@ -45,15 +45,15 @@ const tempObject: VerticalNavItemsType = [
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
-  {
-    title: "Products",
-    icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Administrator"],
-    path: "/products",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+  // {
+  //   title: "Products",
+  //   icon: "mdi:clipboard-text-outline",
+  //   allowedRoles: ["Administrator"],
+  //   path: "/products",
+  //   // isPermissionNeeded: true,
+  //   // permissionName: "view_orders", // aligned with backend permission
 
-  },
+  // },
   {
     title: "Quick Bill",
     icon: "mdi:clipboard-text-outline",

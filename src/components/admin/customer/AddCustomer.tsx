@@ -221,7 +221,7 @@ const AddCustomer = ({
                 name='email'
                 label='Email'
                 placeholder='Email ID'
-                required={false}
+                mandatory={false}
               />
             </Grid>
 

@@ -170,7 +170,7 @@ const Customer = () => {
     }
   }
   const handleViewUser = (id: number) => {
-    router.push(`products/viewProduct/${(id)}`)
+    router.push(`customer/viewCustomer/${(id)}`)
   }
   const columns: GridColDef[] = [
     {
@@ -251,40 +251,40 @@ const Customer = () => {
       )
     },
 
-    // {
-    //   field: 'actions',
-    //   headerName: 'Actions',
-    //   minWidth: 150,
-    //   sortable: false,
-    //   flex: 1,
-    //   renderCell: (params: GridCellParams) => (
-    //     <>
-    //       {/* {checkPermission('update_brand') && ( */}
-    //       <Button
-    //         sx={{ color: 'text.secondary', margin: '-10px' }}
-    //         onClick={() => handleViewUser(params.row.id)}>
-    //         <Icon icon={'ph:eye'} fontSize={24} />
-    //       </Button>
-    //       <Tooltip title='Update Product.' placement='bottom'>
-    //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-    //           <Icon icon={'circum:edit'} fontSize={24} />
-    //         </Button>
-    //       </Tooltip>
-    //       {/* )} */}
-    //       {/* {checkPermission('delete_brand') && (  */}
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      minWidth: 150,
+      sortable: false,
+      flex: 1,
+      renderCell: (params: GridCellParams) => (
+        <>
+          {/* {checkPermission('update_brand') && ( */}
+          <Button
+            sx={{ color: 'text.secondary', margin: '-10px' }}
+            onClick={() => handleViewUser(params.row.id)}>
+            <Icon icon={'ph:eye'} fontSize={24} />
+          </Button>
+          <Tooltip title='Update Product.' placement='bottom'>
+            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+              <Icon icon={'circum:edit'} fontSize={24} />
+            </Button>
+          </Tooltip>
+          {/* )} */}
+          {/* {checkPermission('delete_brand') && (  */}
 
-    //       <Tooltip title='Delete Product.' placement='bottom'>
-    //         <Button
-    //           sx={{ color: 'text.secondary', margin: '-10px' }}
-    //           onClick={() => handleDeleteOpen(params)}
-    //         >
-    //           <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
-    //         </Button>
-    //       </Tooltip>
-    //       {/* )} */}
-    //     </>
-    //   ),
-    // },
+          {/* <Tooltip title='Delete Product.' placement='bottom'>
+            <Button
+              sx={{ color: 'text.secondary', margin: '-10px' }}
+              onClick={() => handleDeleteOpen(params)}
+            >
+              <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+            </Button>
+          </Tooltip> */}
+          {/* )} */}
+        </>
+      ),
+    },
   ]
   const handleSearch = (query: string) => {
     setPage(0)
