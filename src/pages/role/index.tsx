@@ -38,7 +38,7 @@ interface UserRow {
   [key: string]: any;
 }
 
-const User = () => {
+const Role = () => {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -370,4 +370,4 @@ const User = () => {
   );
 };
 
-export default User;
+export default Role;

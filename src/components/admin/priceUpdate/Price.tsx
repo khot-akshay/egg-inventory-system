@@ -229,7 +229,7 @@ const Price = () => {
     <>   
       <Card sx={{ p: 5 }}>
         <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'} sx={{ mb: 4 }}>
-          <GoBack label={' Price'} isBack={false} />
+          <GoBack label={'Product Price'} isBack={false} />
         </Box>
 
         <Tabs

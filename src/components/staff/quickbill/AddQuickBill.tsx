@@ -3,7 +3,8 @@ import {
   TextField, ToggleButton, ToggleButtonGroup,
   Box, useTheme, useMediaQuery, CircularProgress,
   Grid, Divider, IconButton, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Paper
+  TableContainer, TableHead, TableRow, Paper,
+  Tooltip, Chip
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
@@ -20,6 +21,7 @@ import PhonelinkRingIcon from '@mui/icons-material/PhonelinkRing'
 import EventNoteIcon from '@mui/icons-material/EventNote'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { useAuth } from 'src/hooks/useAuth'
+import { useRouter } from 'next/router'
 
 const schema = yup.object().shape({
   customer_id: yup.mixed().test('shop-required', 'Customer is required for 100+ eggs', function (value) {
@@ -66,6 +68,9 @@ const [damaged, setDamaged] = useState(0);
 const [loading, setLoading] = useState(false);
 const [isNewCustomer, setIsNewCustomer] = useState(false);
 const [cart, setCart] = useState<any[]>([]);
+const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const router = useRouter()
+
 
   const totalCartEggs = cart.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -118,6 +123,43 @@ const [cart, setCart] = useState<any[]>([]);
       setPaymentType('cash')
     }
   }, [selectedCustomer, paymentType])
+
+  useEffect(() => {
+    const fetchPendingAmount = async () => {
+      console.log('fetchPendingAmount triggered. selectedCustomer:', selectedCustomer, 'isNewCustomer:', isNewCustomer);
+      if (!selectedCustomer || isNewCustomer) {
+        setPendingAmount(null)
+        return
+      }
+
+      // Extract ID from the selected object - handles different autocomplete formats
+      const customerId = 
+        typeof selectedCustomer === 'number' || typeof selectedCustomer === 'string' ? selectedCustomer : 
+        selectedCustomer?.id ? selectedCustomer.id : 
+        selectedCustomer?.value ? selectedCustomer.value : 
+        null
+
+      console.log('Extracted customerId:', customerId);
+
+      if (customerId) {
+        try {
+          const response = await axiosInstance.get(`/api/v1/shop/userPendingAmount?user_id=${customerId}`)
+          if (response.data.success) {
+            setPendingAmount(response.data.data?.pendingAmount || 0)
+          } else {
+            setPendingAmount(null)
+          }
+        } catch (error) {
+          console.error("Failed to fetch pending amount", error)
+          setPendingAmount(null)
+        }
+      } else {
+        setPendingAmount(null)
+      }
+    }
+
+    fetchPendingAmount()
+  }, [selectedCustomer, isNewCustomer])
 
   const totalEggs = quantity * unitValue
   const finalEggs = totalEggs - damaged
@@ -317,11 +359,41 @@ const [cart, setCart] = useState<any[]>([]);
     }
   }
 
+   const handleViewUser = () => {
+    router.push('/quickbillList')
+  }
+
   return (
     <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
-      <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
-        🥚 Quick Bill
-      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={4}>
+          <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
+            🥚 Quick Bill
+          </Typography>
+        </Grid>
+        <Grid item xs={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {pendingAmount !== null && (
+            <Chip 
+              label={`DUE: ₹${Number(pendingAmount).toFixed(2)}`}
+              color={pendingAmount > 0 ? 'error' : 'success'}
+              sx={{ fontWeight: 'bold' }}
+            />
+          )}
+        </Grid>
+        <Grid item xs={4}>
+          <Tooltip title="View Quick Bills List">
+            
+          <Button
+            variant='contained'
+            onClick={() => handleViewUser()}>
+           Bills List
+          </Button>
+                    </Tooltip>
+
+        </Grid>
+      </Grid>
+     
+
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>

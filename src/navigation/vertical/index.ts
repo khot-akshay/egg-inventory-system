@@ -3,34 +3,34 @@ import themeConfig from "src/configs/themeConfig";
 import { useAuth } from "src/hooks/useAuth";
 
 const tempObject: VerticalNavItemsType = [
-  // {
-  //   title: "Dashboards",
-  //   icon: "bx:home-circle",
-  //   path: "/dashboards",
-  //   allowedRoles: ["Administrator", "Staff", "Distributor"],
-  //   // isPermissionNeeded: true,
-  //   // permissionName: "dashboard",
-  // },
   {
     title: "Dashboards",
-   icon: "bx:home-circle",
-    path: '/dashboards',
-    allowedRoles: ["Administrator"],
+    icon: "bx:home-circle",
+    path: "/dashboards",
+    allowedRoles: ["Administrator", "Staff", "Distributor"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
-
   // {
-  //   title: "Users",
-  //   icon: "bx:group",
-  //   path: '/user',
+  //   title: "Dashboards",
+  //  icon: "bx:home-circle",
+  //   path: '/dashboards',
   //   allowedRoles: ["Administrator"],
   //   // isPermissionNeeded: true,
   //   // permissionName: "dashboard",
   // },
 
   {
-    title: "Price",
+    title: "Users",
+    icon: "bx:group",
+    path: '/user',
+    allowedRoles: ["Administrator"],
+    // isPermissionNeeded: true,
+    // permissionName: "dashboard",
+  },
+
+  {
+    title: "Product Price",
     icon: "mdi:credit-card-outline",
     path: '/price',
     allowedRoles: ["Administrator"],
@@ -91,7 +91,7 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Distributors",
     icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
+    allowedRoles: ["Administrator"],
     path: "/distributor",
   },
   {

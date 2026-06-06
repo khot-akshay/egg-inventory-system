@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardActionArea, Grid, IconButton, InputAdornment, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, Grid, IconButton, InputAdornment, Stack, Switch, TextField, Tooltip, Typography, Chip } from '@mui/material'
 import { GridCellParams, GridColDef, GridSearchIcon } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -200,45 +200,124 @@ const QuickBill = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.customer.name || 'NA'}
+          {params.row?.customer?.name || 'NA'}
         </div>
       )
     },
     {
       field: 'shop',
-      headerName: 'product Name',
-      flex: 1,
-      minWidth: 150,
+      headerName: 'Product & Quantity',
+      flex: 1.5,
+      minWidth: 180,
       sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.items?.[0]?.product?.name || 'NA'}
-        </div>
-      )
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                {item.category?.name || 'Unknown'} : {Number(item.quantity)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
     },
     {
       field: 'quantity',
-      headerName: 'Total Eggs',
+      headerName: 'Product Rate',
       flex: 1,
       minWidth: 100,
       sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                ₹{Number(item.unit_cost || 0).toFixed(2)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'unit_cost',
+      headerName: 'Product Price',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                ₹{Number(item.line_total || 0).toFixed(2)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+     {
+      field: 'total_due',
+      headerName: 'Total Due',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.items?.[0]?.quantity || '0'}
+          ₹{params.row?.balance_due || '0'}
         </div>
       )
     },
     {
-      field: 'unit_cost',
-      headerName: 'Rate',
+      field: 'status',
+      headerName: 'Payment',
       flex: 1,
-      minWidth: 80,
+      minWidth: 150,
       sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.items?.[0]?.unit_cost || '0'}
-        </div>
-      )
+      renderCell: (params: GridCellParams) => {
+        const payments = params.row?.meta?.payments || [];
+        if (!payments.length) {
+          return (
+            <div style={{ textTransform: 'capitalize' }}>
+              {params.row?.status || 'NA'}
+            </div>
+          );
+        }
+
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, height: '100%', justifyContent: 'center' }}>
+            {payments.map((p: any, i: number) => (
+              // <Typography
+              //   key={i}
+              //   variant="body2"
+              //   sx={{
+              //     textTransform: 'capitalize',
+              //     fontWeight: 500,
+              //     fontSize: '0.8rem',
+              //     // color:
+              //     //   p.payment_type === 'cash' ? 'success.main' : 
+              //     //   p.payment_type === 'upi' ? 'info.main' : 
+              //     //   p.payment_type === 'credit' ? 'error.main' : 'text.primary'
+              //   }}
+              // >
+              //   {p.payment_type} : ₹{p.amount}
+              // </Typography>
+                      <div key={i} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 , textTransform: 'capitalize',}}>
+                {p.payment_type} : ₹{p.amount}
+
+</div>
+            ))}
+          </Box>
+        );
+      }
     },
     {
       field: 'total',
@@ -252,18 +331,7 @@ const QuickBill = () => {
         </div>
       )
     },
-    {
-      field: 'status',
-      headerName: 'Status',
-      flex: 1,
-      minWidth: 100,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ textTransform: 'capitalize' }}>
-          {params.row?.status || 'NA'}
-        </div>
-      )
-    },
+   
    
 
     // {
@@ -292,40 +360,40 @@ const QuickBill = () => {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      minWidth: 150,
-      sortable: false,
-      flex: 1,
-      renderCell: (params: GridCellParams) => (
-        <>
-          {/* {checkPermission('update_brand') && ( */}
-          <Button
-            sx={{ color: 'text.secondary', margin: '-10px' }}
-            onClick={() => handleViewUser(params.row.id)}>
-            <Icon icon={'ph:eye'} fontSize={24} />
-          </Button>
-          <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-              <Icon icon={'circum:edit'} fontSize={24} />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-          {/* {checkPermission('delete_brand') && (  */}
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   flex: 1,
+    //   renderCell: (params: GridCellParams) => (
+    //     <>
+    //       {/* {checkPermission('update_brand') && ( */}
+    //       <Button
+    //         sx={{ color: 'text.secondary', margin: '-10px' }}
+    //         onClick={() => handleViewUser(params.row.id)}>
+    //         <Icon icon={'ph:eye'} fontSize={24} />
+    //       </Button>
+    //       <Tooltip title='Update Product.' placement='bottom'>
+    //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+    //           <Icon icon={'circum:edit'} fontSize={24} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //       {/* {checkPermission('delete_brand') && (  */}
 
-          <Tooltip title='Delete Product.' placement='bottom'>
-            <Button
-              sx={{ color: 'text.secondary', margin: '-10px' }}
-              onClick={() => handleDeleteOpen(params)}
-            >
-              <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
-            </Button>
-          </Tooltip>
-          {/* )} */}
-        </>
-      ),
-    },
+    //       <Tooltip title='Delete Product.' placement='bottom'>
+    //         <Button
+    //           sx={{ color: 'text.secondary', margin: '-10px' }}
+    //           onClick={() => handleDeleteOpen(params)}
+    //         >
+    //           <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+    //         </Button>
+    //       </Tooltip>
+    //       {/* )} */}
+    //     </>
+    //   ),
+    // },
   ]
   const handleSearch = (query: string) => {
     setPage(0)
@@ -338,13 +406,12 @@ const QuickBill = () => {
       <Card sx={{ p: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} >
-            <GoBack label="Quick Bill List" isBack={false} />
+            <GoBack label="Quick Bill List" isBack={true} />
           </Grid>
-              <Grid item xs={12} md={3}>
+              {/* <Grid item xs={12} md={3}>
                 <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
               </Grid>
                <Grid item xs={4} md={1} sx={{display:'flex', gap:1, alignItems:'center'}}>
-                  {/* List View */}
                   <IconButton
                     sx={{
                       width: 32,
@@ -368,7 +435,6 @@ const QuickBill = () => {
                     <Icon icon="material-symbols:list" width={20} />
                   </IconButton>
 
-                  {/* Grid View */}
                   <IconButton
                     sx={{
                       width: 32,
@@ -392,7 +458,6 @@ const QuickBill = () => {
                     <Icon icon="material-symbols:apps" width={20} />
                   </IconButton>
 
-                  {/* Download Button */}
                   <CommonExport
                     data={rows}
                     fileName="QuickBills"
@@ -422,9 +487,7 @@ const QuickBill = () => {
                   valueKey="id"
                   required={false}
                 />
-              </Grid>
-             
-           
+              </Grid> */}
             </Grid>
         {viewMode === 'list' ? (
           <CommonDatagrid

@@ -1,17 +1,28 @@
-import { Box, Grid, Tab, Tabs, TextField, Button } from '@mui/material'
+import { Box, Grid, Tab, Tabs, TextField, Button, Typography, Divider } from '@mui/material'
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
 import axiosInstance from 'src/services/axios'
 import CardOneCount from 'src/components/dashboard/CardOneCount'
 import CommonSkeleton from 'src/@core/components/common-skeleton/CommonSkeleton'
+import DailySalesTrendChart from 'src/components/dashboard/charts/DailySalesTrendChart'
+import ProductWiseSalesChart from 'src/components/dashboard/charts/ProductWiseSalesChart'
+import PaymentDistributionChart from 'src/components/dashboard/charts/PaymentDistributionChart'
+import { useAuth } from 'src/hooks/useAuth'
 
 function Dashboard() {
+  const { user } = useAuth()
   const [shops, setShops] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<number | string>('all')
   const [stockData, setStockData] = useState<any>(null)
   const [stockLoading, setStockLoading] = useState(false)
   const [startDate, setStartDate] = useState<string>(dayjs().startOf('month').format('YYYY-MM-DD'))
   const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'))
+
+  // --- Chart states ---
+  const [dailySalesData, setDailySalesData] = useState<{ date: string; amount: number }[]>([])
+  const [productSalesData, setProductSalesData] = useState<{ name: string; quantity: number }[]>([])
+  const [paymentData, setPaymentData] = useState<{ name: string; value: number }[]>([])
+  const [chartsLoading, setChartsLoading] = useState(false)
 
   const fetchShops = async () => {
     try {
@@ -37,42 +48,93 @@ function Dashboard() {
     fetchShops()
   }, [])
 
+  useEffect(() => {
+    // If the user is a staff/distributor and has a specific shop_id, default to it
+    if (user && user.shop_id && user.role !== 'admin' && user.role !== 'Administrator') {
+      setActiveTab(user.shop_id)
+    } else {
+      setActiveTab('all')
+    }
+  }, [user])
+
+  const buildParams = () => {
+    const params = new URLSearchParams()
+    if (activeTab !== 'all') params.append('shop_id', String(activeTab))
+    if (startDate) params.append('start_date', startDate)
+    if (endDate) params.append('end_date', endDate)
+    return params.toString()
+  }
+
   const fetchStockData = async () => {
     setStockLoading(true)
     try {
-      const params = new URLSearchParams()
-      if (activeTab !== 'all') {
-        params.append('shop_id', String(activeTab))
-      }
-      if (startDate) params.append('start_date', startDate)
-      if (endDate) params.append('end_date', endDate)
-
-      let url = `/api/v1/admin/getInventoryStockForDashboard`
-      const queryString = params.toString()
-      if (queryString) {
-        url += `?${queryString}`
-      }
-
+      const qs = buildParams()
+      const url = `/api/v1/admin/getInventoryStockForDashboard${qs ? `?${qs}` : ''}`
       const response = await axiosInstance.get(url)
       if (response.data?.success) {
-        setStockData(response.data.data)
+        const data = response.data.data
+        setStockData(data)
+
+        // --- Derive chart data from the same API response ---
+
+        // 1. Daily Sales Trend — from daily_sales array if present, else fallback to categories
+        if (Array.isArray(data?.daily_sales)) {
+          setDailySalesData(
+            data.daily_sales.map((d: any) => ({
+              date: dayjs(d.date).format('DD MMM'),
+              amount: Number(d.total_amount || 0),
+            }))
+          )
+        } else {
+          // Fallback: single data point from totals
+          setDailySalesData(
+            data?.totals?.total_amount > 0
+              ? [{ date: `${dayjs(startDate).format('DD MMM')} – ${dayjs(endDate).format('DD MMM')}`, amount: Number(data.totals.total_amount) }]
+              : []
+          )
+        }
+
+        // 2. Product Wise Sales — from categories
+        setProductSalesData(
+          (data?.categories || []).map((cat: any) => ({
+            name: cat.category_name || 'Unknown',
+            quantity: Number(cat.sold_count || 0),
+          }))
+        )
+
+        // 3. Payment Distribution — from payment_amounts
+        const payments = data?.totals?.payment_amounts || {}
+        const due = data?.totals?.due_amount || 0
+        const paymentList = [
+          { name: 'Cash', value: Number(payments.cash || 0) },
+          { name: 'UPI', value: Number(payments.upi || 0) },
+          { name: 'Credit', value: Number(due) },
+        ].filter(p => p.value > 0)
+        setPaymentData(paymentList)
+
       } else {
         setStockData(null)
+        setDailySalesData([])
+        setProductSalesData([])
+        setPaymentData([])
       }
     } catch (e) {
       console.error('Error fetching stock data:', e)
       setStockData(null)
     } finally {
       setStockLoading(false)
+      setChartsLoading(false)
     }
   }
 
   useEffect(() => {
+    setChartsLoading(true)
     fetchStockData()
   }, [activeTab, startDate, endDate])
 
   return (
     <Box>
+      {/* ── Header row: Tabs + Date Filter ── */}
       <Grid container spacing={2} alignItems="center" sx={{ mb: 4 }}>
         <Grid item xs={12} md={6}>
           <Tabs
@@ -81,9 +143,15 @@ function Dashboard() {
             variant="scrollable"
             scrollButtons="auto"
           >
-            <Tab label="All Shops" value="all" />
-            {Array.isArray(shops) && shops.map((shop: any) => (
-              <Tab key={shop.id} label={shop.name} value={shop.id} />
+            {(!user?.shop_id || user?.role === 'admin' || user?.role === 'Administrator') && (
+              <Tab label="All Shops" value="all" />
+            )}
+            {Array.isArray(shops) && shops
+              .filter(shop => 
+                (!user?.shop_id || user?.role === 'admin' || user?.role === 'Administrator') ? true : shop.id === user?.shop_id
+              )
+              .map((shop: any) => (
+                <Tab key={shop.id} label={shop.name} value={shop.id} />
             ))}
           </Tabs>
         </Grid>
@@ -128,6 +196,7 @@ function Dashboard() {
         </Grid>
       </Grid>
 
+      {/* ── Summary Cards ── */}
       <Grid container spacing={3}>
         {stockLoading ? (
           Array.from({ length: 4 }).map((_, index) => (
@@ -175,7 +244,7 @@ function Dashboard() {
                 items={(stockData?.categories || []).map((item: any) => ({
                   id: item.id,
                   label: item.category_name,
-                  value: `₹ ${Number(item.total_amount).toFixed(2) || 0}`
+                  value: `₹ ${Number(item.total_amount || 0).toFixed(2)}`
                 }))}
               />
             </Grid>
@@ -201,6 +270,29 @@ function Dashboard() {
           </>
         )}
       </Grid>
+
+      {/* ── Charts & Analytics Section ── */}
+      <Box sx={{ mt: 5, mb: 2 }}>
+        <Divider sx={{ mb: 3 }} />
+        <Typography variant='h6' fontWeight={700} sx={{ mb: 3 }}>
+          Charts & Analytics
+        </Typography>
+
+        {/* Daily Sales Trend — Full Width */}
+        <Box sx={{ mb: 3 }}>
+          <DailySalesTrendChart data={dailySalesData} loading={chartsLoading} />
+        </Box>
+
+        {/* Product Wise Sales + Payment Distribution */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={7}>
+            <ProductWiseSalesChart data={productSalesData} loading={chartsLoading} />
+          </Grid>
+          <Grid item xs={12} md={5}>
+            <PaymentDistributionChart data={paymentData} loading={chartsLoading} />
+          </Grid>
+        </Grid>
+      </Box>
     </Box>
   )
 }
