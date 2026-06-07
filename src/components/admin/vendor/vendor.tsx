@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import AddVendor from './AddVendor';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import checkPermission from 'src/configs/CheckPermisstion'
 
 interface VendorRow {
   id: number
@@ -166,23 +167,31 @@ const Vendor = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => params.row?.gstin || 'NA'
     },
-  
     {
-      field: 'status',
-      headerName: 'Status',
-      minWidth: 130,
-      sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const isActive = params.row.is_active === true || params.row.is_active === 1;
-        return (
-          <Stack direction='row' alignItems='center' spacing={2}>
-            <Typography variant="body2">{isActive ? 'Active' : 'Inactive'}</Typography>
-            <Switch size="small" checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
-          </Stack>
-        );
-      },
+      field: 'payable_balance',
+      headerName: 'Payable Amount',
       flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params: GridCellParams) => params.row?.payable_balance || 'NA'
     },
+  
+    // {
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   minWidth: 130,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => {
+    //     const isActive = params.row.is_active === true || params.row.is_active === 1;
+    //     return (
+    //       <Stack direction='row' alignItems='center' spacing={2}>
+    //         <Typography variant="body2">{isActive ? 'Active' : 'Inactive'}</Typography>
+    //         <Switch size="small" checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
+    //       </Stack>
+    //     );
+    //   },
+    //   flex: 1,
+    // },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -239,10 +248,12 @@ const Vendor = () => {
                 />
               </Grid> */}
               <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
-                <Button onClick={() => setOpenAdd(true)} variant='contained' startIcon={<AddCircleOutlineIcon />} fullWidth>
-                  Add Vendor
-                </Button>
-          </Grid>
+                {checkPermission('vendor.add') && (
+                  <Button onClick={() => setOpenAdd(true)} variant='contained' startIcon={<AddCircleOutlineIcon />} fullWidth>
+                    Add Vendor
+                  </Button>
+                )}
+              </Grid>
         </Grid>
 
         <CommonDatagrid

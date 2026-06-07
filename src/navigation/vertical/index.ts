@@ -11,26 +11,26 @@ const tempObject: VerticalNavItemsType = [
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
-  {
-    title: "Shops",
-    icon: "bx:package",
-    path: '/shop',
-    allowedRoles: ["Administrator"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
-  },
-
   // {
-  //   title: "Users",
-  //   icon: "bx:group",
-  //   path: '/user',
+  //   title: "Dashboards",
+  //  icon: "bx:home-circle",
+  //   path: '/dashboards',
   //   allowedRoles: ["Administrator"],
   //   // isPermissionNeeded: true,
   //   // permissionName: "dashboard",
   // },
 
   {
-    title: "Price",
+    title: "Users",
+    icon: "bx:group",
+    path: '/user',
+    allowedRoles: ["Administrator"],
+    // isPermissionNeeded: true,
+    // permissionName: "dashboard",
+  },
+
+  {
+    title: "Product Price",
     icon: "mdi:credit-card-outline",
     path: '/price',
     allowedRoles: ["Administrator"],
@@ -42,25 +42,25 @@ const tempObject: VerticalNavItemsType = [
     icon: "bx:buildings",
     path: '/customer',
     allowedRoles: ["Administrator", "Staff", "Distributor"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
+    isPermissionNeeded: true,
+    permissionName: "customer",
   },
-  {
-    title: "Products",
-    icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Administrator"],
-    path: "/products",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+  // {
+  //   title: "Products",
+  //   icon: "mdi:clipboard-text-outline",
+  //   allowedRoles: ["Administrator"],
+  //   path: "/products",
+  //   // isPermissionNeeded: true,
+  //   // permissionName: "view_orders", // aligned with backend permission
 
-  },
+  // },
   {
     title: "Quick Bill",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff"],
+    allowedRoles: ["Staff","Distributor"],
     path: "/quickBill",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    isPermissionNeeded: true,
+    permissionName: "quick_bill", // aligned with backend permission
 
   },
 
@@ -69,42 +69,51 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Staff","Distributor"],
     path: "/stocks",
+     isPermissionNeeded: true,
+    permissionName: "stock",
   },
+ 
   {
+    title: "Purchases",
+    icon: "mdi:cart-arrow-down", // buying items
+    allowedRoles: [ "Staff","Distributor"],
+    path: "/purchase",
+     isPermissionNeeded: true,
+    permissionName: "purchase",
+  },
+ {
+  title: "Vendors",
+  icon: "mdi:store-outline",
+  allowedRoles: ["Administrator", "Staff", "Distributor"],
+  path: "/vendor",
+  isPermissionNeeded: true,
+ permissionName: "vendor",
+},
+{
+  title: "Distributors",
+  icon: "mdi:truck-fast-outline",
+  allowedRoles: ["Administrator"],
+  path: "/distributor",
+},
+{
+  title: "Vehicles",
+  icon: "mdi:car-outline",
+  allowedRoles: ["Administrator", "Distributor"],
+  path: "/vehicles",
+  isPermissionNeeded: true,
+ permissionName: "vehicle",
+},
+ {
     title: "Stock History",
     icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Administrator"],
     path: "/stockhistory",
   },
   {
-    title: "Purchases",
-    icon: "mdi:cart-arrow-down", // buying items
-    allowedRoles: [ "Staff","Distributor"],
-    path: "/purchase",
-  },
-  {
-    title: "Vendors",
-    icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Staff","Distributor"],
-    path: "/vendor",
-  },
-  {
-    title: "Distributors",
-    icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
-    path: "/distributor",
-  },
-  {
-    title: "Vehicles",
-    icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Distributor"],
-    path: "/vehicles",
-  },
-  {
-    title: "Bills",
+    title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices
-    allowedRoles: ["Administrator", "Staff"],
-    path: "/commission",
+    allowedRoles: ["Administrator"],
+    path: "/quickBillHistory",
   },
   // {
   //   title: "Payments",
@@ -115,8 +124,16 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
+    allowedRoles: ["Administrator"],
     path: "/expense",
+  },
+   {
+    title: "Expenses",
+    icon: "mdi:cash-minus", // money going out
+    allowedRoles: ["Staff","Distributor"],
+    path: "/staffExpense",
+    isPermissionNeeded: true,
+    permissionName: "expense",
   },
 
   // {
@@ -188,6 +205,7 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
+      
      
 
     ]
@@ -199,17 +217,17 @@ const tempObject: VerticalNavItemsType = [
     path: '/superAdmin/all-careTaker',
 
     children: [
-      // {
+       {
 
-      //   title: 'Categories',
-      //   path: '/metadata/categories',
-      //   icon: 'carbon:name-space',
+        title: 'Categories',
+        path: '/metadata/categories',
+        icon: 'carbon:name-space',
       //   // permissionName: 'view_brand',
       //   // isPermissionNeeded: true,
 
 
 
-      // },
+      },
       // {
 
       //   title: 'Products',
@@ -367,7 +385,11 @@ const navigation = (): VerticalNavItemsType => {
     if (!permissionName) return false;
     if (!user?.permissions?.length) return false;
 
-    return user.permissions.includes(permissionName);
+    // Direct match (e.g., 'customer.view')
+    if (user.permissions.includes(permissionName)) return true;
+
+    // Module prefix match (e.g., 'vendor' matches 'vendor.add')
+    return user.permissions.some((perm: string) => typeof perm === 'string' && perm.startsWith(`${permissionName}.`));
   };
 
   const filterItems = (items: VerticalNavItemsType): VerticalNavItemsType => {

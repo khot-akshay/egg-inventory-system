@@ -52,8 +52,9 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
     const auth = useAuth()
     const [isLoading, setIsLoading] = useState(false);
     const [allPermisstion, setAllPermisstion] = useState<any[]>([]);
-    const [selectedCheckbox, setSelectedCheckbox] = useState<number[]>(selectedItem?.permissions ?? []);
-    const [isIndeterminateCheckbox, setIsIndeterminateCheckbox] = useState<boolean>(false);
+    const [selectedCheckbox, setSelectedCheckbox] = useState<string[]>(
+        selectedItem?.permissions ?? []
+    );
 
     const {
         control,
@@ -63,41 +64,100 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
         formState: { errors }
     } = useForm({ resolver: yupResolver(schema) });
 
-    const fetchPermisstion = async () => {
-        try {
-            const response = await axiosInstance.get(`api/v1/admin/getAllPermissions`);
-            // Transform modules into tree nodes where each module becomes a parent node and its permissions are children
-            const perms = (response.data.data.modules || []).map((mod:any) => ({
-                id: -mod.id,
-                name: mod.name,
-                display_name: mod.name,
-                children: (mod.permissions || []).map((perm:any) => ({
-                    id: perm.id,
-                    name: perm.name,
-                    display_name: perm.name,
-                    slug: perm.slug,
-                    // leaf nodes have no further children
-                    children: []
-                }))
-            }));
-            setAllPermisstion(perms);
-        } catch (e) {
-            console.error(e);
-        }
+    // Computes selected child slugs + parent IDs for all parents where all children are selected
+    const computeFullSelection = (savedSlugs: string[], allPerms: any[]): string[] => {
+        const parentIds: string[] = [];
+        allPerms.forEach((parent: any) => {
+            const childSlugs = parent.children?.map((c: any) => c.id) ?? [];
+            if (childSlugs.length > 0 && childSlugs.every((slug: string) => savedSlugs.includes(slug))) {
+                parentIds.push(parent.id); // module:xxx
+            }
+        });
+        return [...savedSlugs, ...parentIds];
     };
 
     useEffect(() => {
-        fetchPermisstion();
-    }, []);
+        let isMounted = true;
+        
+        const loadInitialData = async () => {
+            setIsLoading(true);
+            try {
+                setValue('name', selectedItem?.name);
+
+                // Start both fetches in parallel with cache-busting timestamps
+                const ts = new Date().getTime();
+                const permsPromise = axiosInstance.get(`/api/v1/admin/getAllPermissions?t=${ts}`);
+                const rolesPromise = selectedItem?.id ? axiosInstance.get(`/api/v1/getAllRoles?t=${ts}`) : Promise.resolve(null);
+                
+                const [permsRes, rolesRes] = await Promise.all([permsPromise, rolesPromise]);
+                
+                // Process tree
+                const modules = permsRes.data.data.permission_modules || permsRes.data.data.modules || [];
+                const perms = modules.map((mod: any) => ({
+                    id: `module:${mod.module || mod.name}`,
+                    name: mod.label || mod.name,
+                    display_name: mod.label || mod.name,
+                    children: (mod.permissions || []).map((perm: any) => ({
+                        id: perm.slug || String(perm.id),
+                        numericId: perm.id,
+                        name: perm.name,
+                        display_name: perm.name,
+                        slug: perm.slug,
+                        children: []
+                    }))
+                }));
+                
+                if (isMounted) setAllPermisstion(perms);
+
+                // Determine role permissions
+                let slugs: string[] = [];
+                const freshRole = rolesRes?.data?.data?.roles?.find((r: any) => r.id === selectedItem?.id);
+                const sourceData = freshRole?.permissions || selectedItem?.permissions;
+                
+                if (Array.isArray(sourceData)) {
+                    if (typeof sourceData[0] === 'string') {
+                        slugs = sourceData;
+                    } else {
+                        slugs = sourceData.map((p: any) => p.slug || String(p.id));
+                    }
+                }
+                
+                if (isMounted) {
+                    setSelectedCheckbox(computeFullSelection(slugs, perms));
+                }
+            } catch (e) {
+                console.error(e);
+            } finally {
+                if (isMounted) setIsLoading(false);
+            }
+        };
+
+        if (openDelete) {
+            loadInitialData();
+        }
+        
+        return () => { isMounted = false; };
+    }, [openDelete, selectedItem?.id]);
 
     const handleUpdate = async (data) => {
         setIsLoading(true);
-        const permisstion = [...new Set(selectedCheckbox)].sort();
+        // Map selected slugs back to integer IDs for the API
+        const allChildren = allPermisstion.flatMap((p: any) => p.children || []);
+        const permisstion = [...new Set(selectedCheckbox)]
+            .filter(id => !String(id).startsWith('module:'))
+            .map(slug => {
+                const found = allChildren.find((c: any) => c.id === slug);
+                // If the API provided an integer ID, use it. Otherwise, fallback to sending the slug string.
+                if (found?.numericId) {
+                    return Number(found.numericId);
+                }
+                return slug;
+            })
+            .filter(val => val !== null && val !== undefined);
         try {
-            const response = await axiosInstance.post(`/v1/${auth.user?.role}/updateRole`, {
-                ...data,
-                permissions: permisstion,
-                id: selectedItem.id
+            const response = await axiosInstance.post(`/api/v1/admin/assignPermissionsToRole`, {
+                role_id: Number(selectedItem.id),
+                permission_ids: permisstion,
             });
             if (response.data.success) {
                 fetchData();
@@ -105,12 +165,14 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
                 toast.success(response.data.message);
             }
         } catch (e:any) {
-            if (e?.response?.status === 412 && e?.response?.data?.data) {
+            console.error("API Error Response:", e?.response?.data);
+            if ((e?.response?.status === 422 || e?.response?.status === 412) && e?.response?.data?.data) {
                 for (const key in e?.response?.data?.data) {
-                    setError(key, { type: 'manual', message: e?.response?.data?.data[key].join(',') });
+                    setError(key as any, { type: 'manual', message: e?.response?.data?.data[key].join(', ') });
+                    toast.error(`${key}: ${e?.response?.data?.data[key].join(', ')}`);
                 }
             } else {
-                toast.error(e?.response?.data?.message)
+                toast.error(e?.response?.data?.message || "An error occurred");
             }
         } finally {
             setIsLoading(false);
@@ -118,18 +180,17 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
     };
 
     const handleSelectAllCheckbox = () => {
-        if (selectedCheckbox.length === allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])]).length) {
+        const allIds = allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])]);
+        if (selectedCheckbox.length === allIds.length && allIds.length > 0) {
             setSelectedCheckbox([]);
         } else {
-            const allIds = allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])]);
             setSelectedCheckbox(allIds);
         }
-        setIsIndeterminateCheckbox(false);
     };
- useEffect(() => {
-        const allId = selectedCheckbox?.length > 0 && selectedCheckbox?.length !== allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])])?.length
-        setIsIndeterminateCheckbox(allId)
-    }, [selectedCheckbox])
+    
+    const totalLength = allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])]).length;
+    const isIndeterminateCheckbox = selectedCheckbox.length > 0 && selectedCheckbox.length < totalLength;
+    const isAllSelected = totalLength > 0 && selectedCheckbox.length === totalLength;
     const togglePermission = (id: string) => {
         const isChecked = selectedCheckbox.includes(id);
         let newSelectedCheckbox = isChecked
@@ -166,10 +227,7 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
         const allIds = allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])]);
         setIsIndeterminateCheckbox(newSelectedCheckbox.length > 0 && newSelectedCheckbox.length < allIds.length);
     };
-    useEffect(() => {
-        setValue('name', selectedItem?.name)
-        setValue('permissions', selectedItem?.permissions)
-    },[])
+    // Checkboxes are now initialized entirely in the loadInitialData useEffect
     return (
         <Grid container spacing={2}>
             {/* <Grid item xs={12}> */}
@@ -227,7 +285,7 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
                                             <Checkbox
                                                 onChange={handleSelectAllCheckbox}
                                                 indeterminate={isIndeterminateCheckbox}
-                                                checked={selectedCheckbox.length === allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])]).length}
+                                                checked={isAllSelected}
                                             />
                                         }
                                         

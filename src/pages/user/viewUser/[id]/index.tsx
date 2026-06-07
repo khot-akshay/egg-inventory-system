@@ -276,7 +276,7 @@ export default function Viewopportunity() {
     setIsLoading(true);
 
     try {
-      const url = `/api/v1/admin/users/getUserById/${resolvedUserId}`;
+      const url = `/api/v1/admin/getUserById?id=${resolvedUserId}`;
       const response = await get(url, "");
 
       if (!response?.success) return;
@@ -409,15 +409,6 @@ export default function Viewopportunity() {
               <Grid item xs={12} md={12} sx={{ mb: 2 }}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1"> Organization Name</Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.organization_name || "NA"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
                     <Typography variant="body1">User Name</Typography>
                     <Typography
                       variant="subtitle1"
@@ -442,7 +433,7 @@ export default function Viewopportunity() {
                       sx={{
                         mb: 2,
                         fontWeight: 600,
-                        whiteSpace: "pre-line", // Allow line breaks (\n)
+                        whiteSpace: "pre-line",
                         wordBreak: "break-word",
                         cursor: newData?.email ? "pointer" : "default",
                       }}
@@ -451,12 +442,12 @@ export default function Viewopportunity() {
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">Mobile Number</Typography>
+                    <Typography variant="body1">Phone Number</Typography>
                     <Typography
                       variant="subtitle1"
                       sx={{ mb: 2, fontWeight: 600 }}
                     >
-                      <MobileNumberModule mobileNo={newData?.mobile_number} />
+                      {newData?.phone ? <MobileNumberModule mobileNo={newData?.phone} /> : "NA"}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={3}>
@@ -469,20 +460,7 @@ export default function Viewopportunity() {
                         textTransform: "capitalize",
                       }}
                     >
-                      {newData?.role || "NA"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">User Type</Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        mb: 2,
-                        fontWeight: 600,
-                        textTransform: "capitalize",
-                      }}
-                    >
-                      {newData?.sub_role || "NA"}
+                      {newData?.roles?.[0]?.name || "NA"}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={3} sx={{ mb: 2 }}>
@@ -493,167 +471,36 @@ export default function Viewopportunity() {
                     >
                       {newData?.is_active === true
                         ? "Active"
-                        : "Inactive" || "NA"}
-                    </Typography>
-                  </Grid>
-
-                  {/* Address */}
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="body1">Address</Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.address || "NA"}
-                      {newData?.city && `, ${newData.city}`}
-                      {newData?.state && `, ${newData.state}`}
-                      {newData?.pincode && ` - ${newData.pincode}`}
-                      {!newData?.address &&
-                        !newData?.city &&
-                        !newData?.state &&
-                        !newData?.pincode &&
-                        "NA"}
-                    </Typography>
-                  </Grid>
-
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">Aadhar Card Number </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.aadhar_number || "NA"}
+                        : "Inactive"}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">PAN Number </Typography>
+                    <Typography variant="body1">Shop Code</Typography>
                     <Typography
                       variant="subtitle1"
                       sx={{ mb: 2, fontWeight: 600 }}
                     >
-                      {newData?.pan_number || "NA"}
+                      {newData?.shop?.code || "NA"}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">GST Number </Typography>
+                    <Typography variant="body1">Shop Name</Typography>
                     <Typography
                       variant="subtitle1"
                       sx={{ mb: 2, fontWeight: 600 }}
                     >
-                      {newData?.gst_number || "NA"}
+                      {newData?.shop?.name || "NA"}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">Account Number</Typography>
+                    <Typography variant="body1">Shop City</Typography>
                     <Typography
                       variant="subtitle1"
                       sx={{ mb: 2, fontWeight: 600 }}
                     >
-                      {newData?.account_number || "NA"}
+                      {newData?.shop?.city || "NA"}
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">Bank Name</Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.bank_name || "NA"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">Branch Name</Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.branch_name || "NA"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">IFSC Code </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.ifsc_code || "NA"}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                    <Typography variant="body1">Commission Per Ton </Typography>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{ mb: 2, fontWeight: 600 }}
-                    >
-                      {newData?.commission_per_ton || "NA"}
-                    </Typography>
-                  </Grid>
-                  {newData.aadhar_document_url && (
-                    <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                      <Typography variant="body1">Aadhar Document</Typography>
-
-                      <Box sx={{
-                        height: "170px",
-                        width: "170px",
-                      }}>
-                        <img
-                          src={newData?.aadhar_document_url || ""}
-                          alt="Aadhar Document"
-                          style={{
-                            objectFit: 'contain', // This ensures the image fills the entire area, but it may crop part of the image
-                            cursor: 'pointer',
-                            height: "100%",
-                            width: "100%",
-                            marginTop: '20px'
-                          }}
-                        />
-                      </Box>
-                    </Grid>
-
-                  )}
-                  {newData.pan_document_url && (
-                    <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                      <Typography variant="body1">Pan Document</Typography>
-                      <Box sx={{
-                        height: "170px",
-                        width: "170px",
-                      }}>
-                        <img
-                          src={newData?.pan_document_url || ""}
-                          alt="Pan Document"
-                          style={{
-                            objectFit: 'contain', // This ensures the image fills the entire area, but it may crop part of the image
-                            cursor: 'pointer',
-                            height: "100%",
-                            marginTop: '20px',
-                            width: "100%"
-                          }}
-                        />
-                      </Box>
-                    </Grid>
-                  )}
-                  {newData.gst_certificate_url && (
-                    <Grid item xs={12} md={3} sx={{ mb: 2 }}>
-                      <Typography variant="body1">GST Document</Typography>
-                      <Box sx={{
-                        height: "170px",
-                        width: "170px",
-                        marginTop: '4px'
-                      }}>
-                        <img
-                          src={newData?.gst_certificate_url || ""}
-                          alt="Gst Document"
-                          style={{
-                            objectFit: 'contain', // This ensures the image fills the entire area, but it may crop part of the image
-                            cursor: 'pointer',
-                            height: "100%",
-                            marginTop: '20px',
-                            width: "100%"
-                          }}
-                        />
-                      </Box>
-                    </Grid>
-                  )}
                 </Grid>
               </Grid>
             </Grid>
@@ -666,15 +513,7 @@ export default function Viewopportunity() {
           </Grid>
         </Grid> */}
 
-        {(
-          (newData?.sub_role === "seller" && newData?.role === "manufacturer") ||
-          (newData?.sub_role === "buyer" && newData?.role === "trader")
-        ) && resolvedUserId && (<Grid container spacing={2} padding={2}>
-          <Grid item xs={12} md={12}>
-            {/* <UserPlants userId={resolvedUserId} /> */}
-          </Grid>
-        </Grid>
-          )}
+
 
       </Grid>
     </>

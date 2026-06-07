@@ -12,7 +12,7 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import toast, { Toaster } from 'react-hot-toast'
 
 const schema = yup.object().shape({
-  sku: yup.string().required('SKU is required.').trim(),
+  // sku: yup.string().required('SKU is required.').trim(),
   name: yup.string().required('Product Name is required.').trim(),
   egg_price_min: yup.number().required('Min Price is required.').min(0, 'Min Price must be positive'),
   egg_price_max: yup.number().required('Max Price is required.').min(yup.ref('egg_price_min'), 'Max Price must be greater than or equal to Min Price'),
@@ -51,16 +51,16 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
       reset({
         sku: selectedItem.sku || '',
         name: selectedItem.name || '',
-        egg_price_min: selectedItem.egg_price_min || 0,
-        egg_price_max: selectedItem.egg_price_max || 0,
+        egg_price_min: Number(selectedItem.egg_price_min || 0).toFixed(2),
+        egg_price_max: Number(selectedItem.egg_price_max || 0).toFixed(2),
         is_active: selectedItem.isActive === true || selectedItem.is_active == 1 ? true : false,
       })
     } else {
       reset({
         sku: '',
         name: '',
-        egg_price_min: 0,
-        egg_price_max: 0,
+        egg_price_min: '0.00',
+        egg_price_max: '0.00',
         is_active: true
       })
     }
@@ -71,7 +71,6 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
 
     try {
       let payload = {
-        sku: data.sku,
         name: data.name,
         egg_price_min: data.egg_price_min,
         egg_price_max: data.egg_price_max,
@@ -130,10 +129,10 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
         <DialogContent dividers>
           <Toaster position="top-right" reverseOrder={false} />
           <Grid container spacing={4}>
-            <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='sku' label='SKU' placeholder='SKU' mandatory />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            {/* <Grid item xs={12} sm={6}>
+              <RHFInput control={control} name='sku' label='SKU' placeholder='SKU' mandatory={false} />
+            </Grid> */}
+            <Grid item xs={12} sm={12}>
               <RHFInput control={control} name='name' label='Product Name' placeholder='Product Name' mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -142,7 +141,7 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
             <Grid item xs={12} sm={6}>
               <RHFInput control={control} name='egg_price_max' label='Max Egg Price' type='number' placeholder='Max Price' mandatory />
             </Grid>
-            <Grid item xs={12}>
+            {/* <Grid item xs={12}>
                <Box sx={{ mt: 1 }}>
                 <FormControlLabel
                   control={
@@ -154,7 +153,7 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
                   label={watch("is_active") ? "Active" : "Inactive"}
                 />
                </Box>
-            </Grid>
+            </Grid> */}
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>

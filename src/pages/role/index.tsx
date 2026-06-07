@@ -21,7 +21,6 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DateFormateComponent from "src/components/common/dateFormat/DateFromatModule";
 import SearchInput from "src/components/common/SearchInput";
 import toast from "react-hot-toast";
-import AddUser from "./AddUser";
 import { useRouter } from "next/router";
 import TooltipOnly from "src/components/common/TooltipOnly/TooltipOnly";
 
@@ -38,7 +37,7 @@ interface UserRow {
   [key: string]: any;
 }
 
-const User = () => {
+const Role = () => {
   const [rows, setRows] = useState<UserRow[]>([]);
   const [totalRows, setTotalRows] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -341,33 +340,8 @@ const User = () => {
         />
       </Card>
 
-      {openAdd && (
-        <AddUser
-          open={openAdd}
-          handleClose={() => setOpenAdd(false)}
-          fetchData={fetchGame}
-        />
-      )}
-      {openDelete && (
-        <DeleteDialogPopup
-          show={openDelete}
-          handleclose={() => setOpenDelete(false)}
-          selectedItems={selectedItem?.id}
-          fetchData={fetchGame}
-          label={"Are you sure you want to delete this user?"}
-          apiUrl={"api/v1/admin/users/delete/"}
-        />
-      )}
-      {openEdit && (
-        <AddUser
-          open={openEdit}
-          handleClose={() => setOpenEdit(false)}
-          fetchData={fetchGame}
-          selectedItem={selectedItem ?? undefined}
-        />
-      )}
     </>
   );
 };
 
-export default User;
+export default Role;

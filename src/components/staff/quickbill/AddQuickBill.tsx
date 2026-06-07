@@ -3,7 +3,8 @@ import {
   TextField, ToggleButton, ToggleButtonGroup,
   Box, useTheme, useMediaQuery, CircularProgress,
   Grid, Divider, IconButton, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Paper
+  TableContainer, TableHead, TableRow, Paper,
+  Tooltip, Chip
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
@@ -20,16 +21,17 @@ import PhonelinkRingIcon from '@mui/icons-material/PhonelinkRing'
 import EventNoteIcon from '@mui/icons-material/EventNote'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import { useAuth } from 'src/hooks/useAuth'
+import { useRouter } from 'next/router'
 
 const schema = yup.object().shape({
   customer_id: yup.mixed().test('shop-required', 'Customer is required for 100+ eggs', function (value) {
-    const { isNewCustomer, totalCartEggs } = this.options.context as any || {};
+    const { isNewCustomer = false, totalCartEggs = 0 } = this.options.context || {};
     if (totalCartEggs < 100) return true;
     if (!isNewCustomer && !value) return false;
     return true;
   }),
   customer_name: yup.string().test('name-required', 'Name is required for 100+ eggs', function (value) {
-    const { isNewCustomer, totalCartEggs } = this.options.context as any || {};
+    const { isNewCustomer = false, totalCartEggs = 0 } = this.options.context || {};
     if (totalCartEggs < 100) return true;
     if (isNewCustomer && !value) return false;
     return true;
@@ -55,18 +57,22 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const [unit, setUnit] = useState('')
-  const [unitValue, setUnitValue] = useState(30)
-  const [quantity, setQuantity] = useState(1)
-  const [damaged, setDamaged] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [isNewCustomer, setIsNewCustomer] = useState(false)
+
   const [minRate, setMinRate] = useState<number | null>(null)
   const [maxRate, setMaxRate] = useState<number | null>(null)
   const [paymentType, setPaymentType] = useState('cash')
-  const [cart, setCart] = useState<any[]>([])
+  const [unit, setUnit] = useState('');
+const [unitValue, setUnitValue] = useState(30);
+const [quantity, setQuantity] = useState<string>('');
+const [damaged, setDamaged] = useState(0);
+const [loading, setLoading] = useState(false);
+const [isNewCustomer, setIsNewCustomer] = useState(false);
+const [cart, setCart] = useState<any[]>([]);
+const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const router = useRouter()
 
-  const totalCartEggs = cart.reduce((sum, item) => sum + item.total_eggs, 0)
+
+  const totalCartEggs = cart.reduce((sum, item) => sum + item.quantity, 0)
 
   const {
     control,
@@ -117,6 +123,43 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       setPaymentType('cash')
     }
   }, [selectedCustomer, paymentType])
+
+  useEffect(() => {
+    const fetchPendingAmount = async () => {
+      console.log('fetchPendingAmount triggered. selectedCustomer:', selectedCustomer, 'isNewCustomer:', isNewCustomer);
+      if (!selectedCustomer || isNewCustomer) {
+        setPendingAmount(null)
+        return
+      }
+
+      // Extract ID from the selected object - handles different autocomplete formats
+      const customerId = 
+        typeof selectedCustomer === 'number' || typeof selectedCustomer === 'string' ? selectedCustomer : 
+        selectedCustomer?.id ? selectedCustomer.id : 
+        selectedCustomer?.value ? selectedCustomer.value : 
+        null
+
+      console.log('Extracted customerId:', customerId);
+
+      if (customerId) {
+        try {
+          const response = await axiosInstance.get(`/api/v1/shop/userPendingAmount?user_id=${customerId}`)
+          if (response.data.success) {
+            setPendingAmount(response.data.data?.pendingAmount || 0)
+          } else {
+            setPendingAmount(null)
+          }
+        } catch (error) {
+          console.error("Failed to fetch pending amount", error)
+          setPendingAmount(null)
+        }
+      } else {
+        setPendingAmount(null)
+      }
+    }
+
+    fetchPendingAmount()
+  }, [selectedCustomer, isNewCustomer])
 
   const totalEggs = quantity * unitValue
   const finalEggs = totalEggs - damaged
@@ -229,24 +272,51 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         return Number(value)
       }
 
-      if (cart.length === 0) {
+      
+      // If no items in cart and no product details entered, prevent submission
+      if (cart.length === 0 && !(watch('category_id') && quantity > 0 && watch('rate_per_unit'))) {
         toast.error('Please add at least one product to the list')
         setLoading(false)
         return
       }
-
       const cashAmount = Number(data.mixed_cash) || 0
       const upiAmount = Number(data.mixed_online) || 0
-      const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : grandTotal
-      const payments =
-        paymentType === 'mixed'
-          ? [
-            { amount: cashAmount, payment_type: 'cash' },
-            { amount: upiAmount, payment_type: 'upi' }
-          ]
-          : [
-            { amount: grandTotal, payment_type: paymentType }
-          ]
+      const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
+      // Determine the overall total amount based on cart or single item
+      const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
+      const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
+      let payments: { amount: number; payment_type: string }[] = [];
+      // Build lines for payload
+      let lines: { category_id: any; quantity: number; unit_cost: number; unit_type: string; unit_value: number }[] = [];
+      if (cart.length > 0) {
+        lines = cart.map(item => ({
+          category_id: item.category_id,
+          quantity: item.quantity,
+          unit_cost: item.rate,
+          unit_type: item.unit,
+          unit_value: item.unit_value
+        }));
+      } else if (watch('category_id') && quantity > 0 && watch('rate_per_unit')) {
+        const cat = watch('category_id');
+        const catId = typeof cat === 'object' && cat.id ? cat.id : cat;
+        lines = [{
+          category_id: catId,
+          quantity,
+          unit_cost: Number(watch('rate_per_unit')),
+          unit_type: unit,
+          unit_value: 0
+        }];
+      }
+      if (paymentType === 'mixed') {
+        if (cashAmount > 0) payments.push({ amount: cashAmount, payment_type: 'cash' });
+        if (upiAmount > 0) payments.push({ amount: upiAmount, payment_type: 'upi' });
+        if (payments.length === 0) {
+          // Fallback to total amount to satisfy backend validation
+          payments.push({ amount: totalAmount, payment_type: 'cash' });
+        }
+      } else {
+        payments = [{ amount: totalAmount, payment_type: paymentType }];
+      }
 
       const payload = {
         customer_id: isNewCustomer ? null : extractId(data.customer_id),
@@ -254,13 +324,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         phone_number: isNewCustomer ? data.phone_number : null,
         paid_amount: paidAmount,
         payment_type: paymentType === 'mixed' ? 'upi,cash' : paymentType,
-        lines: cart.map(item => ({
-          category_id: item.category_id,
-          quantity: item.quantity,
-          unit_cost: item.rate,
-          unit_type: item.unit,
-          unit_value: item.unit_value
-        })),
+        lines,
         payments
       }
 
@@ -295,11 +359,41 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     }
   }
 
+   const handleViewUser = () => {
+    router.push('/quickbillList')
+  }
+
   return (
     <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
-      <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
-        🥚 Quick Bill
-      </Typography>
+      <Grid container spacing={2}>
+        <Grid item xs={4}>
+          <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
+            🥚 Quick Bill
+          </Typography>
+        </Grid>
+        <Grid item xs={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {pendingAmount !== null && (
+            <Chip 
+              label={`DUE: ₹${Number(pendingAmount).toFixed(2)}`}
+              color={pendingAmount > 0 ? 'error' : 'success'}
+              sx={{ fontWeight: 'bold' }}
+            />
+          )}
+        </Grid>
+        <Grid item xs={4}>
+          <Tooltip title="View Quick Bills List">
+            
+          <Button
+            variant='contained'
+            onClick={() => handleViewUser()}>
+           Bills List
+          </Button>
+                    </Tooltip>
+
+        </Grid>
+      </Grid>
+     
+
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
@@ -482,7 +576,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                     >
                       <TextField
                         type="number"
-                        value={quantity}
+                        value={quantity || ''}
                         onChange={(e) => {
                           const val = Number(e.target.value);
                           setQuantity(val);
@@ -530,6 +624,22 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   </Grid>
                 </Grid>
               </Grid>
+<Grid item xs={12}>
+  <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1 }}>
+      <Typography variant="subtitle2" sx={{ mr: 1, fontWeight: 'bold' }}>
+        Total Amount:
+      </Typography>
+      {quantity > 0 && watch('rate_per_unit') && watch('category_id') ? (
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          ₹{(quantity * Number(watch('rate_per_unit') || 0)).toFixed(2)}
+        </Typography>
+      ) : (
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          ₹0.00
+        </Typography>
+      )}
+  </Box>
+</Grid>
             </Grid>
           </Grid>
 
@@ -549,6 +659,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
           {/* Cart Table */}
           {cart.length > 0 && (
+            <>
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
@@ -583,10 +694,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </Table>
               </TableContainer>
             </Grid>
-          )}
-
-          {/* Price and Total Amount Displays */}
-          <Grid item xs={12}>
+            <Grid item xs={12}>
             {/* <Box
               sx={{
                 display: 'flex',
@@ -624,6 +732,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               </Typography>
             </Box>
           </Grid>
+          </>
+          )}
 
           {/* Payment Type Selection */}
           <Grid item xs={12}>

@@ -19,10 +19,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule';
 import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
-import AddProducts from './AddPurchase';
 import { useAuth } from 'src/hooks/useAuth';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
-import AddPurchaseForm from './AddPurchase'
 
 
 
@@ -70,7 +68,7 @@ type SelectOption = {
   value: number | string
 }
 
-const Purchase = () => {
+const VendorPurchaseHistory = () => {
   const [rows, setRows] = useState<PurchaseRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -97,36 +95,7 @@ const Purchase = () => {
 
 
 
-  // const fetchGame = async () => {
-  //   setLoading(true)
-  //   try {
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`)
-
-  //     setRows(response.data.data.brands ?? [])
-  //     setTotalRows(response.data.data?.count ?? 0)
-  //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-  // const fetchGame = async () => {
-  //   setLoading(true);
-  //   try {
-
-
-
-
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`);
-
-  //     setRows(response.data.data.brands ?? []);
-  //     setTotalRows(response.data.data?.count ?? 0);
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  
   const fetchGame = async () => {
     setLoading(true);
     try {
@@ -134,14 +103,18 @@ const Purchase = () => {
       params.pageNo = String(page);
       params.limit = String(pageSize);
       if (searchQuery) params.global_search = searchQuery;
-      if (selectedCategoryId) params.category_id = String(selectedCategoryId);
-      // Use selectedShopId if set, otherwise fallback to current staff shop ID
-      const shopId = selectedShopId ?? currentStaffShopId;
-      if (shopId) params.shop_id = String(shopId);
+    //   if (selectedCategoryId) params.category_id = String(selectedCategoryId);
+    //   const shopId = selectedShopId ?? currentStaffShopId;
+    //   if (shopId) params.shop_id = String(shopId);
 
-      const response = await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases', { params });
+      const { id } = router.query;
+      if (id) {
+        params.vendor_id = String(id);
+      }
 
-      setRows(response.data.data?.purchases ?? []);
+      const response = await axiosInstance.get('/api/v1/admin/getVendorPurchaseHistory', { params });
+
+      setRows(response.data.data?.egg_vendor_purchase ?? []);
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
       console.error(e);
@@ -166,8 +139,9 @@ const Purchase = () => {
 
 // Fetch data on filters/pagination change
 useEffect(() => {
+  if (!router.isReady) return;
   fetchGame();
-}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery]);
+}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, router.isReady, router.query.id]);
 
 // Listen for new purchase events
   useEffect(() => {
@@ -308,55 +282,8 @@ useEffect(() => {
         </div>
       )
     },
-    // {
-    //   field: 'price_per_egg',
-    //   headerName: 'Rate/egg',
-    //   flex: 1,
-    //   minWidth: 100,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => (
-    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //       ₹{params.row?.price_per_egg || '0.00'}
-    //     </div>
-    //   )
-    // },
-    // {
-    //   field: 'total_amount',
-    //   headerName: 'Total Amount',
-    //   flex: 1,
-    //   minWidth: 130,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => (
-    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //       ₹{params.row?.total_amount || '0.00'}
-    //     </div>
-    //   )
-    // },
-    // {
-    //   field: 'due_amount',
-    //   headerName: 'Due Amount',
-    //   flex: 1,
-    //   minWidth: 130,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => (
-    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //       ₹{params.row?.due_amount || '0.00'}
-    //     </div>
-    //   )
-    // },
-    // {
-    //   field: 'status',
-    //   headerName: 'Status',
-    //   flex: 1,
-    //   minWidth: 100,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => (
-    //     <div style={{ textTransform: 'capitalize' }}>
-    //       {params.row?.status || 'NA'}
-    //     </div>
-    //   )
-    // },
-
+   
+   
 
     // {
     //   field: 'status',
@@ -652,19 +579,9 @@ useEffect(() => {
           </Grid>
         )}
       </Card>
-      {openAdd && <AddPurchaseForm open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
-      {openDelete && (
-        <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem?.id}
-          fetchData={fetchGame}
-          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/products/deleteProducts/'} />
-      )}
-      {openEdit && (
-        <AddPurchaseForm open={openEdit} handleClose={() => setOpenEdit(false)}
-          fetchData={fetchGame}
-          selectedItem={selectedItem ?? undefined} />
-      )}
+      
     </>
   )
 }
 
-export default Purchase    
+export default VendorPurchaseHistory    

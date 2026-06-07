@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  Box,
   IconButton,
   Typography,
   Button
@@ -14,47 +15,46 @@ import { useForm } from 'react-hook-form'
 import SubmitButton from 'src/components/common/button/Button'
 import RHFInput from 'src/hook-forms/RHFInput'
 import RHFNumberInput from 'src/hook-forms/RHFNUmberInput'
+import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete'
 import axiosInstance from 'src/services/axios'
 import * as yup from 'yup'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import toast, { Toaster } from 'react-hot-toast'
 
 const schema = yup.object().shape({
-  name: yup
-    .string()
-    .required('Customer name is required')
-    .min(3, 'Minimum 3 characters'),
+  expense_date: yup.string().required('Expense date is required'),
 
-  phone: yup
-    .string()
-    .required('Phone number is required')
-    .matches(/^[0-9]{10}$/, 'Enter valid 10 digit phone number'),
+  category: yup.string().required('Category is required'),
 
-  email: yup
-    .string()
-    .email('Enter valid email')
-    .nullable(),
-
-  credit_limit: yup
+  amount: yup
     .number()
-    .typeError('Credit limit must be a number')
-    .required('Credit limit is required')
-    .min(0, 'Credit limit cannot be negative')
+    .typeError('Amount must be a valid number')
+    .required('Amount is required')
+    .min(1, 'Amount must be greater than 0'),
+
+  description: yup.string().nullable(),
+
+  shop_id: yup.mixed().required('Shop is required')
 })
 
 interface FormData {
-  name: string
-  phone: string
-  email: string
-  credit_limit: number
+  expense_date: string
+  category: string
+  amount: number
+  description: string
+  shop_id: any
 }
 
 interface SelectedItem {
   id?: number
-  name?: string
-  phone?: string
-  email?: string
-  credit_limit?: number
+  expense_date?: string
+  category?: string
+  amount?: number
+  description?: string
+  shop_id?: number
+  shop?: {
+    name?: string
+  }
 }
 
 interface Props {
@@ -65,13 +65,14 @@ interface Props {
 }
 
 const defaultValues: FormData = {
-  name: '',
-  phone: '',
-  email: '',
-  credit_limit: 0
+  expense_date: '',
+  category: '',
+  amount: 0,
+  description: '',
+  shop_id: null
 }
 
-const AddCustomer = ({
+const AddStaffExpense = ({
   open,
   handleClose,
   fetchData,
@@ -94,18 +95,22 @@ const AddCustomer = ({
 
     try {
       const payload = {
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        credit_limit: Number(data.credit_limit)
+        expense_date: data.expense_date,
+        category: data.category,
+        amount: Number(data.amount),
+        description: data.description,
+        shop_id:
+          typeof data.shop_id === 'object'
+            ? data.shop_id.id
+            : data.shop_id
       }
 
       let url = ''
 
       if (selectedItem) {
-        url = `/api/v1/admin/updateCustomer?id=${selectedItem.id}`
+        url = `/api/v1/shop/updateExpense?id=${selectedItem.id}`
       } else {
-        url = '/api/v1/admin/createCustomer'
+        url = '/api/v1/shop/createExpense'
       }
 
       const response = await axiosInstance.post(url, payload)
@@ -121,8 +126,8 @@ const AddCustomer = ({
       toast.error(
         e?.response?.data?.message ??
           (selectedItem
-            ? 'Failed to update customer'
-            : 'Failed to add customer')
+            ? 'Failed to update expense'
+            : 'Failed to add expense')
       )
     } finally {
       setIsLoading(false)
@@ -131,13 +136,26 @@ const AddCustomer = ({
 
   useEffect(() => {
     if (selectedItem) {
-      setValue('name', selectedItem.name || '')
-      setValue('phone', selectedItem.phone || '')
-      setValue('email', selectedItem.email || '')
       setValue(
-        'credit_limit',
-        selectedItem.credit_limit || 0
+        'expense_date',
+        selectedItem.expense_date || ''
       )
+
+      setValue('category', selectedItem.category || '')
+
+      setValue('amount', selectedItem.amount || 0)
+
+      setValue(
+        'description',
+        selectedItem.description || ''
+      )
+
+      if (selectedItem.shop_id) {
+        setValue('shop_id', {
+          id: selectedItem.shop_id,
+          name: selectedItem.shop?.name || 'Shop'
+        })
+      }
     } else {
       reset(defaultValues)
     }
@@ -181,7 +199,7 @@ const AddCustomer = ({
             pl: 1
           }}
         >
-          {selectedItem ? 'Update' : 'Add'} Customer
+          {selectedItem ? 'Update' : 'Add'} Expense
         </Typography>
 
         <IconButton onClick={handleCloseModal}>
@@ -196,11 +214,25 @@ const AddCustomer = ({
         <DialogContent dividers>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
+              <RHFAutoComplete
+                control={control}
+                name='shop_id'
+                placeholder='Select Shop'
+                labelinput='Select Shop'
+                apiUrl='/api/v1/admin/getAllShops'
+                labelKey='name'
+                valueKey='id'
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
               <RHFInput
                 control={control}
-                name='name'
-                label='Customer Name'
-                placeholder='Customer Name'
+                name='expense_date'
+                label='Expense Date'
+                placeholder='Expense Date'
+                type='date'
                 mandatory
               />
             </Grid>
@@ -208,30 +240,31 @@ const AddCustomer = ({
             <Grid item xs={12} md={6}>
               <RHFInput
                 control={control}
-                name='phone'
-                label='Phone Number'
-                placeholder='Phone Number'
+                name='category'
+                label='Category'
+                placeholder='Fuel / Salary / Electricity'
                 mandatory
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <RHFInput
-                control={control}
-                name='email'
-                label='Email'
-                placeholder='Email ID'
-                mandatory={false}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
               <RHFNumberInput
                 control={control}
-                name='credit_limit'
-                label='Credit Limit'
-                placeholder='Credit Limit'
+                name='amount'
+                label='Amount'
+                placeholder='Amount'
                 min={0}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <RHFInput
+                control={control}
+                name='description'
+                label='Description'
+                placeholder='Description'
+                multiline
+                rows={3}
               />
             </Grid>
           </Grid>
@@ -257,4 +290,4 @@ const AddCustomer = ({
   )
 }
 
-export default AddCustomer
+export default AddStaffExpense

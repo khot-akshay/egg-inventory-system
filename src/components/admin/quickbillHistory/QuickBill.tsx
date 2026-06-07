@@ -41,7 +41,7 @@ type SelectOption = {
   value: number | string
 }
 
-const QuickBill = () => {
+const QuickBillHistory = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -390,20 +390,17 @@ const QuickBill = () => {
     //   flex: 1,
     //   renderCell: (params: GridCellParams) => (
     //     <>
-    //       {/* {checkPermission('quick_bill.view') && ( */}
+    //       {/* {checkPermission('update_brand') && ( */}
     //       <Button
     //         sx={{ color: 'text.secondary', margin: '-10px' }}
     //         onClick={() => handleViewUser(params.row.id)}>
     //         <Icon icon={'ph:eye'} fontSize={24} />
     //       </Button>
-  //        )}
-  //        {checkPermission('quick_bill.update') && (
     //       <Tooltip title='Update Product.' placement='bottom'>
     //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
     //           <Icon icon={'circum:edit'} fontSize={24} />
     //         </Button>
     //       </Tooltip>
-    //       )}
     //       {/* )} */}
     //       {/* {checkPermission('delete_brand') && (  */}
 
@@ -431,7 +428,7 @@ const QuickBill = () => {
       <Card sx={{ p: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} >
-            <GoBack label="Quick Bill List" isBack={true} />
+            <GoBack label="Quick Bill History" isBack={false} />
           </Grid>
               {/* <Grid item xs={12} md={3}>
                 <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
@@ -514,6 +511,7 @@ const QuickBill = () => {
                 />
               </Grid> */}
             </Grid>
+            
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs 
             value={selectedShopId || 'all'} 
@@ -529,6 +527,7 @@ const QuickBill = () => {
             ))}
           </Tabs>
         </Box>
+        
         {viewMode === 'list' ? (
           <CommonDatagrid
             totalRows={totalRows}
@@ -658,4 +657,4 @@ const QuickBill = () => {
   )
 }
 
-export default QuickBill    
+export default QuickBillHistory    
