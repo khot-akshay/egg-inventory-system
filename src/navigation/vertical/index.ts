@@ -70,41 +70,42 @@ const tempObject: VerticalNavItemsType = [
     allowedRoles: ["Staff","Distributor"],
     path: "/stocks",
   },
-  {
-    title: "Stock History",
-    icon: "mdi:warehouse", // inventory / storage
-    allowedRoles: ["Administrator"],
-    path: "/stockhistory",
-  },
+ 
   {
     title: "Purchases",
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
   },
-  {
-    title: "Vendors",
-    icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Staff","Distributor"],
-    path: "/vendor",
-  },
-  {
-    title: "Distributors",
-    icon: "mdi:truck-delivery", // suppliers
+ {
+  title: "Vendors",
+  icon: "mdi:store-outline",
+  allowedRoles: ["Administrator", "Staff", "Distributor"],
+  path: "/vendor",
+},
+{
+  title: "Distributors",
+  icon: "mdi:truck-fast-outline",
+  allowedRoles: ["Administrator"],
+  path: "/distributor",
+},
+{
+  title: "Vehicles",
+  icon: "mdi:car-outline",
+  allowedRoles: ["Administrator", "Distributor"],
+  path: "/vehicles",
+},
+ {
+    title: "Stock History",
+    icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Administrator"],
-    path: "/distributor",
+    path: "/stockhistory",
   },
   {
-    title: "Vehicles",
-    icon: "mdi:truck-delivery", // suppliers
-    allowedRoles: ["Administrator", "Distributor"],
-    path: "/vehicles",
-  },
-  {
-    title: "Bills",
+    title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices
     allowedRoles: ["Administrator", "Staff"],
-    path: "/commission",
+    path: "/quickBillHistory",
   },
   // {
   //   title: "Payments",
@@ -188,6 +189,7 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
+      
      
 
     ]
@@ -199,17 +201,17 @@ const tempObject: VerticalNavItemsType = [
     path: '/superAdmin/all-careTaker',
 
     children: [
-      // {
+       {
 
-      //   title: 'Categories',
-      //   path: '/metadata/categories',
-      //   icon: 'carbon:name-space',
+        title: 'Categories',
+        path: '/metadata/categories',
+        icon: 'carbon:name-space',
       //   // permissionName: 'view_brand',
       //   // isPermissionNeeded: true,
 
 
 
-      // },
+      },
       // {
 
       //   title: 'Products',

@@ -11,10 +11,11 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import moment from "moment";
-import { get } from "src/services/apiCall";
+import axiosInstance from "src/services/axios";
 import MobileNumberModule from "src/components/common/Links/MobileNumberModule";
 import EmailModule from "src/components/common/Links/EmailLink";
 import UpdatePrice from "src/components/admin/vendor/UpdatePrice";
+import VendorPurchaseHistory from "src/components/admin/vendor/VendorHistory";
 
 interface VendorData {
   id: number;
@@ -45,9 +46,9 @@ export default function ViewVendor() {
     try {
       setIsLoading(true);
       const url = `/api/v1/admin/getVendorById?id=${id}`;
-      const response = await get(url);
-      if (response["success"]) {
-        setVendorData(response["data"]);
+      const response = await axiosInstance.get(url);
+      if (response.data?.success) {
+        setVendorData(response.data.data);
       }
     } catch (error) {
       console.error(error);
@@ -71,8 +72,8 @@ export default function ViewVendor() {
           display: "flex",
           justifyContent: "space-between",
           flexDirection: "row",
-          pl: 4,
-          pr: 7,
+          // pl: 4,
+          // pr: 7,
           mb: 1,
         }}
       >
@@ -178,6 +179,10 @@ export default function ViewVendor() {
       
       <Box sx={{ mt: 2 }}>
         <UpdatePrice vendorId={id as string} />
+      </Box>
+      <Box sx={{ mt: 2 }}>
+
+      <VendorPurchaseHistory/>
       </Box>
     </>
   );

@@ -166,23 +166,31 @@ const Vendor = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => params.row?.gstin || 'NA'
     },
-  
     {
-      field: 'status',
-      headerName: 'Status',
-      minWidth: 130,
-      sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const isActive = params.row.is_active === true || params.row.is_active === 1;
-        return (
-          <Stack direction='row' alignItems='center' spacing={2}>
-            <Typography variant="body2">{isActive ? 'Active' : 'Inactive'}</Typography>
-            <Switch size="small" checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
-          </Stack>
-        );
-      },
+      field: 'payable_balance',
+      headerName: 'Payable Amount',
       flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params: GridCellParams) => params.row?.payable_balance || 'NA'
     },
+  
+    // {
+    //   field: 'status',
+    //   headerName: 'Status',
+    //   minWidth: 130,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => {
+    //     const isActive = params.row.is_active === true || params.row.is_active === 1;
+    //     return (
+    //       <Stack direction='row' alignItems='center' spacing={2}>
+    //         <Typography variant="body2">{isActive ? 'Active' : 'Inactive'}</Typography>
+    //         <Switch size="small" checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
+    //       </Stack>
+    //     );
+    //   },
+    //   flex: 1,
+    // },
     {
       field: 'actions',
       headerName: 'Actions',

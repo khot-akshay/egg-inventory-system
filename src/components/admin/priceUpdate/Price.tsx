@@ -149,18 +149,18 @@ const Price = () => {
         </div>
       )
     },
-    {
-      field: 'category_name',
-      headerName: 'Category',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.category?.name || 'NA'}
-        </div>
-      )
-    },
+    // {
+    //   field: 'category_name',
+    //   headerName: 'Category',
+    //   flex: 1,
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       {params.row?.category?.name || 'NA'}
+    //     </div>
+    //   )
+    // },
     {
       field: 'egg_price_min',
       headerName: 'Min Price',
@@ -168,8 +168,7 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <p>₹{params.row?.egg_price_min || '0.00'}</p>
-      )
+<p>₹{Number(params.row?.egg_price_min || 0).toFixed(2)}</p>      )
     },
     {
       field: 'egg_price_max',
@@ -178,22 +177,21 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <p>₹{params.row?.egg_price_max || '0.00'}</p>
-      )
+<p>₹{Number(params.row?.egg_price_max || 0).toFixed(2)}</p>      )
     },
-    {
-      field: 'status',
-      headerName: 'Status',
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-          <Stack direction='row' alignItems='center' spacing={5}>
-              <p>{params.row.is_active == '1' || params.row.is_active === true ? 'Active' : 'In-active'}</p>
-              <Switch checked={params.row.is_active == '1' || params.row.is_active === true} onChange={(event) => handleSwitchChange(event, params.row)} />
-          </Stack>
-      ),
-      flex: 1,
-  },
+  //   {
+  //     field: 'status',
+  //     headerName: 'Status',
+  //     minWidth: 150,
+  //     sortable: false,
+  //     renderCell: (params: GridCellParams) => (
+  //         <Stack direction='row' alignItems='center' spacing={5}>
+  //             <p>{params.row.is_active == '1' || params.row.is_active === true ? 'Active' : 'In-active'}</p>
+  //             <Switch checked={params.row.is_active == '1' || params.row.is_active === true} onChange={(event) => handleSwitchChange(event, params.row)} />
+  //         </Stack>
+  //     ),
+  //     flex: 1,
+  // },
 
     {
       field: 'actions',
@@ -211,14 +209,14 @@ const Price = () => {
             </Tooltip>
           {/* )} */}
           {/* {checkPermission('delete-shop') && ( */}
-            <Tooltip title='Delete Shop.' placement='bottom'>
+            {/* <Tooltip title='Delete Shop.' placement='bottom'>
               <Button
                 sx={{ color: 'text.secondary', margin: '-10px' }}
                 onClick={() => handleDeleteOpen(params)}
               >
                 <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
               </Button>
-            </Tooltip>
+            </Tooltip> */}
           {/* )} */}
         </>
       ),

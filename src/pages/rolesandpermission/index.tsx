@@ -27,7 +27,7 @@ export default function RoleAndPermission() {
     <Box >
       {/* <Metadata title='Roles & Permissions - MyIQChecker' description='' /> */}
       <AllRoles isUserUpdates={isUserUpdates} />
-       <User />
+       {/* <User /> */}
       {/* <UserList setIsUserUpdated={setIsUserUpdated} isUserUpdates={isUserUpdates} /> */}
     </Box>
   )

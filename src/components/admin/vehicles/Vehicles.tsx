@@ -343,14 +343,14 @@ const Vehicles = () => {
           {/* )} */}
           {/* {checkPermission('delete_brand') && (  */}
 
-          <Tooltip title='Delete Vehicle.' placement='bottom'>
+          {/* <Tooltip title='Delete Vehicle.' placement='bottom'>
             <Button
               sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
               <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
             </Button>
-          </Tooltip>
+          </Tooltip> */}
           {/* )} */}
         </>
       ),
@@ -394,30 +394,28 @@ const Vehicles = () => {
                 }}
               />
             </Grid> */}
-            <Grid item xs={12} sm="auto">
+            {/* <Grid item xs={12} sm="auto">
               <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
 
-            </Grid>
+            </Grid> */}
 
 
 
 
             <Grid item xs={12} sm="auto">
-              {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
-                Add Brand
-              </Button> */}
+             
               {/* {checkPermission('add_brand') && ( */}
               <Button onClick={() => setOpenAdd(true)} variant='contained'>
                 Add Vehicle <AddCircleOutlineIcon sx={{ ml: 1 }} />
               </Button>
 
-              {/* )} */}
+               {/* )}  */}
 
             </Grid>
           </Box>
 
         </Box>
-        <Grid container spacing={2}>
+        {/* <Grid container spacing={2}>
 
           <Grid item xs={12} md={10}></Grid>
           <Grid item xs={12} md={2} >
@@ -432,7 +430,7 @@ const Vehicles = () => {
               required={false}
             />
           </Grid>
-        </Grid>
+        </Grid> */}
         <CommonDatagrid
           totalRows={totalRows}
           pageSize={pageSize}
