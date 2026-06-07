@@ -284,7 +284,7 @@ useEffect(() => {
  
     {
       field: 'category_egg_counts',
-      headerName: 'Category (Eggs)',
+      headerName: 'Product (Eggs)',
       flex: 1,
       minWidth: 300,
       sortable: false,

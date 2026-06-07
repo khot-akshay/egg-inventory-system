@@ -259,29 +259,31 @@ const Customer = () => {
       flex: 1,
       renderCell: (params: GridCellParams) => (
         <>
-          {/* {checkPermission('update_brand') && ( */}
+                {checkPermission('customer.view') && (
           <Button
             sx={{ color: 'text.secondary', margin: '-10px' }}
             onClick={() => handleViewUser(params.row.id)}>
             <Icon icon={'ph:eye'} fontSize={24} />
           </Button>
+          )}
+          {checkPermission('customer.update') && (
           <Tooltip title='Update Product.' placement='bottom'>
             <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
               <Icon icon={'circum:edit'} fontSize={24} />
             </Button>
           </Tooltip>
-          {/* )} */}
-          {/* {checkPermission('delete_brand') && (  */}
+          )}
+          {/* {checkPermission('customer.delete') && (  
 
-          {/* <Tooltip title='Delete Product.' placement='bottom'>
+          <Tooltip title='Delete Product.' placement='bottom'>
             <Button
               sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
               <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
             </Button>
-          </Tooltip> */}
-          {/* )} */}
+          </Tooltip> 
+          )} */}
         </>
       ),
     },
@@ -336,12 +338,12 @@ const Customer = () => {
               {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
                 Add Brand
               </Button> */}
-              {/* {checkPermission('add_brand') && ( */}
+              {checkPermission('customer.add') && (
               <Button onClick={() => setOpenAdd(true)} variant='contained'>
                 Add Customer <AddCircleOutlineIcon sx={{ ml: 1 }} />
               </Button>
 
-              {/* )} */}
+              )}
 
             </Grid>
           </Box>

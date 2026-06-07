@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import AddVendor from './AddVendor';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import checkPermission from 'src/configs/CheckPermisstion'
 
 interface VendorRow {
   id: number
@@ -247,10 +248,12 @@ const Vendor = () => {
                 />
               </Grid> */}
               <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
-                <Button onClick={() => setOpenAdd(true)} variant='contained' startIcon={<AddCircleOutlineIcon />} fullWidth>
-                  Add Vendor
-                </Button>
-          </Grid>
+                {checkPermission('vendor.add') && (
+                  <Button onClick={() => setOpenAdd(true)} variant='contained' startIcon={<AddCircleOutlineIcon />} fullWidth>
+                    Add Vendor
+                  </Button>
+                )}
+              </Grid>
         </Grid>
 
         <CommonDatagrid

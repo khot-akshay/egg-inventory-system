@@ -390,17 +390,20 @@ const QuickBill = () => {
     //   flex: 1,
     //   renderCell: (params: GridCellParams) => (
     //     <>
-    //       {/* {checkPermission('update_brand') && ( */}
+    //       {/* {checkPermission('quick_bill.view') && ( */}
     //       <Button
     //         sx={{ color: 'text.secondary', margin: '-10px' }}
     //         onClick={() => handleViewUser(params.row.id)}>
     //         <Icon icon={'ph:eye'} fontSize={24} />
     //       </Button>
+  //        )}
+  //        {checkPermission('quick_bill.update') && (
     //       <Tooltip title='Update Product.' placement='bottom'>
     //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
     //           <Icon icon={'circum:edit'} fontSize={24} />
     //         </Button>
     //       </Tooltip>
+    //       )}
     //       {/* )} */}
     //       {/* {checkPermission('delete_brand') && (  */}
 

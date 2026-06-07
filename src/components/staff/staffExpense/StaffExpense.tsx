@@ -14,11 +14,10 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule';
 import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
-
+import AddProducts from './AddStaffExpense';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
-import AddVehicles from './AddVehicles'
-import TooltipOnly from 'src/components/common/TooltipOnly/TooltipOnly';
+import AddExpense from './AddStaffExpense'
 
 
 
@@ -39,7 +38,7 @@ type SelectOption = {
   value: number | string
 }
 
-const Vehicles = () => {
+const StaffExpense = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -53,9 +52,11 @@ const Vehicles = () => {
   const router = useRouter()
   const { control, watch } = useForm({
     defaultValues: {
+      category_id: null,
       shop_id: null
     }
   })
+  const selectedCategoryId = watch('category_id') as number | null
   const selectedShopId = watch('shop_id') as number | null
 
 
@@ -99,13 +100,14 @@ const Vehicles = () => {
       })
 
       if (searchQuery) params.append('global_search', searchQuery)
+      if (selectedCategoryId) params.append('category_id', String(selectedCategoryId))
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/admin/getAllVehicles?${params.toString()}`
+        `/api/v1/shop/getAllExpenses?${params.toString()}`
       )
 
-      setRows(response.data.data?.vehicles ?? [])
+      setRows(response.data.data?.expenses ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)
@@ -126,12 +128,12 @@ const Vehicles = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(0)
-  }, [selectedShopId, searchQuery])
+  }, [selectedCategoryId, selectedShopId, searchQuery])
 
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedShopId, searchQuery])
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
 
 
 
@@ -160,15 +162,15 @@ const Vehicles = () => {
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
     try {
-      await axiosInstance.post(`/api/v1/admin/updateVehicle?id=${params.id}`, { is_active: checked })
+      await axiosInstance.post(`/api/v1/admin/updateProduct?id=${params.id}`, { is_active: checked ? 1 : 0 })
       fetchGame()
       toast.success('Status updated successfully.')
     } catch (e) {
-      toast.error('Failed to update status')
+      toast.error('Failed to set active')
     }
   }
   const handleViewUser = (id: number) => {
-    router.push(`vehicles/viewVehicle/${(id)}`)
+    router.push(`staffExpense/viewStaffExpense/${(id)}`)
   }
   const columns: GridColDef[] = [
     {
@@ -184,143 +186,71 @@ const Vehicles = () => {
       },
       hideable: false
     },
-
-    {
-      field: 'registration_number',
-      headerName: 'Vehicle Number',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const value = params.row?.registration_number || 'NA';
-        return (
-          <TooltipOnly title={value}>
-            <Box
-              sx={{ display: 'flex', justifyContent: 'center', cursor: 'pointer', alignItems: 'center', height: '100%', gap: 2 }}
-              onClick={() => handleViewUser(params.row.id)}
-            >
-              <Typography color="primary.main" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {value}
-              </Typography>
-              <Icon icon="solar:arrow-right-up-linear" style={{ color: 'primary', fontSize: 15 }}></Icon>
-            </Box>
-          </TooltipOnly>
-        )
-      }
-    },
-    {
-      field: 'name',
-      headerName: 'Vehicle Name',
+  {
+      field: 'shop.name',
+      headerName: 'Shop',
       flex: 1,
       minWidth: 200,
       sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const value = params.row?.name || 'NA';
-        return (
-          <TooltipOnly title={value}>
-            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
-              {value}
-            </div>
-          </TooltipOnly>
-        )
-      }
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.shop?.name || 'NA'}
+      </div>
     },
+ 
     // {
-    //   field: 'vehicle_type',
-    //   headerName: 'Type',
+    //   field: 'name',
+    //   headerName: 'Product Name',
     //   flex: 1,
-    //   minWidth: 150,
+    //   minWidth: 200,
     //   sortable: false,
-    //   renderCell: (params: GridCellParams) => {
-    //     const value = params.row?.vehicle_type || 'NA';
-    //     return (
-    //       <TooltipOnly title={value}>
-    //         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
-    //           {value}
-    //         </div>
-    //       </TooltipOnly>
-    //     )
-    //   }
-    // },
-    // {
-    //   field: 'capacity_kg',
-    //   headerName: 'Capacity (kg)',
-    //   flex: 1,
-    //   minWidth: 120,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => {
-    //     const value = String(params.row?.capacity_kg || 'NA');
-    //     return (
-    //       <TooltipOnly title={value}>
-    //         <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
-    //           {value}
-    //         </div>
-    //       </TooltipOnly>
-    //     )
-    //   }
+    //   renderCell: (params: GridCellParams) =>
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       {params.row?.name || 'NA'}
+    //     </div>
     // },
     {
-      field: 'assigned_user.name',
-      headerName: 'Assigned User',
+      field: 'categories.name',
+      headerName: 'Expense Category',
       flex: 1,
-      minWidth: 150,
+      minWidth: 200,
       sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const value = params.row?.assigned_user?.name || 'NA';
-        return (
-          <TooltipOnly title={value}>
-            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
-              {value}
-            </div>
-          </TooltipOnly>
-        )
-      }
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.category || params.row?.category|| 'NA'}
+      </div>
     },
+  
     {
-      field: 'driver.name',
-      headerName: 'Driver',
+      field: 'min_stock_level',
+      headerName: 'amount ',
       flex: 1,
-      minWidth: 150,
+      minWidth: 120,
       sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const value = params.row?.driver?.name || 'NA';
-        return (
-          <TooltipOnly title={value}>
-            <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.5 }}>
-              {value}
-            </div>
-          </TooltipOnly>
-        )
-      }
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {Math.floor(Number(params.row?.amount || 0))}
+      </div>
     },
-   
-
-    {
-      field: 'status',
-      headerName: 'Status',
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const isActive = params.row.is_active === true || params.row.is_active === 1 || params.row.is_active === '1';
-        return (
-          <Stack direction='row' alignItems='center' spacing={5}>
-            <p>{isActive ? 'Active' : 'Inactive'}</p>
-            <Switch checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
-          </Stack>
-        );
-      },
+  
+  {
+      field: 'description.name',
+      headerName: 'Description',
       flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.description || params.row?.description|| 'NA'}
+      </div>
     },
     {
       field: 'created_at',
-      headerName: 'Created Date',
+      headerName: 'expense Date',
       flex: 1,
-      minWidth: 150,
+      minWidth: 180,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <DateFormateComponent date={params.row?.created_at ?? ''} />
+        <DateFormateComponent date={params.row?.expense_date ?? ''} />
       )
     },
+
     {
       field: 'actions',
       headerName: 'Actions',
@@ -329,32 +259,32 @@ const Vehicles = () => {
       flex: 1,
       renderCell: (params: GridCellParams) => (
         <>
-          {checkPermission('vehicle.view') && (
+           {checkPermission('expense.view') && (
           <Button
             sx={{ color: 'text.secondary', margin: '-10px' }}
             onClick={() => handleViewUser(params.row.id)}>
             <Icon icon={'ph:eye'} fontSize={24} />
-          </Button> 
-          )}
-          {checkPermission('vehicle.update') && (
-
-          <Tooltip title='Update Vehicle.' placement='bottom'>
+          </Button>
+           )}
+              {checkPermission('expense.update') && (
+          <Tooltip title='Update Product.' placement='bottom'>
             <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
               <Icon icon={'circum:edit'} fontSize={24} />
             </Button>
           </Tooltip>
+              )}
+            {/* )}
+          {/* )} */}
+          {/* {checkPermission('delete_brand') && (  */}
 
-          )} 
-          {/* {checkPermission('vehicle.delete') && (   
-
-          <Tooltip title='Delete Vehicle.' placement='bottom'>
+          <Tooltip title='Delete Product.' placement='bottom'>
             <Button
               sx={{ color: 'text.secondary', margin: '-10px' }}
               onClick={() => handleDeleteOpen(params)}
             >
               <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
             </Button>
-          </Tooltip> */}
+          </Tooltip>
           {/* )} */}
         </>
       ),
@@ -373,7 +303,7 @@ const Vehicles = () => {
 
           {/* Left Side: Back Button and Title */}
           <Box display="flex" alignItems="center" gap={2}>
-            <GoBack label="Vehicles" isBack={false} />
+            <GoBack label="Expense" isBack={false} />
           </Box>
 
           {/* Right Side: Search and Add Button */}
@@ -398,22 +328,24 @@ const Vehicles = () => {
                 }}
               />
             </Grid> */}
-            {/* <Grid item xs={12} sm="auto">
+            <Grid item xs={12} sm="auto">
               <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
 
-            </Grid> */}
+            </Grid>
 
 
 
 
             <Grid item xs={12} sm="auto">
-             
-              {checkPermission('vehicle.add') && (
+              {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
+                Add Brand
+              </Button> */}
+              {checkPermission('expense.add') && (
               <Button onClick={() => setOpenAdd(true)} variant='contained'>
-                Add Vehicle <AddCircleOutlineIcon sx={{ ml: 1 }} />
+                Add Expense <AddCircleOutlineIcon sx={{ ml: 1 }} />
               </Button>
 
-               )}  
+               )} 
 
             </Grid>
           </Box>
@@ -421,7 +353,20 @@ const Vehicles = () => {
         </Box>
         {/* <Grid container spacing={2}>
 
-          <Grid item xs={12} md={10}></Grid>
+          <Grid item xs={12} md={8}></Grid>
+          <Grid item xs={12} md={2} >
+            <RHFAutoComplete
+              control={control}
+              name="category_id"
+              apiUrl="/api/v1/admin/categories/getAllCategories"
+              extraParams={{ is_active: 1 }}
+              placeholder="Select Category"
+              labelinput="Select Category"
+              labelKey="name"
+              valueKey="id"
+              required={false}
+            />
+          </Grid>
           <Grid item xs={12} md={2} >
             <RHFAutoComplete
               control={control}
@@ -447,14 +392,14 @@ const Vehicles = () => {
           loading={loading}
         />
       </Card>
-      {openAdd && <AddVehicles open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
+      {openAdd && <AddExpense open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}
       {openDelete && (
         <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem?.id}
           fetchData={fetchGame}
-          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/deleteVehicle/'} />
+          label={'Are you sure! You want to delete.'} apiUrl={'api/v1/admin/deleteProductById?id='} />
       )}
       {openEdit && (
-        <AddVehicles open={openEdit} handleClose={() => setOpenEdit(false)}
+        <AddExpense open={openEdit} handleClose={() => setOpenEdit(false)}
           fetchData={fetchGame}
           selectedItem={selectedItem ?? undefined} />
       )}
@@ -462,4 +407,4 @@ const Vehicles = () => {
   )
 }
 
-export default Vehicles
+export default StaffExpense

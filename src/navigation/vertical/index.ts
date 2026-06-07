@@ -42,8 +42,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "bx:buildings",
     path: '/customer',
     allowedRoles: ["Administrator", "Staff", "Distributor"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
+    isPermissionNeeded: true,
+    permissionName: "customer",
   },
   // {
   //   title: "Products",
@@ -57,10 +57,10 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Quick Bill",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff"],
+    allowedRoles: ["Staff","Distributor"],
     path: "/quickBill",
-    // isPermissionNeeded: true,
-    // permissionName: "view_orders", // aligned with backend permission
+    isPermissionNeeded: true,
+    permissionName: "quick_bill", // aligned with backend permission
 
   },
 
@@ -69,6 +69,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Staff","Distributor"],
     path: "/stocks",
+     isPermissionNeeded: true,
+    permissionName: "stock",
   },
  
   {
@@ -76,12 +78,16 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
+     isPermissionNeeded: true,
+    permissionName: "purchase",
   },
  {
   title: "Vendors",
   icon: "mdi:store-outline",
   allowedRoles: ["Administrator", "Staff", "Distributor"],
   path: "/vendor",
+  isPermissionNeeded: true,
+ permissionName: "vendor",
 },
 {
   title: "Distributors",
@@ -94,6 +100,8 @@ const tempObject: VerticalNavItemsType = [
   icon: "mdi:car-outline",
   allowedRoles: ["Administrator", "Distributor"],
   path: "/vehicles",
+  isPermissionNeeded: true,
+ permissionName: "vehicle",
 },
  {
     title: "Stock History",
@@ -104,7 +112,7 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices
-    allowedRoles: ["Administrator", "Staff"],
+    allowedRoles: ["Administrator"],
     path: "/quickBillHistory",
   },
   // {
@@ -116,8 +124,16 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
+    allowedRoles: ["Administrator"],
     path: "/expense",
+  },
+   {
+    title: "Expenses",
+    icon: "mdi:cash-minus", // money going out
+    allowedRoles: ["Staff","Distributor"],
+    path: "/staffExpense",
+    isPermissionNeeded: true,
+    permissionName: "expense",
   },
 
   // {
@@ -369,7 +385,11 @@ const navigation = (): VerticalNavItemsType => {
     if (!permissionName) return false;
     if (!user?.permissions?.length) return false;
 
-    return user.permissions.includes(permissionName);
+    // Direct match (e.g., 'customer.view')
+    if (user.permissions.includes(permissionName)) return true;
+
+    // Module prefix match (e.g., 'vendor' matches 'vendor.add')
+    return user.permissions.some((perm: string) => typeof perm === 'string' && perm.startsWith(`${permissionName}.`));
   };
 
   const filterItems = (items: VerticalNavItemsType): VerticalNavItemsType => {
