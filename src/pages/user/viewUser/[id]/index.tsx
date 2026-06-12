@@ -57,6 +57,7 @@ import Plants from "src/components/plant/Plants";
 import { decodeParams } from "src/utils/encodeid";
 import DateFormateComponent from "src/components/common/dateFormat/DateFromatModule";
 import Loader from "src/utils/Loadar";
+import axiosInstance from "src/services/axios";
 
 const style1 = {
   position: "absolute" as const,
@@ -277,7 +278,7 @@ export default function Viewopportunity() {
 
     try {
       const url = `/api/v1/admin/getUserById?id=${resolvedUserId}`;
-      const response = await get(url, "");
+      const response = await axiosInstance.get(url, "");
 
       if (!response?.success) return;
 

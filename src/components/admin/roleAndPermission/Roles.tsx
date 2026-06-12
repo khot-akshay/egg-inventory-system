@@ -11,7 +11,7 @@ import axiosInstance from 'src/services/axios'
 import Icon from 'src/@core/components/icon';
 
 
-export default function AllRoles({ isUserUpdates }: any) {
+export default function ShowAllRoles({ isUserUpdates }: any) {
     const theme = useTheme()
     const auth = useAuth()
     const [allRole, setAllRole] = useState([])
@@ -42,11 +42,9 @@ export default function AllRoles({ isUserUpdates }: any) {
 
     return (
         <Box>
-            <Typography sx={{ color: 'primary.main', fontSize: 20, fontWeight: 700 }}>Roles & Permissions</Typography>
+            <Typography sx={{ color: 'primary.main', fontSize: 20, fontWeight: 700 }}>Roles</Typography>
 
-            <Typography fontSize={16} fontWeight={500} marginTop={4}>
-                A role provides access to predefined menus and features, allowing an administrator to grant users access to what they need based on their assigned role.
-            </Typography>
+          
             <Grid container spacing={2} marginTop={4}>
                 {!!allRole?.length && (
                     allRole?.map((item) => (
@@ -104,8 +102,7 @@ export default function AllRoles({ isUserUpdates }: any) {
                                         <Typography variant='h5' sx={{ mb: 1 }}>
                                             {item.name}
                                         </Typography>
-                                        <Box display={'flex'} gap={3}>
-                                            {/* {checkPermission('update-role') && ( */}
+                                        {/* <Box display={'flex'} gap={3}>
 
                                                 <Typography
                                                     variant='body2'
@@ -117,7 +114,6 @@ export default function AllRoles({ isUserUpdates }: any) {
                                                 >
                                                     Edit
                                                 </Typography>
-                                            {/* )} */}
                                             {(item?.admin_users_count === 0 || item?.users_count === 0) && (
                                                 <>
                                                     <Divider orientation='vertical' flexItem />
@@ -129,7 +125,7 @@ export default function AllRoles({ isUserUpdates }: any) {
                                                         }}>Delete</Typography>
                                                 </>
                                             )}
-                                        </Box>
+                                        </Box> */}
 
                                     </Box>
                                     {/* <IconButton sx={{ color: 'text.primary' }}>
@@ -194,14 +190,14 @@ export default function AllRoles({ isUserUpdates }: any) {
             {/* {openDeleteRole && (
                 <DeletePopupDialog openDelete={openDeleteRole} fetchData={getAllRoles} selectedId={selectedItem.id} url={`v1/${auth?.user?.role}/deleteRole`} label={'Are you sure! You want to delete?'} onClose={() => setOpenDeleteRole(false)} />
             )} */}
-            {openEditRole && (
+            {/* {openEditRole && (
                 <UpdateRolePopupDialog openDelete={openEditRole} fetchData={getAllRoles} selectedItem={selectedItem} onClose={() => setOpenEditRole(false)} />
             )}
             {openAddRole && (
                 <AddRolePopupDialog openDelete={openAddRole} fetchData={getAllRoles} onClose={
                     () => setAddRole(false)
                 } />
-            )}
+            )} */}
         </Box>
     )
 }

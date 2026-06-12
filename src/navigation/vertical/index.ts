@@ -20,14 +20,7 @@ const tempObject: VerticalNavItemsType = [
   //   // permissionName: "dashboard",
   // },
 
-  {
-    title: "Users",
-    icon: "bx:group",
-    path: '/user',
-    allowedRoles: ["Administrator"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
-  },
+ 
 
   {
     title: "Product Price",
@@ -78,8 +71,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
-     isPermissionNeeded: true,
-    permissionName: "purchase",
+    //  isPermissionNeeded: true,
+    // permissionName: "purchase",
   },
  {
   title: "Vendors",
@@ -194,6 +187,14 @@ const tempObject: VerticalNavItemsType = [
     path: '/superAdmin/all-careTaker',
 
     children: [
+       {
+    title: "Users",
+    icon: "bx:group",
+    path: '/user',
+    allowedRoles: ["Administrator"],
+    // isPermissionNeeded: true,
+    // permissionName: "dashboard",
+  },
      
       {
 
@@ -205,12 +206,18 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
-      
-     
+      {
 
-    ]
-  },
-  {
+        title: 'Roles',
+        path: '/allRoleshow',
+        icon: 'mdi:medal-outline',
+        // permissionName: 'view_truck_model',
+        // isPermissionNeeded: true,
+
+
+      },
+      
+      {
     title: 'Metadata',
     icon: 'icon-park-outline:data-file',
     allowedRoles: ["Administrator"],
@@ -249,87 +256,14 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
-      // {
-
-      //   title: 'Polish Type',
-      //   path: '/metadata/polishType',
-      //   icon: 'mdi:sparkles',
-        // permissionName: 'view_truck_model',
-        // isPermissionNeeded: true,
-
-
-      // },
-      // {
-      //   title: 'Truck Price',
-      //   path: '/metadata/truck_price',
-      //   icon: 'ion:pricetags-outline',
-      //   permissionName: 'view_truck_price',
-      //   isPermissionNeeded: true,
-      // },
-      // {
-      //   title: 'FAQs',
-      //   path: '/metadata/faqs',
-      //   icon: 'streamline-ultimate:contact-us-faq',
-      //   // permissionName: 'view_faqs',
-      //   // isPermissionNeeded: true,
-
-      // },
-      // {
-      //   title: 'Terms & Conditions',
-      //   path: '/metadata/term_condition',
-      //   icon: 'tabler:file-check',
-      //   // permissionName: 'view_terms_and_conditions',
-      //   // isPermissionNeeded: true,
-
-      // },
-      // {
-      //   title: 'Privacy Policy',
-      //   path: '/metadata/privacy_policy',
-      //   icon: 'material-symbols:privacy-tip-outline',
-      //   // permissionName: 'view_privacy_and_policy',
-      //   // isPermissionNeeded: true,
-
-
-      // },
-      // {
-      //   title: 'Refund  Policy',
-      //   path: '/metadata/refund_policy',
-      //   icon: 'mdi:cash-refund',
-      //   // permissionName: 'view_refund_policy',
-      //   // isPermissionNeeded: true,
-
-
-      // },
-      // {
-      //   title: 'Cancellation Policy',
-      //   path: '/metadata/cancellation_policy',
-      //   icon: 'material-symbols:free-cancellation-outline',
-      //   // permissionName: 'view_cancellation_policy',
-      //   // isPermissionNeeded: true,
-
-
-      // },
-      // {
-      //   title: 'Query Category',
-      //   path: '/metadata/query-category',
-      //   icon: 'material-symbols:free-cancellation-outline',
-      //   // permissionName: 'view_query_category',
-      //   // isPermissionNeeded: true,
-
-
-      // },
-      // {
-      //   title: 'Material Type',
-      //   path: '/metadata/material-type',
-      //   icon: 'hugeicons:material-and-texture',
-      //   permissionName: 'view_material_type',
-      //   isPermissionNeeded: true,
-
-
-      // },
+   
 
     ]
   },
+
+    ]
+  },
+ 
 
   // {
   //   title: 'Activity Logs ',
