@@ -133,34 +133,34 @@ const Shop = () => {
       flex: 1,
   },
 
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      minWidth: 150,
-      sortable: false,
-      flex: 1,
-      renderCell: (params: GridCellParams) => (
-        <>
-          {/* {checkPermission('update-shop') && ( */}
-            <Tooltip title='Update Shop.' placement='bottom'>
-              <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-                <Icon icon={'circum:edit'} fontSize={24} />
-              </Button>
-            </Tooltip>
-          {/* )} */}
-          {/* {checkPermission('delete-shop') && ( */}
-            <Tooltip title='Delete Shop.' placement='bottom'>
-              <Button
-                style={{ color: '#84919d', margin: '-10px' }}
-                onClick={() => handleDeleteOpen(params)}
-              >
-                <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
-              </Button>
-            </Tooltip>
-          {/* )} */}
-        </>
-      ),
-    },
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   minWidth: 150,
+    //   sortable: false,
+    //   flex: 1,
+    //   renderCell: (params: GridCellParams) => (
+    //     <>
+    //       {/* {checkPermission('update-shop') && ( */}
+    //         <Tooltip title='Update Shop.' placement='bottom'>
+    //           <Button sx={{ color: '#84919d', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+    //             <Icon icon={'circum:edit'} fontSize={24} />
+    //           </Button>
+    //         </Tooltip>
+    //       {/* )} */}
+    //       {/* {checkPermission('delete-shop') && ( */}
+    //         <Tooltip title='Delete Shop.' placement='bottom'>
+    //           <Button
+    //             style={{ color: '#84919d', margin: '-10px' }}
+    //             onClick={() => handleDeleteOpen(params)}
+    //           >
+    //             <Icon icon={'ic:outline-delete'} fontSize={24} color='#FC4E4E' />
+    //           </Button>
+    //         </Tooltip>
+    //       {/* )} */}
+    //     </>
+    //   ),
+    // },
   ]
 
   return (

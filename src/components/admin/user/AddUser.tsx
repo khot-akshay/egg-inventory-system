@@ -236,7 +236,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 required
               />
             </Grid>
-            {/* <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={6}>
               <RHFAutoComplete
                 control={control}
                 name="shop_id"
@@ -248,7 +248,7 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 valueKey="id"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            {/* <Grid item xs={12} sm={6}>
               <RHFAutoComplete
                 control={control}
                 name="supplier_id"

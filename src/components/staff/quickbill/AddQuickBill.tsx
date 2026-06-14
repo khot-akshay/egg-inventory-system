@@ -102,6 +102,30 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id
 
+  const resetBillForm = () => {
+  reset({
+    customer_id: null,
+    category_id: null,
+    rate_per_unit: 150,
+    customer_name: '',
+    phone_number: '',
+    mixed_cash: 0,
+    mixed_online: 0
+  })
+
+  setUnit('')
+  setUnitValue(30)
+  setQuantity('')
+  setDamaged(0)
+  setCart([])
+  setPendingAmount(null)
+  setIsNewCustomer(false)
+  setPaymentType('cash')
+
+  setMinRate(null)
+  setMaxRate(null)
+}
+
   useEffect(() => {
     if (selectedItem) {
       if (selectedItem.shop_id) {
@@ -110,11 +134,11 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
       if (selectedItem.product_id) {
         setValue('category_id', { id: selectedItem.product_id, name: selectedItem.product?.name || 'Product' })
       }
-      setValue('rate_per_unit', selectedItem.rate || 150)
-      setUnit(selectedItem.unit_type || 'tray')
-      setUnitValue(selectedItem.unit_value || 30)
-      setQuantity(selectedItem.quantity || 1)
-      setDamaged(selectedItem.damaged_eggs || 0)
+      setValue('rate_per_unit', selectedItem.rate)
+      setUnit(selectedItem.unit_type)
+      setUnitValue(selectedItem.unit_value)
+      setQuantity(selectedItem.quantity)
+      setDamaged(selectedItem.damaged_eggs)
     }
   }, [selectedItem, setValue])
 
@@ -221,38 +245,96 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
     fetchProductRates()
   }, [selectedCategory, setValue])
 
+  // const handleAddToCart = () => {
+  //   const product = watch('category_id')
+  //   const rate_per_unit = watch('rate_per_unit')
+
+  //   if (!product) {
+  //     toast.error('Please select a product')
+  //     return
+  //   }
+
+  //   const productName = typeof product === 'object' ? (product.name || product.category?.name) : 'Product'
+  //   const categoryId = typeof product === 'object' ? product.id : product
+
+  //   const newItem = {
+  //     category_id: categoryId,
+  //     product_name: productName,
+  //     quantity,
+  //     unit,
+  //     unit_value: unitValue,
+  //     total_eggs: totalEggs,
+  //     damaged_eggs: damaged,
+  //     rate: rate_per_unit,
+  //     total: quantity * rate_per_unit
+  //   }
+
+  //   setCart([...cart, newItem])
+
+  //   // Reset product selection for next item
+  //   setValue('category_id', null)
+  //   setQuantity(0)
+  //   setDamaged(0)
+  //   toast.success('Added to list')
+  // }
+const resetProductFields = () => {
+  setValue('category_id', null)
+  setValue('rate_per_unit', 150)
+
+  setUnit('')
+  setUnitValue(30)
+
+  setQuantity('')
+  setDamaged(0)
+
+  setMinRate(null)
+  setMaxRate(null)
+}
   const handleAddToCart = () => {
-    const product = watch('category_id')
-    const rate_per_unit = watch('rate_per_unit')
+  const product = watch('category_id')
+  const rate_per_unit = watch('rate_per_unit')
 
-    if (!product) {
-      toast.error('Please select a product')
-      return
-    }
-
-    const productName = typeof product === 'object' ? (product.name || product.category?.name) : 'Product'
-    const categoryId = typeof product === 'object' ? product.id : product
-
-    const newItem = {
-      category_id: categoryId,
-      product_name: productName,
-      quantity,
-      unit,
-      unit_value: unitValue,
-      total_eggs: totalEggs,
-      damaged_eggs: damaged,
-      rate: rate_per_unit,
-      total: quantity * rate_per_unit
-    }
-
-    setCart([...cart, newItem])
-
-    // Reset product selection for next item
-    setValue('category_id', null)
-    setQuantity(1)
-    setDamaged(0)
-    toast.success('Added to list')
+  if (!product) {
+    toast.error('Please select a product')
+    return
   }
+  if (!quantity || quantity <= 0) {
+  toast.error('Quantity is required');
+  return;
+}
+//  if (!unit) {
+//     toast.error('Please select a unit')
+//     return
+//   }
+  
+  const productName =
+    typeof product === 'object'
+      ? (product?.name || product?.category?.name)
+      : 'Product'
+
+  const categoryId =
+    typeof product === 'object'
+      ? product?.id
+      : product
+
+  const newItem = {
+    category_id: categoryId,
+    product_name: productName,
+    quantity,
+    unit,
+    unit_value: unitValue,
+    total_eggs: totalEggs,
+    damaged_eggs: damaged,
+    rate: rate_per_unit,
+    total: quantity * rate_per_unit
+  }
+
+  setCart(prev => [...prev, newItem])
+
+  resetProductFields()
+
+  toast.success('Added to list')
+}
 
   const removeFromCart = (index: number) => {
     const newCart = [...cart]
@@ -274,17 +356,23 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
 
       
       // If no items in cart and no product details entered, prevent submission
-      if (cart.length === 0 && !(watch('category_id') && quantity > 0 && watch('rate_per_unit'))) {
-        toast.error('Please add at least one product to the list')
-        setLoading(false)
-        return
-      }
+      // if (cart.length === 0 && !(watch('category_id') && quantity > 0 && watch('rate_per_unit'))) {
+      //   toast.error('Please add at least one product to the list')
+      //   setLoading(false)
+      //   return
+      // }
       const cashAmount = Number(data.mixed_cash) || 0
       const upiAmount = Number(data.mixed_online) || 0
       const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
       // Determine the overall total amount based on cart or single item
       const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
-      const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
+      // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
+      const paidAmount =
+        paymentType === 'credit'
+          ? 0
+          : paymentType === 'mixed'
+            ? cashAmount + upiAmount
+            : totalAmount;
       let payments: { amount: number; payment_type: string }[] = [];
       // Build lines for payload
       let lines: { category_id: any; quantity: number; unit_cost: number; unit_type: string; unit_value: number }[] = [];
@@ -307,23 +395,56 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
           unit_value: 0
         }];
       }
-      if (paymentType === 'mixed') {
-        if (cashAmount > 0) payments.push({ amount: cashAmount, payment_type: 'cash' });
-        if (upiAmount > 0) payments.push({ amount: upiAmount, payment_type: 'upi' });
-        if (payments.length === 0) {
-          // Fallback to total amount to satisfy backend validation
-          payments.push({ amount: totalAmount, payment_type: 'cash' });
-        }
-      } else {
-        payments = [{ amount: totalAmount, payment_type: paymentType }];
-      }
+//     if (paymentType === 'credit') {
+//   payments = [{
+//     amount: 0,
+//     payment_type: 'credit'
+//   }];
+// } else {
+//   payments = [{
+//     amount: totalAmount,
+//     payment_type: paymentType
+//   }];
+// }
+
+if (paymentType === 'mixed') {
+  if (cashAmount > 0) {
+    payments.push({
+      amount: cashAmount,
+      payment_type: 'cash'
+    });
+  }
+
+  if (upiAmount > 0) {
+    payments.push({
+      amount: upiAmount,
+      payment_type: 'upi'
+    });
+  }
+} else if (paymentType === 'credit') {
+  payments = [{
+    amount: 0,
+    payment_type: 'credit'
+  }];
+} else {
+  payments = [{
+    amount: totalAmount,
+    payment_type: paymentType
+  }];
+}
+
+if (!quantity || quantity <= 0) {
+  toast.error('Quantity is required');
+  setLoading(false);
+  return;
+}
 
       const payload = {
         customer_id: isNewCustomer ? null : extractId(data.customer_id),
         customer_name: isNewCustomer ? data.customer_name : null,
         phone_number: isNewCustomer ? data.phone_number : null,
         paid_amount: paidAmount,
-        payment_type: paymentType === 'mixed' ? 'upi,cash' : paymentType,
+        // payment_type: paymentType,
         lines,
         payments
       }
@@ -332,19 +453,17 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
 
       if (response.data.success) {
         toast.success(response.data.message || 'Bill confirmed successfully')
-        reset({
-          customer_id: null,
-          category_id: null,
-          rate_per_unit: 150,
-          customer_name: '',
-          phone_number: '',
-          mixed_cash: 0,
-          mixed_online: 0
-        })
-        setCart([])
-        setQuantity(1)
-        setDamaged(0)
-        setIsNewCustomer(false)
+        // reset({
+        //   customer_id: null,
+        //   category_id: null,
+        //   rate_per_unit: 150,
+        //   customer_name: '',
+        //   phone_number: '',
+        //   mixed_cash: 0,
+        //   mixed_online: 0
+        // })
+        resetBillForm();
+        
         if (fetchData) fetchData()
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('quickBillAdded'))

@@ -21,6 +21,8 @@ import toast from 'react-hot-toast';
 import AddProducts from './AddQuickBill';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import { useAuth } from 'src/hooks/useAuth'
+
 
 
 
@@ -45,7 +47,7 @@ const QuickBill = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(6)
+  const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(0)
   const [openAdd, setOpenAdd] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
@@ -61,74 +63,46 @@ const QuickBill = () => {
       shop_id: null
     }
   })
+  const { user } = useAuth()
+  const currentShopId = user?.shop_id || user?.shop?.id
+
   const selectedCategoryId = watch('category_id') as number | null
   const selectedShopId = watch('shop_id') as number | null
 
   const [shops, setShops] = useState<any[]>([])
 
-  const fetchShops = async () => {
-    try {
-      const response = await axiosInstance.get('/api/v1/admin/getAllShops')
-      const data = response.data?.data
-      if (Array.isArray(data)) {
-        setShops(data)
-      } else if (data && Array.isArray(data.shops)) {
-        setShops(data.shops)
-      } else {
-        setShops([])
-      }
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  useEffect(() => {
-    fetchShops()
-  }, [])
-
-
-
-  // const fetchGame = async () => {
-  //   setLoading(true)
+  // const fetchShops = async () => {
   //   try {
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`)
-
-  //     setRows(response.data.data.brands ?? [])
-  //     setTotalRows(response.data.data?.count ?? 0)
+  //     const response = await axiosInstance.get('/api/v1/admin/getAllShops')
+  //     const data = response.data?.data
+  //     if (Array.isArray(data)) {
+  //       setShops(data)
+  //     } else if (data && Array.isArray(data.shops)) {
+  //       setShops(data.shops)
+  //     } else {
+  //       setShops([])
+  //     }
   //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
-  //     setLoading(false)
+  //     console.error(e)
   //   }
   // }
-  // const fetchGame = async () => {
-  //   setLoading(true);
-  //   try {
+
+  // useEffect(() => {
+  //   fetchShops()
+  // }, [])
 
 
-
-
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`);
-
-  //     setRows(response.data.data.brands ?? []);
-  //     setTotalRows(response.data.data?.count ?? 0);
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const fetchGame = async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         pageNo: String(page),
-        limit: String(pageSize)
+        limit: String(pageSize),
+        shop_id: String(currentShopId)
       })
 
       if (searchQuery) params.append('global_search', searchQuery)
-      if (selectedCategoryId) params.append('category_id', String(selectedCategoryId))
-      if (selectedShopId) params.append('shop_id', String(selectedShopId))
+     
 
       const response = await axiosInstance.get(
         `/api/v1/shop/getAllQuickbills?${params.toString()}`
@@ -514,7 +488,7 @@ const QuickBill = () => {
                 />
               </Grid> */}
             </Grid>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        {/* <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs 
             value={selectedShopId || 'all'} 
             onChange={(e, newValue) => {
@@ -528,7 +502,7 @@ const QuickBill = () => {
               <Tab key={shop.id} label={shop.name} value={shop.id} />
             ))}
           </Tabs>
-        </Box>
+        </Box> */}
         {viewMode === 'list' ? (
           <CommonDatagrid
             totalRows={totalRows}
