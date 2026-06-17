@@ -17,9 +17,11 @@ import NotificationDropdown, {
   NotificationsType
 } from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import ShortcutsDropdown, { ShortcutsType } from 'src/@core/layouts/components/shared-components/ShortcutsDropdown'
-import { Button } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 import axiosInstance from 'src/services/axios'
 import toast from 'react-hot-toast'
+import { useAuth } from 'src/hooks/useAuth'
+
 interface Props {
   hidden: boolean
   settings: Settings
@@ -126,6 +128,8 @@ const shortcuts: ShortcutsType[] = [
 const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
+  const { user } = useAuth()
+  
   const handleFlushData = () => {
     try {
       axiosInstance.post('/admin/v1/staticPages/cache/flush').then((response) => {
@@ -143,6 +147,15 @@ const AppBarContent = (props: Props) => {
             <Icon icon='bx:menu' />
           </IconButton>
         ) : null}
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 1, sm: 4 }, ml: 2 }}>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
+            Shop Name: {user?.shop?.name || 'Administrator'}
+          </Typography>
+          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
+            User Name: {user?.name || user?.fullName || 'Admin'}
+          </Typography>
+        </Box>
         {/* <Button size='small' variant='contained' onClick={handleFlushData}>Flush Cache Data</Button> */}
 
       </Box>

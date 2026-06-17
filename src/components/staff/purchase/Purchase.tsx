@@ -164,12 +164,12 @@ const Purchase = () => {
     setPage(0)
   }, [selectedCategoryId, selectedShopId, searchQuery])
 
-// Fetch data on filters/pagination change
-useEffect(() => {
-  fetchGame();
-}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery]);
+  // Fetch data on filters/pagination change
+  useEffect(() => {
+    fetchGame();
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery]);
 
-// Listen for new purchase events
+  // Listen for new purchase events
   useEffect(() => {
     const handlePurchaseAdded = () => {
       setPage(0);
@@ -281,7 +281,7 @@ useEffect(() => {
         </div>
       )
     },
- 
+
     {
       field: 'category_egg_counts',
       headerName: 'Product (Eggs)',
@@ -296,7 +296,7 @@ useEffect(() => {
         </Box>
       ),
     },
-       {
+    {
       field: 'total_eggs',
       headerName: 'Total Eggs',
       flex: 1,
@@ -515,7 +515,7 @@ useEffect(() => {
               labelKey="name"
               valueKey="id"
               required={false}
-              handlebtnclick={() => {}}
+              handlebtnclick={() => { }}
             />
           </Grid>
 
@@ -589,7 +589,7 @@ useEffect(() => {
                         <Typography variant="body2" color="text.secondary">
                           Total Eggs: {item.total_eggs ?? 0}
                         </Typography>
-                        
+
                         {/* Items Breakdown */}
                         {item.items && item.items.length > 0 && (
                           <Box sx={{ mt: 1.5 }}>
@@ -608,7 +608,7 @@ useEffect(() => {
                             ))}
                           </Box>
                         )}
-                        
+
                         <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700, mt: 1 }}>
                           ₹{item.total_amount || '0.00'}
                         </Typography>

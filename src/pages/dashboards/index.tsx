@@ -212,7 +212,7 @@ function Dashboard() {
                 value={stockData?.totals?.remaining_count || 0}
                 icon='mdi:warehouse'
                 color='success'
-                link='/stocks'
+                // link='/stocks'
                 items={(stockData?.categories || []).map((item: any) => ({
                   id: item.id,
                   label: item.category_name,
@@ -226,7 +226,7 @@ function Dashboard() {
                 value={stockData?.totals?.sold_count || 0}
                 icon='mdi:warehouse'
                 color='success'
-                link='/stocks'
+                // link='/stocks'
                 items={(stockData?.categories || []).map((item: any) => ({
                   id: item.id,
                   label: item.category_name,
@@ -240,7 +240,7 @@ function Dashboard() {
                 value={`₹ ${stockData?.totals?.total_amount || 0}`}
                 icon='mdi:warehouse'
                 color='success'
-                link='/stocks'
+                // link='/stocks'
                 items={(stockData?.categories || []).map((item: any) => ({
                   id: item.id,
                   label: item.category_name,
@@ -255,7 +255,7 @@ function Dashboard() {
                 icon="mdi:cash-multiple"
                 color="success"
                 items={Object.entries(stockData?.totals?.payment_amounts || {})
-                  .filter(([key]) => ["cash", "upi", "credit"].includes(key))
+                  .filter(([key]) => ["cash", "upi", "credit", "expense", "counter_cash" ].includes(key))
                   .map(([key, value]) => ({
                     id: key,
                     label: key.charAt(0).toUpperCase() + key.slice(1),
@@ -267,6 +267,38 @@ function Dashboard() {
                   }))}
               />
             </Grid>
+            {(user?.role === 'admin' || user?.role === 'Administrator') && (
+              <>
+                <Grid item xs={12} sm={6} md={4}>
+                  <CardOneCount
+                    title='Total Profit'
+                    value={`₹ ${stockData?.totals?.profit_amount || 0}`}
+                    icon='mdi:warehouse'
+                    color='success'
+                    // link='/stocks'
+                    items={(stockData?.categories || []).map((item: any) => ({
+                      id: item.id,
+                      label: item.category_name,
+                      value: `₹ ${Number(item.profit_amount || 0).toFixed(2)}`
+                    }))}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <CardOneCount
+                    title='Total Loss'
+                    value={`₹ ${stockData?.totals?.loss_amount || 0}`}
+                    icon='mdi:warehouse'
+                    color='error'
+                    // link='/stocks'
+                    items={(stockData?.categories || []).map((item: any) => ({
+                      id: item.id,
+                      label: item.category_name,
+                      value: `₹ ${Number(item.loss_amount || 0).toFixed(2)}`
+                    }))}
+                  />
+                </Grid>
+              </>
+            )}
           </>
         )}
       </Grid>

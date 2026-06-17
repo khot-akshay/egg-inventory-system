@@ -90,8 +90,8 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
       rate_per_unit: 150,
       customer_name: '',
       phone_number: '',
-      mixed_cash: 0,
-      mixed_online: 0
+      mixed_cash: null,
+      mixed_online: null
     }
   })
 
@@ -109,8 +109,8 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
     rate_per_unit: 150,
     customer_name: '',
     phone_number: '',
-    mixed_cash: 0,
-    mixed_online: 0
+    mixed_cash: null,
+    mixed_online: null
   })
 
   setUnit('')
@@ -361,8 +361,8 @@ const resetProductFields = () => {
       //   setLoading(false)
       //   return
       // }
-      const cashAmount = Number(data.mixed_cash) || 0
-      const upiAmount = Number(data.mixed_online) || 0
+      const cashAmount = Number(data.mixed_cash)
+      const upiAmount = Number(data.mixed_online)
       const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
       // Determine the overall total amount based on cart or single item
       const totalAmount = cart.length > 0 ? grandTotal : lineTotal;

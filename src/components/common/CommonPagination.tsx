@@ -29,7 +29,7 @@ const CommonPagination: React.FC<CommonPaginationProps> = ({
     const handlePageSizeChange = (event: React.ChangeEvent<{ value: unknown }>) => {
         onPageSizeChange(event.target.value as number);
     };
-    console.log(currentPage,"new",totalItems,pageSize)
+    console.log(currentPage, "new", totalItems, pageSize)
     return (
         <Box display="flex" justifyContent="end" alignItems="center" mt={2} mb={2} flexWrap='wrap' gap={3} sx={{ width: '100%' }}>
 

@@ -13,6 +13,8 @@ import NotificationDropdown, {
   NotificationsType
 } from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import ShortcutsDropdown, { ShortcutsType } from 'src/@core/layouts/components/shared-components/ShortcutsDropdown'
+import { Typography } from '@mui/material'
+import { useAuth } from 'src/hooks/useAuth'
 
 interface Props {
   hidden: boolean
@@ -119,15 +121,27 @@ const shortcuts: ShortcutsType[] = [
 const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings } = props
+  const { user } = useAuth()
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      {/* <Autocomplete hidden={hidden} settings={settings} /> */}
-      {/* <LanguageDropdown settings={settings} saveSettings={saveSettings} /> */}
-      <ModeToggler settings={settings} saveSettings={saveSettings} />
-      {/* <ShortcutsDropdown settings={settings} shortcuts={shortcuts} /> */}
-      <NotificationDropdown settings={settings} notifications={notifications} />
-      <UserDropdown settings={settings} />
+    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'space-between' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
+          {user?.shop?.name || 'Administrator'}
+        </Typography>
+        <Typography variant='body2' sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, color: 'text.secondary' }}>
+          {user?.name || user?.fullName || 'Admin'}
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        {/* <Autocomplete hidden={hidden} settings={settings} /> */}
+        {/* <LanguageDropdown settings={settings} saveSettings={saveSettings} /> */}
+          <ModeToggler settings={settings} saveSettings={saveSettings} />
+        {/* <ShortcutsDropdown settings={settings} shortcuts={shortcuts} /> */}
+        <NotificationDropdown settings={settings} notifications={notifications} />
+        <UserDropdown settings={settings} />
+      </Box>
     </Box>
   )
 }
