@@ -70,7 +70,15 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  email: yup.string().email('Email ID must be a valid.').required('Email ID is required.'),
+email: yup
+  .string()
+  .strict()
+  .lowercase('Email must be lowercase.')
+  .required('Email ID is required.')
+  .matches(
+    /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/,
+    'Email ID is not valid.'
+  ),  
   password: yup.string()
     .required('Password is required.')
     .min(5, 'Password must be at least 5 characters.')
@@ -111,7 +119,7 @@ const LoginPage = () => {
   function logInUser(data: any) {
     console.log(data, "Login Data Debug");
     const returnUrl = router.query.returnUrl;
-    const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/';
+    let redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/';
 
     // Extracting data based on your specific API response structure
     const userData = data.user;
@@ -121,6 +129,11 @@ const LoginPage = () => {
     const primaryRole = (userData?.roles && userData.roles.length > 0) 
       ? userData.roles[0].name 
       : 'Staff'; 
+
+    // If role is Staff and no specific returnUrl is set, redirect to quickBill
+    if (primaryRole === 'Staff' && redirectURL === '/') {
+      redirectURL = '/quickBill';
+    }
 
     try {
       auth.handleSignIn(

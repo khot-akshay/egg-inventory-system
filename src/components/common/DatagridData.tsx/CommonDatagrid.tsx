@@ -31,7 +31,7 @@ function CommonDatagrid({
   console.log(totalRows, "totalRows", pageSize, currentPage);
   return (
     <>
-   
+
       <Box sx={{ height: "65vh", width: "100%", mt: 5 }}>
         <DataGrid
           checkboxSelection={checkboxSelection}
@@ -58,7 +58,7 @@ function CommonDatagrid({
           }}
         />
       </Box>
-      {totalRows > 5 && (
+      {/* {totalRows > 5 && ( */}
         <CommonPagination
           totalItems={totalRows}
           currentPage={currentPage}
@@ -66,7 +66,7 @@ function CommonDatagrid({
           onPageChange={handleChangePage}
           onPageSizeChange={handleChangeRowsPerPage}
         />
-      )}{" "}
+      {/* )}{" "} */}
     </>
   );
 }
