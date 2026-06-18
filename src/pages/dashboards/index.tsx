@@ -15,7 +15,7 @@ function Dashboard() {
   const [activeTab, setActiveTab] = useState<number | string>('all')
   const [stockData, setStockData] = useState<any>(null)
   const [stockLoading, setStockLoading] = useState(false)
-  const [startDate, setStartDate] = useState<string>(dayjs().startOf('month').format('YYYY-MM-DD'))
+  const [startDate, setStartDate] = useState<string>(dayjs().format('YYYY-MM-DD'))
   const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'))
 
   // --- Chart states ---
@@ -254,17 +254,29 @@ function Dashboard() {
                 value={`₹${Number(stockData?.totals?.total_amount || 0).toFixed(2)}`}
                 icon="mdi:cash-multiple"
                 color="success"
-                items={Object.entries(stockData?.totals?.payment_amounts || {})
-                  .filter(([key]) => ["cash", "upi", "credit", "expense", "counter_cash" ].includes(key))
-                  .map(([key, value]) => ({
-                    id: key,
-                    label: key.charAt(0).toUpperCase() + key.slice(1),
-                    value: `₹${Number(
-                      key === "credit"
-                        ? stockData?.totals?.due_amount || 0
-                        : value
-                    ).toFixed(2)}`
-                  }))}
+                items={[
+                  ...Object.entries(stockData?.totals?.payment_amounts || {})
+                    .filter(([key]) => ["cash", "upi", "credit"].includes(key))
+                    .map(([key, value]) => ({
+                      id: key,
+                      label: key.charAt(0).toUpperCase() + key.slice(1),
+                      value: `₹${Number(
+                        key === "credit"
+                          ? stockData?.totals?.due_amount || 0
+                          : value
+                      ).toFixed(2)}`
+                    })),
+                  {
+                    id: 'expense',
+                    label: 'Expense',
+                    value: `₹${Number(stockData?.totals?.expense_total || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'existing_cash',
+                    label: 'Cash in Counter',
+                    value: `₹${Number(stockData?.totals?.existing_cash || 0).toFixed(2)}`
+                  }
+                ]}
               />
             </Grid>
             {(user?.role === 'admin' || user?.role === 'Administrator') && (

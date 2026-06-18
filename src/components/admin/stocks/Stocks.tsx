@@ -109,7 +109,7 @@ const Stocks = () => {
         `/api/v1/shop/getInventoryStockData?${params.toString()}&shop_id=${currentStaffShopId}`
       )
 
-      setRows(response.data.data ?? [])
+      setRows(response.data.data.stock_data ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
       console.error(e)

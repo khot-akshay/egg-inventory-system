@@ -375,7 +375,7 @@ const QuickBillDashboard = () => {
                   },
                   {
                     id: 'existing_cash',
-                    label: 'Expense',
+                    label: 'Cash in Counter',
                     value: `₹${Number(stockData?.totals?.existing_cash || 0).toFixed(2)}`
                   }
                 ]}
