@@ -59,36 +59,7 @@ const Stockhistory = () => {
 
 
 
-  // const fetchGame = async () => {
-  //   setLoading(true)
-  //   try {
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`)
-
-  //     setRows(response.data.data.brands ?? [])
-  //     setTotalRows(response.data.data?.count ?? 0)
-  //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-  // const fetchGame = async () => {
-  //   setLoading(true);
-  //   try {
-
-
-
-
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`);
-
-  //     setRows(response.data.data.brands ?? []);
-  //     setTotalRows(response.data.data?.count ?? 0);
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+ 
   const fetchGame = async () => {
     setLoading(true)
     try {
@@ -106,7 +77,11 @@ const Stockhistory = () => {
       )
 
       setRows(response.data.data?.stock_movements ?? [])
-      setTotalRows(response.data.data?.count ?? 0)
+      setTotalRows(response.data.data.total ?? 0)
+      console.log('rows length', rows.length)
+console.log('pageSize', pageSize)
+console.log('totalRows', totalRows)
+console.log(response.data.data)
     } catch (e) {
       console.error(e)
     } finally {
@@ -176,7 +151,6 @@ const Stockhistory = () => {
       headerName: 'Sr. No.',
       flex: 1,
       minWidth: 100,
-
       sortable: false,
       renderCell: index => {
         const rowIndex = index.api.getRowIndex(index.row.id)

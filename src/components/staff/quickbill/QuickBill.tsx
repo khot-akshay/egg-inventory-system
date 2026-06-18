@@ -48,12 +48,16 @@ const QuickBill = () => {
       const response = await axiosInstance.get(`/api/v1/shop/getAllQuickbills?${params.toString()}`)
       setRows(response.data.data?.quickbills ?? [])
       setTotalRows(response.data.data?.count ?? 0)
+      console.log('Rows:', response.data.data?.quickbills?.length)
+console.log('Total Count:', response.data.data?.count)
     } catch (e) {
       console.error(e)
     } finally {
       setLoading(false)
     }
+    
   }
+  
 
   useEffect(() => {
     setPage(0)
