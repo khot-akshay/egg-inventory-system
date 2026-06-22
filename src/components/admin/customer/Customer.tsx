@@ -18,6 +18,7 @@ import AddProducts from './AddCustomer';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import AddExpense from './AddCustomer'
+import PayDueAmountPopup from './PayDueAmountPopup'
 
 
 
@@ -48,6 +49,7 @@ const Customer = () => {
   const [openDelete, setOpenDelete] = useState(false)
   const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
+  const [openPayDue, setOpenPayDue] = useState(false)
   const [searchQuery, setQuery] = useState("");
   const router = useRouter()
   const { control, watch } = useForm({
@@ -250,7 +252,30 @@ const Customer = () => {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
+    
 
+    {
+      field: 'paid',
+      headerName: 'Pay Due Amount',
+      minWidth: 150,
+      sortable: false,
+      flex: 1,
+      renderCell: (params: GridCellParams) => (
+        <>
+             
+          <Tooltip title='Pay Due Amount' placement='bottom'>
+            <Button variant='contained'onClick={() => {
+                setSelectedItem(params.row as CategoryRow)
+                setOpenPayDue(true)
+              }}
+            >
+              Pay due
+            </Button>
+          </Tooltip>
+         
+        </>
+      ),
+    },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -273,6 +298,7 @@ const Customer = () => {
             </Button>
           </Tooltip>
           )}
+        
           {/* {checkPermission('customer.delete') && (  
 
           <Tooltip title='Delete Product.' placement='bottom'>
@@ -398,6 +424,11 @@ const Customer = () => {
       )}
       {openEdit && (
         <AddExpense open={openEdit} handleClose={() => setOpenEdit(false)}
+          fetchData={fetchGame}
+          selectedItem={selectedItem ?? undefined} />
+      )}
+      {openPayDue && (
+        <PayDueAmountPopup open={openPayDue} handleClose={() => setOpenPayDue(false)}
           fetchData={fetchGame}
           selectedItem={selectedItem ?? undefined} />
       )}
