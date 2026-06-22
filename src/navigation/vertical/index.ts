@@ -56,6 +56,24 @@ const tempObject: VerticalNavItemsType = [
     permissionName: "quick_bill", // aligned with backend permission
 
   },
+  {
+    title: "Day Closing",
+    icon: "mdi:clipboard-text-outline",
+    allowedRoles: ["Staff","Distributor"],
+    path: "/dayclosing",
+    // isPermissionNeeded: true,
+    // permissionName: "quick_bill", // aligned with backend permission
+
+  },
+  {
+    title: "Day Opening",
+    icon: "mdi:clipboard-text-outline",
+    allowedRoles: ["Staff","Distributor"],
+    path: "/openingDay",
+    // isPermissionNeeded: true,
+    // permissionName: "quick_bill", // aligned with backend permission
+
+  },
 
   {
     title: "Stock",
