@@ -55,8 +55,7 @@ const ChatContent = (props: ChatContentType) => {
       handleLeftSidebarToggle()
     }
   }
-  // console.log(store.selectedChat, "sdgdr")
-  const renderContent = () => {
+  // const renderContent = () => {
     if (store) {
       const selectedChat = store.selectedChat
       if (store.currentUsers?.length === 0) {

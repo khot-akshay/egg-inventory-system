@@ -108,7 +108,6 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 
             processAndExport(dataToProcess)
         } catch (e: any) {
-            console.error('Export Error:', e)
             toast.error(e?.response?.data?.message ?? 'Failed to export data.')
         } finally {
             setLoading(false)

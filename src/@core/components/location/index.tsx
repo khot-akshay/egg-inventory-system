@@ -22,8 +22,7 @@ const MapComponent = dynamic(() => import('../mapcomponent'), {
 const DeliveryRouteCard: React.FC<DeliveryRouteCardProps> = ({ locations }) => {
   const pickUp = locations?.find((loc) => loc.location_type === 'pick');
   const dropOff = locations?.find((loc) => loc.location_type === 'drop');
-console.log(pickUp,dropOff,"dropOff")
-  if (!pickUp || !dropOff) return <p>No valid route data available</p>;
+if (!pickUp || !dropOff) return <p>No valid route data available</p>;
 
   const positionPick: LatLngExpression = [
     parseFloat(pickUp.latitude),

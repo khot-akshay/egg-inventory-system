@@ -3,8 +3,7 @@ import Chip from '@mui/material/Chip'
 
 const ChipsClickable = () => {
   const handleClick = () => {
-    console.info('You clicked the Chip.')
-  }
+    }
 
   return (
     <div className='demo-space-x'>

@@ -62,7 +62,6 @@ const RHFDropZoneBase64 = ({ control, name, onImageDrop, imgUrl, disabled: propD
     }
   })();
 
-  console.log(imageUrl)
   return (
     <Box {...getRootProps()} className={`image-drop ${isDragActive ? 'active' : ''}`}>
       <input {...getInputProps()} />

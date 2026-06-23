@@ -40,11 +40,9 @@ export default function PropertyListingDeletePopup({ show, handleclose, selctedM
                 toast.error('Property Listing Could Not Deleted.', {
                     position: 'top-right'
                 })
-                console.log(error.response.data.message, 'error aaaa') 
-            });
+                });
     }
-    // console.log(error ,'qqqqqqq');
-    return (
+    // return (
         <>
             {/* <Dialog fullWidth open={show} onClose={handleclose} sx={{ '& .MuiPaper-root': { width: '100%', maxWidth: 512 } }}>
                 <DialogContent sx={{ pb: 4 }}>

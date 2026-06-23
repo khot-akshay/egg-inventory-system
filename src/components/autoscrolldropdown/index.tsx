@@ -44,8 +44,7 @@ const OrganizationSelect: React.FC<OrganizationSelectProps> = ({
         setHasMore(newData.length === pageSize);
       }
     } catch (err) {
-      console.error('Fetch failed:', err);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };

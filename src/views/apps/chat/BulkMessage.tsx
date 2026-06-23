@@ -65,7 +65,6 @@ export default function BulkMsgDialog({ show, handleclose, store, isTemplateMsg,
                     toast.success('Message sent')
                 }
             } catch (e) {
-                console.log(e)
                 toast.error('Failed to send message')
             } finally {
                 setLoading(false)
@@ -74,7 +73,6 @@ export default function BulkMsgDialog({ show, handleclose, store, isTemplateMsg,
         }
     }
     const handleTemplateMsg = () => {
-        console.log(checked)
         handleSelectedOperators(checked)
         handleclose()
     }

@@ -23,7 +23,6 @@ const checkPermission = (permissionName: string): boolean => {
 
     return false;
   } catch (err) {
-    console.error('Error checking permission:', err);
     return false;
   }
 };

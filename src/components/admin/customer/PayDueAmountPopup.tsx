@@ -101,8 +101,6 @@ const PayDueAmountPopup = ({
          fetchData()
       }
     } catch (e: any) {
-      console.error(e)
-
       toast.error(
         e?.response?.data?.message ?? 'Failed to settle due amount'
       )

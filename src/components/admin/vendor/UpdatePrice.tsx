@@ -38,7 +38,6 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
         setPrices(formattedPrices);
       }
     } catch (error: any) {
-      console.error(error);
       toast.error(error?.response?.data?.message || error?.message || "Failed to fetch prices");
     } finally {
       setIsLoading(false);
@@ -80,7 +79,6 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
         toast.error(response.data.message || "Failed to update prices");
       }
     } catch (error: any) {
-      console.error(error);
       toast.error(error?.response?.data?.message || "Something went wrong while updating prices");
     } finally {
       setIsSaving(false);

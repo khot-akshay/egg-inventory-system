@@ -46,7 +46,6 @@ export default function AddBanner({ open, handleClose, fetchData, selectedItem }
         const formData = new FormData()
 
         const { images } = data
-        console.log(images)
         // Append primary image
         // if (images && images.length > 0 && !selectedItem) {
         //     images.forEach((item, index) => {
@@ -75,7 +74,6 @@ export default function AddBanner({ open, handleClose, fetchData, selectedItem }
                 toast.success(selectedItem ? 'Banner updated successfully.' : 'Banner added successfully.')
             }
         } catch (e) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update banner. Please try again.'

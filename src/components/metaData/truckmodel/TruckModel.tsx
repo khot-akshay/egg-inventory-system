@@ -50,7 +50,6 @@ const TruckModel = () => {
 
             }
         } catch (e) {
-            console.log(e)
             setLoading(false)
 
         } finally {
@@ -74,13 +73,9 @@ const TruckModel = () => {
         setOpenEdit(true)
     }
     const handleDeleteOpen = (params: GridCellParams) => {
-        console.log('Delete Clicked:', params.row)
         setSelectedItem(params.row)
         setOpenDelete(true)
-        console.log('Selected Item for delete:', selectedItem)
-
-
-    }
+        }
     const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: GridColDef[]) => {
         const { checked } = event.target;
         try {

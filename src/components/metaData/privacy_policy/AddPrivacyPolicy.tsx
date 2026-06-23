@@ -133,7 +133,6 @@ const AddPrivacyPolicy = ({ open, handleClose, fetchData, selectedItem }: Props)
                 toast.success(selectedItem ? 'Privacy & Policy updated successfully.' : 'Privacy & Policy  added successfully.')
             }
         } catch (e: any) {
-            console.error(e)
             if (e?.response?.data?.data) {
                 const serverErrors = e.response.data.data
                 Object.keys(serverErrors).forEach(field => {

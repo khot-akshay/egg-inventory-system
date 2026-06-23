@@ -194,8 +194,7 @@ import Icon from 'src/@core/components/icon'
 
 const ChipsOnDelete = () => {
   const handleDelete = () => {
-    console.info('You clicked the delete icon.')
-  }
+    }
 
   return (
     <Fragment>
@@ -227,8 +226,7 @@ import Chip from '@mui/material/Chip'
 
 const ChipsClickable = () => {
   const handleClick = () => {
-    console.info('You clicked the Chip.')
-  }
+    }
 
   return (
     <div className='demo-space-x'>
@@ -431,8 +429,7 @@ import Chip from '@mui/material/Chip'
 
 const ChipsClickable = () => {
   const handleClick = () => {
-    console.info('You clicked the Chip.')
-  }
+    }
 
   return (
     <div className='demo-space-x'>
@@ -553,8 +550,7 @@ import Icon from 'src/@core/components/icon'
 
 const ChipsOnDelete = () => {
   const handleDelete = () => {
-    console.info('You clicked the delete icon.')
-  }
+    }
 
   return (
     <Fragment>

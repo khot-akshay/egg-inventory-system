@@ -117,7 +117,6 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
   function logInUser(data: any) {
-    console.log(data, "Login Data Debug");
     const returnUrl = router.query.returnUrl;
     let redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/';
 
@@ -144,8 +143,7 @@ const LoginPage = () => {
         primaryRole
       );
     } catch (error) {
-      console.error('Error in handleSignIn:', error);
-    }
+      }
   }
   const onSubmit = async (data: any) => {
     const { email, password } = data
@@ -158,14 +156,11 @@ const LoginPage = () => {
         password,
       })
       
-      console.log(response, "Full API Response");
-      
       if (response?.success) {
         // response.data contains { access_token, user, etc }
         logInUser(response.data)
       }
     } catch (e: any) {
-      console.log(e,"event")
       if (e?.response?.status == 412 && e?.response.data && Object.keys(e?.response.data.data).length > 0) {
         for (let key in e.response.data?.data) {
           setError(key, { type: 'manual', message: e.response.data?.data[key].join(',') })

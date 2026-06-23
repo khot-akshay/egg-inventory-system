@@ -116,7 +116,6 @@ const SidebarLeft = (props: SidebarLeftType) => {
             inline
             onChange={date => {
               calendarApi?.gotoDate(date)
-              console.log(date, "date")
               const startDate = dayjs(date).startOf("month").toDate();
               const endDate = dayjs(date).endOf("month").toDate();
               setSelectedDate({ startDate, endDate });

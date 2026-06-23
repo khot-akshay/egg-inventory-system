@@ -27,8 +27,7 @@ export default function ShowAllRoles({ isUserUpdates }: any) {
             const response = await axiosInstance.get(`api/v1/getAllRoles`)
             setAllRole(response.data.data.roles)
         } catch (e) {
-            console.error(e?.response)
-        } finally { 
+            } finally { 
             setLoading(false)
         }
     }

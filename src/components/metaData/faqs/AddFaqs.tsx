@@ -126,7 +126,6 @@ const AddFaqs = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 toast.success(selectedItem ? 'FAQs updated successfully.' : 'FAQs added successfully.')
             }
         } catch (e: any) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update FAQs. Please try again.'

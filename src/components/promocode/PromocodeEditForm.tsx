@@ -159,7 +159,7 @@ export default function PromocodeEditPopup({ show, handleclose, selectedPromocod
             setValue('registered_till', null)
         }
         setStartFrom(dayjs(selectedPromocode.start_from))
-        // console.log("shubham",endOn,dayjs('2023-02-16'))
+        // )
     }, [])
     const handleIsForRegisteredBetween = (event: React.ChangeEvent<HTMLInputElement>) => {
         setIsForRegisteredBetween(event.target.checked);
@@ -227,7 +227,6 @@ export default function PromocodeEditPopup({ show, handleclose, selectedPromocod
                 // router.back()
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response.status == 403) {
                     for (let key in error.response.data.data) {
                         setError(key, { type: "manual", message: error.response.data.data[key].join(',') })
@@ -238,7 +237,6 @@ export default function PromocodeEditPopup({ show, handleclose, selectedPromocod
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Promocode Could Not Edited', {
                 position: 'top-center',
             })

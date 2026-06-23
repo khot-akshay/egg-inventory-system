@@ -227,7 +227,6 @@ export default function ViewUserDetails() {
     setResolvedPlantId(plantIdValue)
   }, [id, viewid])
 
-  console.log({ resolvedUserId, resolvedPlantId, id, viewid }, 'organizationID')
   const getAllData = async () => {
     if (!resolvedPlantId) {
       return
@@ -244,8 +243,7 @@ export default function ViewUserDetails() {
         }
       }
     } catch (error) {
-      console.error('Error fetching plant:', error)
-    } finally {
+      } finally {
       setIsLoading(false)
     }
   }
@@ -280,8 +278,7 @@ export default function ViewUserDetails() {
       document.body.removeChild(link)
       window.URL.revokeObjectURL(blobUrl)
     } catch (error) {
-      console.error('Download failed:', error)
-    }
+      }
   }
 
   return (

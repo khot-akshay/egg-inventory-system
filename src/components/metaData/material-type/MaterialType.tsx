@@ -45,8 +45,7 @@ const MaterialType = () => {
             setRows(response.data.data.material_types ?? [])
             setTotalRows(response.data.data?.count ?? 0)
         } catch (e) {
-            console.log(e)
-        } finally {
+            } finally {
             setLoading(false)
         }
     }
@@ -67,13 +66,9 @@ const MaterialType = () => {
         setOpenEdit(true)
     }
     const handleDeleteOpen = (params: GridCellParams) => {
-        console.log('Delete Clicked:', params.row)
         setSelectedItem(params.row)
         setOpenDelete(true)
-        console.log('Selected Item for delete:', selectedItem)
-
-
-    }
+        }
     // const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, row: any) => {
     //     const newStatus = event.target.checked ? 'true' : 'false';
     //     try {

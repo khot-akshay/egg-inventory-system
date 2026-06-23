@@ -117,8 +117,7 @@ const VendorPurchaseHistory = () => {
       setRows(response.data.data?.egg_vendor_purchase ?? []);
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
-      console.error(e);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -173,11 +172,9 @@ useEffect(() => {
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as PurchaseRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;

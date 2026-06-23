@@ -88,7 +88,6 @@ const AddProductsGrade = ({ open, handleClose, fetchData, selectedItem }: Props)
         toast.success(selectedItem ? 'Product grade updated successfully.' : 'Product grade added successfully.')
       }
     } catch (e: any) {
-      console.error(e)
       const apiError = e?.response?.data
 
       if (apiError?.data?.name?.length) {

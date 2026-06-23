@@ -43,8 +43,7 @@ export const signOut = async () => {
   //   });
 
   // } catch (e) {
-  //   console.error('Error logging out:', e);
-  // }
+  //   // }
   Cookies.remove('accessToken');
   Cookies.remove('deviceInfo');
   localStorage.clear();

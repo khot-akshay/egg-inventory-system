@@ -185,8 +185,7 @@ const ButtonGroupSplit = () => {
   const anchorRef = useRef(null)
 
   const handleClick = () => {
-    console.info(You clicked '{options[selectedIndex]}')
-  }
+    }
 
   const handleMenuItemClick = (event, index) => {
     setSelectedIndex(index)
@@ -1273,8 +1272,7 @@ const ButtonGroupSplit = () => {
   const anchorRef = useRef<HTMLDivElement | null>(null)
 
   const handleClick = () => {
-    console.info(You clicked '{options[selectedIndex]}')
-  }
+    }
 
   const handleMenuItemClick = (event: SyntheticEvent, index: number) => {
     setSelectedIndex(index)

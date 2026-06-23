@@ -456,7 +456,6 @@ const DayClosing = () => {
       })
       setEggRows(dynamicRows)
     } catch (err) {
-      console.error('Failed to fetch stock/category data:', err)
       toast.error('Failed to load stock data')
     } finally {
       setStockLoading(false)
@@ -558,7 +557,6 @@ const DayClosing = () => {
         toast.error(response.data?.message || 'Failed to submit Day Closing')
       }
     } catch (err: any) {
-      console.error('Failed to submit Day Closing:', err)
       toast.error(err?.response?.data?.message || 'Something went wrong during submission')
     } finally {
       setStockLoading(false)

@@ -173,11 +173,9 @@ export default function Viewopportunity() {
   const [open1, setOpen1] = useState(false);
   const handleClose1 = () => setOpen1(false);
   const dispatch = useDispatch<AppDispatch>();
-  //console.log(opportunityprofile)
-  const handleButtonClick = (data: any) => {
+  //const handleButtonClick = (data: any) => {
     setOpen1(true);
-    //console.log(data)
-  };
+    //};
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -204,15 +202,13 @@ export default function Viewopportunity() {
   //     const response = await commanservice('post', `/api/v1/admin/opportunityApprovalStatus?opportunity_id=${2}`, payload)
   //     if (response['success']) {
   //       setIsLoading(false)
-  //       // //console.log(response)
-  //       setSelectedData('')
+  //       // ////       setSelectedData('')
   //       getAllData()
   //     } else {
   //       setIsLoading(false)
   //     }
   //   } catch (error) {
-  //     // //console.log(error)
-  //   }
+  //     // ////   }
   // }
   const defaultValues = {
     id: "",
@@ -289,8 +285,7 @@ export default function Viewopportunity() {
         setResolvedUserId((prev) => prev ?? Number(userData.id));
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
-    } finally {
+      } finally {
       setIsLoading(false);
     }
   };
@@ -327,8 +322,7 @@ export default function Viewopportunity() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error("Download failed:", error);
-    }
+      }
   };
 
   return (

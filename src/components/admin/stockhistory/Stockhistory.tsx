@@ -78,13 +78,8 @@ const Stockhistory = () => {
 
       setRows(response.data.data?.stock_movements ?? [])
       setTotalRows(response.data.data.total ?? 0)
-      console.log('rows length', rows.length)
-console.log('pageSize', pageSize)
-console.log('totalRows', totalRows)
-console.log(response.data.data)
-    } catch (e) {
-      console.error(e)
-    } finally {
+      } catch (e) {
+      } finally {
       setLoading(false)
     }
   }
@@ -126,11 +121,9 @@ console.log(response.data.data)
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as CategoryRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;

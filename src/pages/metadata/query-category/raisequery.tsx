@@ -92,10 +92,7 @@ const AddQuery = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         watch,
         formState: { errors }
     } = useForm({ resolver: yupResolver(schema), defaultValues })
-    console.log(errors, 'errors')
-
     const onSubmit = async (data) => {
-        console.log(data, "data")
         setIsLoading(true)
 
         try {
@@ -117,7 +114,6 @@ const AddQuery = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 toast.success(response.data.message)
             }
         } catch (e: any) {
-            console.error(e)
             if (e?.response?.data?.data) {
                 const serverErrors = e.response.data.data
                 Object.keys(serverErrors).forEach(field => {
@@ -134,7 +130,6 @@ const AddQuery = ({ open, handleClose, fetchData, selectedItem }: Props) => {
     }
 
     useEffect(() => {
-        console.log(selectedItem)
         if (selectedItem) {
 
             setValue('name', selectedItem?.name)

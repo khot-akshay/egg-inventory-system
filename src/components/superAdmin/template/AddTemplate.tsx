@@ -60,7 +60,6 @@ export default function AddTemplate({ open, handleClose, fetchData }) {
         const missingVariables = allVariables?.filter(variable => !content.includes(variable?.name));
         if (missingVariables.length > 0) {
             const missingNames = missingVariables.map(variable => variable.name);
-            console.log(missingVariables);
             // toast.error(`Missing variables: ${missingNames.join(', ')}`);
             setError('body', { type: 'manual', message: `Add missing variables: ${missingNames.join(', ')}` });
 
@@ -80,8 +79,7 @@ export default function AddTemplate({ open, handleClose, fetchData }) {
                 fetchData();
             }
         } catch (e) {
-            console.error(e);
-        } finally {
+            } finally {
             setIsLoading(false);
         }
     };

@@ -130,7 +130,6 @@ const AddCancellationPolicy = ({ open, handleClose, fetchData, selectedItem }: P
                 toast.success(selectedItem ? 'Cancellation Policy updated successfully.' : 'Cancellation Policy  added successfully.')
             }
         } catch (e: any) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update Cancellation Policy . Please try again.'

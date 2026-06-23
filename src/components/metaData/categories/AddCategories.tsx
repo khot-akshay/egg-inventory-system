@@ -111,7 +111,6 @@ const AddCategories = ({ open, handleClose, fetchData, selectedItem }: Props) =>
         toast.success(selectedItem ? 'Category updated successfully.' : 'Category added successfully.')
       }
     } catch (e: any) {
-      console.error(e)
       const apiError = e?.response?.data
 
       if (apiError?.data?.name?.length) {

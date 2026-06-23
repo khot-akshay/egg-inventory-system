@@ -105,8 +105,7 @@ const Purchase = () => {
   //     setRows(response.data.data.brands ?? [])
   //     setTotalRows(response.data.data?.count ?? 0)
   //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false)
   //   }
   // }
@@ -122,8 +121,7 @@ const Purchase = () => {
   //     setRows(response.data.data.brands ?? []);
   //     setTotalRows(response.data.data?.count ?? 0);
   //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false);
   //   }
   // };
@@ -144,8 +142,7 @@ const Purchase = () => {
       setRows(response.data.data?.purchases ?? []);
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
-      console.error(e);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -199,11 +196,9 @@ const Purchase = () => {
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as PurchaseRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;

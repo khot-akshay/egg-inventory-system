@@ -27,8 +27,7 @@ function GameList() {
             setRows(response.data.data?.data ?? [])
             setTotalRows(response.data.data?.count ?? 0)
         } catch (e) {
-            console.error(e)
-        } finally {
+            } finally {
             setLoading(false)
         }
     }

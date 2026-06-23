@@ -59,8 +59,7 @@ const IconPicker = ({ onSelectIcon = () => {} }) => {
           setSelectedCollection(collectionsArray[0].id);
         }
       } catch (error) {
-        console.error('Error fetching collections:', error);
-      } finally {
+        } finally {
         setLoading(false);
       }
     };
@@ -88,8 +87,7 @@ const IconPicker = ({ onSelectIcon = () => {} }) => {
           setHasMore(iconNames.length > iconsPerPage);
         }
       } catch (error) {
-        console.error('Error fetching icons:', error);
-      } finally {
+        } finally {
         setLoading(false);
       }
     };

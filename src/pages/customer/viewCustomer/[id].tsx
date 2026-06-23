@@ -54,8 +54,7 @@ export default function ViewCustomer() {
       }
     } catch (error) {
       setIsLoading(false);
-      console.error(error);
-    }
+      }
   };
 
   useEffect(() => {
@@ -81,8 +80,7 @@ export default function ViewCustomer() {
         setRows(response.data.data?.quickbills ?? response.data.data?.data ?? [])
         setTotalRows(response.data.data?.count ?? 0)
       } catch (e) {
-        console.error(e)
-      } finally {
+        } finally {
         setLoading(false)
       }
     }

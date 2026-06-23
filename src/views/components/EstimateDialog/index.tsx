@@ -11,8 +11,6 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 
 const EstimatedFareDialog = ({ open, onClose, newData }) => {
-  console.log(newData, "newData");
-
   // ✅ Format numbers safely with toFixed(2)
   const formatCurrency = (value) => `₹ ${(Number(value) || 0).toFixed(2)}`;
   const formatDistance = (value) => `${(Number(value) || 0).toFixed(2)} KM`;

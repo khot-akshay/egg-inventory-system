@@ -106,8 +106,7 @@ const RHFAutoComplete = ({
         setOptions(prev => (pageNo === 0 ? data : [...prev, ...data]))
         setHasMore(data.length === pageSize)
       } catch (err) {
-        console.error('Autocomplete fetch error:', err)
-      } finally {
+        } finally {
         setLoading(false)
       }
     },

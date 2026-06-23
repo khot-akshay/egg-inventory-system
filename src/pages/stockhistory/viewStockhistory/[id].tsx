@@ -43,8 +43,7 @@ export default function ViewStockMovement() {
         setStockDetails(response.data.data);
       }
     } catch (error) {
-      console.error(error);
-    } finally {
+      } finally {
       setIsLoading(false);
     }
   };

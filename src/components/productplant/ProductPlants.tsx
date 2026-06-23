@@ -77,8 +77,7 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
   //     setRows(response.data.data.brands ?? [])
   //     setTotalRows(response.data.data?.count ?? 0)
   //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false)
   //   }
   // }
@@ -94,8 +93,7 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
   //     setRows(response.data.data.brands ?? []);
   //     setTotalRows(response.data.data?.count ?? 0);
   //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false);
   //   }
   // };
@@ -139,14 +137,11 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
   //     }
 
   //     const url = `/api/v1/admin/plantProducts/getAllPlantProducts?${params.toString()}`
-  //     console.log('Fetching plant products with URL:', url);
-  //     const response = await axiosInstance.get(url);
-  //     console.log('Plant products response:', response.data);
-  //     setRows((response.data.data?.data ?? []) as CategoryRow[]);
+  //     //     const response = await axiosInstance.get(url);
+  //     //     setRows((response.data.data?.data ?? []) as CategoryRow[]);
   //     setTotalRows(response.data.data?.count ?? 0);
   //   } catch (e) {
-  //     console.error('Error fetching plant products:', e);
-  //     toast.error('Failed to load plant products.');
+  //     //     toast.error('Failed to load plant products.');
   //   } finally {
   //     setLoading(false);
   //   }
@@ -201,13 +196,10 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
       }
 
       const url = `/api/v1/admin/plantProducts/getAllPlantProducts?${params.toString()}`
-      console.log('Fetching plant products with URL:', url);
       const response = await axiosInstance.get(url);
-      console.log('Plant products response:', response.data);
       setRows((response.data.data?.data ?? []) as CategoryRow[]);
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
-      console.error('Error fetching plant products:', e);
       toast.error('Failed to load plant products.');
     } finally {
       setLoading(false);
@@ -238,11 +230,9 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as CategoryRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
@@ -256,7 +246,6 @@ const ProductPlants: FC<ProductPlantsProps> = ({ customerId }) => {
   }
 
   const handleViewUser = (id: number) => {
-    console.log(id, 'id')
     if (customerId) {
       router.push(`/plants/viewplant/${customerId}/${id}`)
     } else {

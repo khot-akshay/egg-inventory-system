@@ -70,8 +70,7 @@ const Distributor = () => {
   //     setRows(response.data.data.brands ?? [])
   //     setTotalRows(response.data.data?.count ?? 0)
   //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false)
   //   }
   // }
@@ -87,8 +86,7 @@ const Distributor = () => {
   //     setRows(response.data.data.brands ?? []);
   //     setTotalRows(response.data.data?.count ?? 0);
   //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false);
   //   }
   // };
@@ -111,8 +109,7 @@ const Distributor = () => {
       setRows(response.data.data ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
-      console.error(e)
-    } finally {
+      } finally {
       setLoading(false)
     }
   }
@@ -154,11 +151,9 @@ const Distributor = () => {
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as CategoryRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;

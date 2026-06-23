@@ -264,7 +264,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
       }))
       setPlantOptions(options)
     } catch (e) {
-      console.error('Error fetching plants:', e)
       toast.error('Failed to load plants.')
     } finally {
       setLoadingPlants(false)
@@ -290,7 +289,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
 
       setProductOptions(options)
     } catch (e) {
-      console.error('Error fetching products:', e)
       toast.error('Failed to load products.')
     } finally {
       setLoadingProducts(false)
@@ -307,7 +305,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
       }))
       setGradeOptions(options)
     } catch (e) {
-      console.error('Error fetching grades:', e)
       toast.error('Failed to load grades.')
     } finally {
       setLoadingGrades(false)
@@ -324,7 +321,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
       }))
       setPolishOptions(options)
     } catch (e) {
-      console.error('Error fetching polish types:', e)
       toast.error('Failed to load polish types.')
     } finally {
       setLoadingPolishTypes(false)
@@ -346,7 +342,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
       setCategoryOptions(options)
       return options
     } catch (e) {
-      console.error('Error fetching categories:', e)
       toast.error('Failed to load categories.')
       return []
     } finally {
@@ -386,18 +381,14 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
       */
 
       if (shouldPrefill) {
-        console.log('DEBUG: Prefilling from productData:', productData);
         if (productData?.product_grades_id) {
-          console.log('DEBUG: Setting grade_id to:', productData.product_grades_id);
           setValue('grade_id', Number(productData.product_grades_id), { shouldValidate: true })
         } else if (productData?.grade_id) {
           // Fallback if property name is different
-          console.log('DEBUG: Setting grade_id from grade_id to:', productData.grade_id);
           setValue('grade_id', Number(productData.grade_id), { shouldValidate: true })
         }
 
         if (productData?.polish_type_id) {
-          console.log('DEBUG: Setting polish_type_id to:', productData.polish_type_id);
           setValue('polish_type_id', Number(productData.polish_type_id), { shouldValidate: true })
         }
         if (typeof productData?.default_moisture_content === 'number') {
@@ -428,7 +419,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
         setValue('description', productData.description)
       }
     } catch (error) {
-      console.error('Error fetching product details:', error)
       toast.error('Failed to load product details.')
     }
   }
@@ -468,7 +458,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
     }
 
     if (resolvedId !== undefined && !Number.isNaN(resolvedId)) {
-      console.log('Setting plant_id to:', resolvedId)
       setEffectivePlantId(resolvedId)
       setValue('plant_id', resolvedId, { shouldValidate: true, shouldDirty: true })
       fetchCategoriesByPlant(resolvedId)
@@ -550,10 +539,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
   }, [categoryOptions, selectedItem, selectedCategoryId, setValue, open])
 
   const onSubmit = async (data: FormData) => {
-    console.log('Form submitted with data:', data)
-    console.log('Form errors:', errors)
-    console.log('Effective plant ID:', effectivePlantId)
-
     setIsLoading(true)
 
     try {
@@ -599,8 +584,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
         notes: data.notes?.trim?.() ?? null
       }
 
-      console.log('Submitting payload:', payload)
-
       let url = ''
       if (selectedItem) {
         url = `/api/v1/admin/plantProducts/updatePlantProducts/${selectedItem.id}`
@@ -618,8 +601,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
         toast.error(response.data.message ?? 'Server returned failure status.')
       }
     } catch (e: any) {
-      console.error('Submission error:', e)
-      console.error('Error response:', e?.response?.data)
       toast.error(
         selectedItem
           ? e?.response?.data?.message ?? 'Failed to update product. Please try again.'
@@ -690,8 +671,7 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
                 }
               }
             } catch (error) {
-              console.error('Error fetching product details for category/grade/polish:', error)
-            }
+              }
           }
 
           // Set all form values after categories are loaded
@@ -851,7 +831,6 @@ const AddProductPlant = ({ open, handleClose, fetchData, selectedItem, plantId }
       </DialogTitle>
       <form
         onSubmit={handleSubmit(onSubmit, errors => {
-          console.log('Form validation errors:', errors)
           toast.error('Please fill in all required fields correctly.')
         })}
       >

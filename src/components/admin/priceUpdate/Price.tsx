@@ -47,7 +47,6 @@ const Price = () => {
         setShops([])
       }
     } catch (e) {
-      console.error('Failed to fetch shops', e)
       setShops([])
     }
   }
@@ -64,8 +63,7 @@ const Price = () => {
       setTotalRows(response.data.data?.count || data.length || 0)
     } catch (e: any) {
       if (e.name !== 'CanceledError' && e.name !== 'AbortError') {
-        console.log(e)
-      }
+        }
     } finally {
       setLoading(false)
     }

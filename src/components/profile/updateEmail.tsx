@@ -70,8 +70,6 @@ export default function EmailUpdatePopup({ show, handleclose, userData, fetchDat
                 handleOtp()
             }
         } catch (error) {
-            console.log(error)
-
             setLoading(false)
         }
 
@@ -101,7 +99,6 @@ export default function EmailUpdatePopup({ show, handleclose, userData, fetchDat
                 }
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response.status == 412 && error.response.data.data) {
                     for (const key in error.response.data.data) {
                         setError(key, { type: "manual", message: error.response.data.data[key].join(',') })
@@ -115,7 +112,6 @@ export default function EmailUpdatePopup({ show, handleclose, userData, fetchDat
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Profile Could Not Edited', {
                 position: 'top-center',
             })
@@ -132,7 +128,6 @@ export default function EmailUpdatePopup({ show, handleclose, userData, fetchDat
             const response = await axiosInstance.post(`/v1/admin/updateProfile`, data)
             setOtpSent(true)
         } catch (error) {
-            console.log(error)
             if (error.response.status == 412 && error.response.data.data) {
                 for (const key in error.response.data.data) {
                     setError(key, { type: "manual", message: error.response.data.data[key].join(',') })

@@ -364,7 +364,6 @@ const DayOpening = () => {
         setEggRows(FALLBACK_CATEGORIES)
       }
     } catch (err) {
-      console.error('Failed to fetch stock/category data:', err)
       toast.error('Failed to load stock data')
       setStockData(null)
       setEggRows(FALLBACK_CATEGORIES)
@@ -477,7 +476,6 @@ const DayOpening = () => {
         toast.error(response.data?.message || 'Failed to submit Day Opening')
       }
     } catch (err: any) {
-      console.error('Failed to submit Day Opening:', err)
       toast.error(err?.response?.data?.message || 'Something went wrong during submission')
     } finally {
       setStockLoading(false)

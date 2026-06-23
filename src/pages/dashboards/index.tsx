@@ -39,7 +39,6 @@ function Dashboard() {
         }
       }
     } catch (e) {
-      console.error('Error fetching shops:', e)
       setShops([])
     }
   }
@@ -119,7 +118,6 @@ function Dashboard() {
         setPaymentData([])
       }
     } catch (e) {
-      console.error('Error fetching stock data:', e)
       setStockData(null)
     } finally {
       setStockLoading(false)

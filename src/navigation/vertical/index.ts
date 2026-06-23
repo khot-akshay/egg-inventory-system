@@ -302,9 +302,7 @@ const navigation = (): VerticalNavItemsType => {
   const { user } = useAuth();
 
   // Debug logging
-  // console.log('Navigation Debug - User data:', user);
-  // console.log('Navigation Debug - User roles:', user?.roles);
-  // console.log('Navigation Debug - User role (string):', user?.role);
+  // // // :', user?.role);
 
   const hasRole = (roleName: string): boolean => {
     if (user?.is_super_admin) return true;

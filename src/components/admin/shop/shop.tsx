@@ -28,7 +28,6 @@ function Shop() {
         }
       }
     } catch (e) {
-      console.error('Error fetching shops:', e)
       setShops([])
     }
   }
@@ -60,7 +59,6 @@ function Shop() {
         setStockData(null)
       }
     } catch (e) {
-      console.error('Error fetching stock data:', e)
       setStockData(null)
     } finally {
       setStockLoading(false)

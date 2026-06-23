@@ -34,8 +34,7 @@ export default function DeletePromocodeDialog({ show, handleclose, selctedPromoc
                 toast.success('Promocode Could Not Deleted ', {
                     position: 'top-center'
                 })
-                console.log(error.response.data.message)
-            });
+                });
     }
     return (
         <>

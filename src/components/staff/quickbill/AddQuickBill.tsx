@@ -150,7 +150,6 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPendingAmount = async () => {
-      console.log('fetchPendingAmount triggered. selectedCustomer:', selectedCustomer, 'isNewCustomer:', isNewCustomer);
       if (!selectedCustomer || isNewCustomer) {
         setPendingAmount(null)
         return
@@ -163,8 +162,6 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
         selectedCustomer?.value ? selectedCustomer.value : 
         null
 
-      console.log('Extracted customerId:', customerId);
-
       if (customerId) {
         try {
           const response = await axiosInstance.get(`/api/v1/shop/userPendingAmount?user_id=${customerId}`)
@@ -174,7 +171,6 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
             setPendingAmount(null)
           }
         } catch (error) {
-          console.error("Failed to fetch pending amount", error)
           setPendingAmount(null)
         }
       } else {
@@ -235,7 +231,6 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
             }
           }
         } catch (error) {
-          console.error('Error fetching product rates:', error)
           setMinRate(null)
           setMaxRate(null)
         }
@@ -471,7 +466,6 @@ if (!quantity || quantity <= 0) {
         if (handleClose) handleClose()
       }
     } catch (error: any) {
-      console.error('Error recording purchase:', error)
       toast.error(error?.response?.data?.message || 'Something went wrong')
     } finally {
       setLoading(false)

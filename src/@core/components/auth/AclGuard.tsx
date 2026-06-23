@@ -31,8 +31,7 @@ const AclGuard = (props: AclGuardProps) => {
   const { aclAbilities, children, guestGuard } = props
 
   const [ability, setAbility] = useState<AppAbility | undefined>(undefined)
-console.log("here")
-  // ** Hooks
+// ** Hooks
   const auth = useAuth()
   const router = useRouter()
 

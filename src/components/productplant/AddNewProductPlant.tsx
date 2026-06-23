@@ -198,7 +198,6 @@ const AddNewProductPlant = ({ open, handleClose, fetchData, selectedItem,plantId
         toast.success(response.data.message)
       }
     } catch (e: any) {
-      console.error(e)
       toast.error(
         selectedItem
           ? e?.response?.data?.message ?? 'Failed to update product. Please try again.'

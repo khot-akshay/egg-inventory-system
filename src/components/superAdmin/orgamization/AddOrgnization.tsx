@@ -91,7 +91,6 @@ export default function AddOrgnaization() {
                 router.back()
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response.status == 412) {
                     for (let key in error.response.data.data) {
                         setError(key, { type: "manual", message: error.response.data.data[key].join(',') })
@@ -103,7 +102,6 @@ export default function AddOrgnaization() {
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Operator Not Added', {
                 position: 'top-center',
             })

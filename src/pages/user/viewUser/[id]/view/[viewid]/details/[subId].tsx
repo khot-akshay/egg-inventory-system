@@ -25,7 +25,6 @@ const Viewopportunity = () => {
 
   /* ---------------- API ---------------- */
   const getAllData = async (detailsId: number) => {
-    console.log('✅ API CALL WITH detailsId:', detailsId)
     try {
       setIsLoading(true)
 
@@ -36,8 +35,7 @@ const Viewopportunity = () => {
         setNewData(response.data.data)
       }
     } catch (error) {
-      console.error('API Error:', error)
-    } finally {
+      } finally {
       setIsLoading(false)
     }
   }
@@ -47,11 +45,9 @@ const Viewopportunity = () => {
     if (!router.isReady) return
 
     if (!detailsId || Number.isNaN(detailsId)) {
-      console.log('❌ Invalid plantId:', detailsId)
       return
     }
 
-    console.log('✅ API CALL WITH plantId:', detailsId)
     getAllData(detailsId)
   }, [router.isReady, detailsId])
 

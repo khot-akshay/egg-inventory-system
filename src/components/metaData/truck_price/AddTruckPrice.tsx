@@ -107,7 +107,6 @@ const AddTruckPrice = ({ open, handleClose, fetchData, selectedItem }: Props) =>
                 toast.success(selectedItem ? 'Truck Price updated successfully.' : 'Truck Price added successfully.')
             }
         } catch (e) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update Truck Price. Please try again.'
