@@ -95,34 +95,6 @@ const QuickBillDashboard = () => {
 
 
 
-  // const fetchGame = async () => {
-  //   setLoading(true)
-  //   try {
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`)
-
-  //     setRows(response.data.data.brands ?? [])
-  //     setTotalRows(response.data.data?.count ?? 0)
-  //   } catch (e) {
-  //     //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-  // const fetchGame = async () => {
-  //   setLoading(true);
-  //   try {
-
-
-
-
-  //     const response = await axiosInstance.get(`/api/v1/admin/getAllBrands?pageNo=${page}&limit=${pageSize}`);
-
-  //     setRows(response.data.data.brands ?? []);
-  //     setTotalRows(response.data.data?.count ?? 0);
-  //   } catch (e) {
-  //     //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const fetchGame = useCallback(async () => {
     setLoading(true)
     try {

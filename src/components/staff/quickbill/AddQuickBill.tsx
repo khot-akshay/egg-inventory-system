@@ -62,13 +62,13 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const [maxRate, setMaxRate] = useState<number | null>(null)
   const [paymentType, setPaymentType] = useState('cash')
   const [unit, setUnit] = useState('');
-const [unitValue, setUnitValue] = useState(30);
-const [quantity, setQuantity] = useState<string>('');
-const [damaged, setDamaged] = useState(0);
-const [loading, setLoading] = useState(false);
-const [isNewCustomer, setIsNewCustomer] = useState(false);
-const [cart, setCart] = useState<any[]>([]);
-const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [unitValue, setUnitValue] = useState(30);
+  const [quantity, setQuantity] = useState<string>('');
+  const [damaged, setDamaged] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [cart, setCart] = useState<any[]>([]);
+  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const router = useRouter()
 
 
@@ -98,33 +98,35 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
   const rate = watch('rate_per_unit')
   const selectedCategory = watch('category_id')
   const selectedCustomer = watch('customer_id')
-  
+
   const { user } = useAuth()
-  const currentStaffShopId = user?.shop_id || user?.shop?.id
+  const currentStaffShopId = user?.shop_id || user?.shop?.id;
+  const roleName = user?.roles?.[0]?.name || '';
+
 
   const resetBillForm = () => {
-  reset({
-    customer_id: null,
-    category_id: null,
-    rate_per_unit: 150,
-    customer_name: '',
-    phone_number: '',
-    mixed_cash: null,
-    mixed_online: null
-  })
+    reset({
+      customer_id: null,
+      category_id: null,
+      rate_per_unit: 150,
+      customer_name: '',
+      phone_number: '',
+      mixed_cash: null,
+      mixed_online: null
+    })
 
-  setUnit('')
-  setUnitValue(30)
-  setQuantity('')
-  setDamaged(0)
-  setCart([])
-  setPendingAmount(null)
-  setIsNewCustomer(false)
-  setPaymentType('cash')
+    setUnit('')
+    setUnitValue(30)
+    setQuantity('')
+    setDamaged(0)
+    setCart([])
+    setPendingAmount(null)
+    setIsNewCustomer(false)
+    setPaymentType('cash')
 
-  setMinRate(null)
-  setMaxRate(null)
-}
+    setMinRate(null)
+    setMaxRate(null)
+  }
 
   useEffect(() => {
     if (selectedItem) {
@@ -156,11 +158,11 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
       }
 
       // Extract ID from the selected object - handles different autocomplete formats
-      const customerId = 
-        typeof selectedCustomer === 'number' || typeof selectedCustomer === 'string' ? selectedCustomer : 
-        selectedCustomer?.id ? selectedCustomer.id : 
-        selectedCustomer?.value ? selectedCustomer.value : 
-        null
+      const customerId =
+        typeof selectedCustomer === 'number' || typeof selectedCustomer === 'string' ? selectedCustomer :
+          selectedCustomer?.id ? selectedCustomer.id :
+            selectedCustomer?.value ? selectedCustomer.value :
+              null
 
       if (customerId) {
         try {
@@ -240,96 +242,65 @@ const [pendingAmount, setPendingAmount] = useState<number | null>(null);
     fetchProductRates()
   }, [selectedCategory, setValue])
 
-  // const handleAddToCart = () => {
-  //   const product = watch('category_id')
-  //   const rate_per_unit = watch('rate_per_unit')
 
-  //   if (!product) {
-  //     toast.error('Please select a product')
-  //     return
-  //   }
+  const resetProductFields = () => {
+    setValue('category_id', null)
+    setValue('rate_per_unit', 150)
 
-  //   const productName = typeof product === 'object' ? (product.name || product.category?.name) : 'Product'
-  //   const categoryId = typeof product === 'object' ? product.id : product
+    setUnit('')
+    setUnitValue(30)
 
-  //   const newItem = {
-  //     category_id: categoryId,
-  //     product_name: productName,
-  //     quantity,
-  //     unit,
-  //     unit_value: unitValue,
-  //     total_eggs: totalEggs,
-  //     damaged_eggs: damaged,
-  //     rate: rate_per_unit,
-  //     total: quantity * rate_per_unit
-  //   }
+    setQuantity('')
+    setDamaged(0)
 
-  //   setCart([...cart, newItem])
-
-  //   // Reset product selection for next item
-  //   setValue('category_id', null)
-  //   setQuantity(0)
-  //   setDamaged(0)
-  //   toast.success('Added to list')
-  // }
-const resetProductFields = () => {
-  setValue('category_id', null)
-  setValue('rate_per_unit', 150)
-
-  setUnit('')
-  setUnitValue(30)
-
-  setQuantity('')
-  setDamaged(0)
-
-  setMinRate(null)
-  setMaxRate(null)
-}
+    setMinRate(null)
+    setMaxRate(null)
+  }
   const handleAddToCart = () => {
-  const product = watch('category_id')
-  const rate_per_unit = watch('rate_per_unit')
+    const product = watch('category_id')
+    const rate_per_unit = watch('rate_per_unit')
 
-  if (!product) {
-    toast.error('Please select a product')
-    return
+    if (!product) {
+      toast.error('Please select a product')
+      return
+    }
+    if (!quantity || quantity <= 0) {
+      toast.error('Quantity is required');
+      return;
+    }
+    //  if (!unit) {
+    //     toast.error('Please select a unit')
+    //     return
+    //   }
+
+    const productName =
+      typeof product === 'object'
+        ? (product?.name || product?.category?.name)
+        : 'Product'
+
+    const categoryId =
+      typeof product === 'object'
+        ? product?.id
+        : product
+
+    const newItem = {
+      category_id: categoryId,
+      product_name: productName,
+      quantity,
+      unit,
+      unit_value: unitValue,
+      total_eggs: totalEggs,
+      damaged_eggs: damaged,
+      rate: rate_per_unit,
+      total: quantity * rate_per_unit
+    }
+
+    setCart(prev => [...prev, newItem])
+
+    resetProductFields()
+
+    toast.success('Added to list')
   }
-  if (!quantity || quantity <= 0) {
-  toast.error('Quantity is required');
-  return;
-}
-//  if (!unit) {
-//     toast.error('Please select a unit')
-//     return
-//   }
-  
-  const productName =
-    typeof product === 'object'
-      ? (product?.name || product?.category?.name)
-      : 'Product'
-
-  const categoryId =
-    typeof product === 'object'
-      ? product?.id
-      : product
-
-  const newItem = {
-    category_id: categoryId,
-    product_name: productName,
-    quantity,
-    unit,
-    unit_value: unitValue,
-    total_eggs: totalEggs,
-    damaged_eggs: damaged,
-    rate: rate_per_unit,
-    total: quantity * rate_per_unit
-  }
-
-  setCart(prev => [...prev, newItem])
-
-  resetProductFields()
-
-  toast.success('Added to list')
-}
 
   const removeFromCart = (index: number) => {
     const newCart = [...cart]
@@ -349,7 +320,7 @@ const resetProductFields = () => {
         return Number(value)
       }
 
-      
+
       // If no items in cart and no product details entered, prevent submission
       // if (cart.length === 0 && !(watch('category_id') && quantity > 0 && watch('rate_per_unit'))) {
       //   toast.error('Please add at least one product to the list')
@@ -390,49 +361,49 @@ const resetProductFields = () => {
           unit_value: 0
         }];
       }
-//     if (paymentType === 'credit') {
-//   payments = [{
-//     amount: 0,
-//     payment_type: 'credit'
-//   }];
-// } else {
-//   payments = [{
-//     amount: totalAmount,
-//     payment_type: paymentType
-//   }];
-// }
+      //     if (paymentType === 'credit') {
+      //   payments = [{
+      //     amount: 0,
+      //     payment_type: 'credit'
+      //   }];
+      // } else {
+      //   payments = [{
+      //     amount: totalAmount,
+      //     payment_type: paymentType
+      //   }];
+      // }
 
-if (paymentType === 'mixed') {
-  if (cashAmount > 0) {
-    payments.push({
-      amount: cashAmount,
-      payment_type: 'cash'
-    });
-  }
+      if (paymentType === 'mixed') {
+        if (cashAmount > 0) {
+          payments.push({
+            amount: cashAmount,
+            payment_type: 'cash'
+          });
+        }
 
-  if (upiAmount > 0) {
-    payments.push({
-      amount: upiAmount,
-      payment_type: 'upi'
-    });
-  }
-} else if (paymentType === 'credit') {
-  payments = [{
-    amount: 0,
-    payment_type: 'credit'
-  }];
-} else {
-  payments = [{
-    amount: totalAmount,
-    payment_type: paymentType
-  }];
-}
+        if (upiAmount > 0) {
+          payments.push({
+            amount: upiAmount,
+            payment_type: 'upi'
+          });
+        }
+      } else if (paymentType === 'credit') {
+        payments = [{
+          amount: 0,
+          payment_type: 'credit'
+        }];
+      } else {
+        payments = [{
+          amount: totalAmount,
+          payment_type: paymentType
+        }];
+      }
 
-if (!quantity || quantity <= 0) {
-  toast.error('Quantity is required');
-  setLoading(false);
-  return;
-}
+      if (!quantity || quantity <= 0) {
+        toast.error('Quantity is required');
+        setLoading(false);
+        return;
+      }
 
       const payload = {
         customer_id: isNewCustomer ? null : extractId(data.customer_id),
@@ -458,7 +429,7 @@ if (!quantity || quantity <= 0) {
         //   mixed_online: 0
         // })
         resetBillForm();
-        
+
         if (fetchData) fetchData()
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('quickBillAdded'))
@@ -472,7 +443,7 @@ if (!quantity || quantity <= 0) {
     }
   }
 
-   const handleViewUser = () => {
+  const handleViewUser = () => {
     router.push('/quickbillList')
   }
 
@@ -483,10 +454,11 @@ if (!quantity || quantity <= 0) {
           <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
             🥚 Quick Bill
           </Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography>
         </Grid>
         <Grid item xs={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {pendingAmount !== null && (
-            <Chip 
+            <Chip
               label={`DUE: ₹${Number(pendingAmount).toFixed(2)}`}
               color={pendingAmount > 0 ? 'error' : 'success'}
               sx={{ fontWeight: 'bold' }}
@@ -495,17 +467,17 @@ if (!quantity || quantity <= 0) {
         </Grid>
         <Grid item xs={4}>
           <Tooltip title="View Quick Bills List">
-            
-          <Button
-            variant='contained'
-            onClick={() => handleViewUser()}>
-           Bills List
-          </Button>
-                    </Tooltip>
+
+            <Button
+              variant='contained'
+              onClick={() => handleViewUser()}>
+              Bills List
+            </Button>
+          </Tooltip>
 
         </Grid>
       </Grid>
-     
+
 
 
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -557,6 +529,38 @@ if (!quantity || quantity <= 0) {
               </Grid>
             </>
           )}
+         {/*<Grid item xs={12}>
+            <RHFAutoComplete
+              control={control}
+              name="category_id"
+              placeholder="vehicle Details"
+              labelinput="vehicle Details"
+              apiUrl="/api/v1/shop/getAllEggVendorPurchases"
+              extraParams={{ shop_id: currentStaffShopId || '' }}
+              dataKey="data.categories"
+              labelKey="name"
+              valueKey="id"
+              returnObject={true}
+              required
+              multiple={false}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <RHFAutoComplete
+              control={control}
+              name="egg_vendor_purchase_id"
+              placeholder="Vehicle Details"
+              labelinput="Vehicle Details"
+              apiUrl="/api/v1/shop/getAllEggVendorPurchases"
+              extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
+              labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
+              valueKey="id"
+              required={!isNewCustomer}
+              disabled={isNewCustomer}
+            />
+          </Grid>*/}
+
           {/* Product Selection */}
           <Grid item xs={12}>
             <RHFAutoComplete
@@ -737,22 +741,22 @@ if (!quantity || quantity <= 0) {
                   </Grid>
                 </Grid>
               </Grid>
-<Grid item xs={12}>
-  <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1 }}>
-      <Typography variant="subtitle2" sx={{ mr: 1, fontWeight: 'bold' }}>
-        Total Amount:
-      </Typography>
-      {quantity > 0 && watch('rate_per_unit') && watch('category_id') ? (
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          ₹{(quantity * Number(watch('rate_per_unit') || 0)).toFixed(2)}
-        </Typography>
-      ) : (
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          ₹0.00
-        </Typography>
-      )}
-  </Box>
-</Grid>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1 }}>
+                  <Typography variant="subtitle2" sx={{ mr: 1, fontWeight: 'bold' }}>
+                    Total Amount:
+                  </Typography>
+                  {quantity > 0 && watch('rate_per_unit') && watch('category_id') ? (
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      ₹{(quantity * Number(watch('rate_per_unit') || 0)).toFixed(2)}
+                    </Typography>
+                  ) : (
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      ₹0.00
+                    </Typography>
+                  )}
+                </Box>
+              </Grid>
             </Grid>
           </Grid>
 
@@ -773,42 +777,42 @@ if (!quantity || quantity <= 0) {
           {/* Cart Table */}
           {cart.length > 0 && (
             <>
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                Added Products
-              </Typography>
-              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                <Table size="small">
-                  <TableHead sx={{ bgcolor: hexToRGBA(theme.palette.success.main, 0.12) }}>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}>Qty</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Rate</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'bold' }}></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {cart.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell sx={{ fontSize: '0.8rem' }}>{item.product_name}</TableCell>
-                        <TableCell align="center" sx={{ fontSize: '0.8rem' }}>{item.quantity}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.8rem' }}>₹{item.rate.toFixed(2)}</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.8rem', fontWeight: 'bold' }}>₹{item.total.toFixed(2)}</TableCell>
-                        <TableCell align="center">
-                          <IconButton size="small" color="error" onClick={() => removeFromCart(index)}>
-                            <DeleteIcon fontSize="inherit" />
-                          </IconButton>
-                        </TableCell>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Added Products
+                </Typography>
+                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                  <Table size="small">
+                    <TableHead sx={{ bgcolor: hexToRGBA(theme.palette.success.main, 0.12) }}>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>Qty</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>Rate</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 'bold' }}></TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-            <Grid item xs={12}>
-            {/* <Box
+                    </TableHead>
+                    <TableBody>
+                      {cart.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>{item.product_name}</TableCell>
+                          <TableCell align="center" sx={{ fontSize: '0.8rem' }}>{item.quantity}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.8rem' }}>₹{item.rate.toFixed(2)}</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.8rem', fontWeight: 'bold' }}>₹{item.total.toFixed(2)}</TableCell>
+                          <TableCell align="center">
+                            <IconButton size="small" color="error" onClick={() => removeFromCart(index)}>
+                              <DeleteIcon fontSize="inherit" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Grid>
+              <Grid item xs={12}>
+                {/* <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -827,25 +831,25 @@ if (!quantity || quantity <= 0) {
               </Typography>
             </Box> */}
 
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                p: 2,
-                bgcolor: hexToRGBA(theme.palette.success.main, 0.12),
-                borderRadius: 2
-              }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                Total Amount
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                ₹{grandTotal.toFixed(2)}
-              </Typography>
-            </Box>
-          </Grid>
-          </>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    p: 2,
+                    bgcolor: hexToRGBA(theme.palette.success.main, 0.12),
+                    borderRadius: 2
+                  }}
+                >
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    Total Amount
+                  </Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                    ₹{grandTotal.toFixed(2)}
+                  </Typography>
+                </Box>
+              </Grid>
+            </>
           )}
 
           {/* Payment Type Selection */}

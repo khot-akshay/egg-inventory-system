@@ -56,24 +56,18 @@ const tempObject: VerticalNavItemsType = [
     permissionName: "quick_bill", // aligned with backend permission
 
   },
-  {
-    title: "Day Closing",
-    icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff","Distributor"],
-    path: "/dayclosing",
-    // isPermissionNeeded: true,
-    // permissionName: "quick_bill", // aligned with backend permission
-
-  },
-  {
-    title: "Day Opening",
-    icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff","Distributor"],
-    path: "/openingDay",
-    // isPermissionNeeded: true,
-    // permissionName: "quick_bill", // aligned with backend permission
-
-  },
+{
+  title: "Day Opening",
+  icon: "mdi:calendar-start",
+  allowedRoles: ["Staff", "Distributor"],
+  path: "/openingDay",
+},
+{
+  title: "Day Closing",
+  icon: "mdi:calendar-end",
+  allowedRoles: ["Staff", "Distributor"],
+  path: "/dayclosing",
+},
 
   {
     title: "Stock",
@@ -89,8 +83,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
-     isPermissionNeeded: true,
-    permissionName: "purchase",
+    //  isPermissionNeeded: true,
+    // permissionName: "purchase",
   },
  {
   title: "Vendors",

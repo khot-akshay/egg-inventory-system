@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import {
-  Autocomplete,
-  TextField,
-  CircularProgress,
-  Typography,
-  Button,
-  Box,
-  Paper
-} from '@mui/material'
-import { useController } from 'react-hook-form'
-import { useDebounce } from 'use-debounce'
-import ControlPointIcon from '@mui/icons-material/ControlPoint'
-import axiosInstance from 'src/services/axios'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Autocomplete, TextField, CircularProgress, Typography, Button, Box, Paper } from '@mui/material';
+import { useController } from 'react-hook-form';
+import { useDebounce } from 'use-debounce';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import axiosInstance from 'src/services/axios';
+
+// In‑memory cache shared across all RHFAutoComplete instances.
+// cacheKey => searchText => { options, fetchedPages: Set<number>, hasMore }
+const apiCache = new Map();
 
 const RHFAutoComplete = ({
   control,
@@ -29,73 +25,88 @@ const RHFAutoComplete = ({
   addbtn = false,
   button_label = '',
   handlebtnclick,
-  extraParams = {},   // ✅ add this
-
+  extraParams = {},
   multiple = false,
   options: staticOptions = [],
   dataKey = '',
-  returnObject = false, // ✅ add returnObject prop
+  returnObject = false,
   ...rest
 }) => {
-  // Helper to get nested values like 'category.name'
+  // Helper to get nested values like "category.name"
   const getNestedValue = (obj, path) => {
     if (!obj || !path) return obj;
     return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj);
   };
+
   const { field, fieldState } = useController({
     name,
     control,
-    defaultValue: multiple ? [] : null
-  })
+    defaultValue: multiple ? [] : null,
+  });
 
-  const [options, setOptions] = useState(staticOptions)
+  // ---------- Cache handling ----------
+  const cacheKey = useMemo(() => `${apiUrl}|${JSON.stringify(extraParams)}`, [apiUrl, extraParams]);
+  // Ensure a nested map exists for this cacheKey.
+  if (!apiCache.has(cacheKey)) {
+    apiCache.set(cacheKey, new Map());
+  }
+  const searchCache = apiCache.get(cacheKey);
 
-  // Sync static options if no apiUrl
-  useEffect(() => {
-    if (!apiUrl) {
-      setOptions(staticOptions)
-    }
-  }, [staticOptions, apiUrl])
-  const [search, setSearch] = useState('')
-  const [debouncedSearch] = useDebounce(search, 500)
-  const [page, setPage] = useState(0)
-  const [hasMore, setHasMore] = useState(true)
-  const [loading, setLoading] = useState(false)
-  const [open, setOpen] = useState(false)
+  const [options, setOptions] = useState(staticOptions);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch] = useDebounce(search, 500);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const listboxRef = useRef(null)
+  const listboxRef = useRef(null);
+  const abortControllerRef = useRef(null);
+  const fetchedRef = useRef(false); // ensures initial fetch runs only once per component open.
 
+  // ---------- Fetch logic with cache ----------
   const fetchOptions = useCallback(
     async (searchText = '', pageNo = 0) => {
-      if (!apiUrl) return
+      if (!apiUrl) return;
 
-      setLoading(true)
+      // Check cache first.
+      const cachedEntry = searchCache.get(searchText);
+      if (cachedEntry && cachedEntry.fetchedPages.has(pageNo)) {
+        // Use cached data.
+        setOptions(cachedEntry.options);
+        setHasMore(cachedEntry.hasMore);
+        return;
+      }
+
+      // Abort previous request if still pending.
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      setLoading(true);
       try {
         const params = {
           [queryParamName]: searchText,
           [pageParamName]: pageNo,
           [limitParamName]: pageSize,
-          ...extraParams
-        }
-
-        const url = `${apiUrl}?${new URLSearchParams(params)}`
-        const res = await axiosInstance.get(url)
-
+          ...extraParams,
+        };
+        const url = `${apiUrl}?${new URLSearchParams(params)}`;
+        const res = await axiosInstance.get(url, { signal: controller.signal });
         let data = [];
         const responseData = res?.data;
-
         if (dataKey) {
-          // If dataKey is provided, use it to find the array (e.g., 'data.products')
           data = getNestedValue(responseData, dataKey) || [];
         } else {
-          // Fallback to existing heuristic
           data = res?.data?.data?.data;
           if (!Array.isArray(data)) {
-            const nestedData = res?.data?.data;
-            if (Array.isArray(nestedData)) {
-              data = nestedData;
-            } else if (nestedData && typeof nestedData === 'object') {
-              const possibleArray = Object.values(nestedData).find(Array.isArray);
+            const nested = res?.data?.data;
+            if (Array.isArray(nested)) {
+              data = nested;
+            } else if (nested && typeof nested === 'object') {
+              const possibleArray = Object.values(nested).find(Array.isArray);
               data = possibleArray || [];
             } else {
               data = [];
@@ -103,44 +114,86 @@ const RHFAutoComplete = ({
           }
         }
 
-        setOptions(prev => (pageNo === 0 ? data : [...prev, ...data]))
-        setHasMore(data.length === pageSize)
+        // Update cache.
+        const entry = cachedEntry || { options: [], fetchedPages: new Set(), hasMore: true };
+        if (pageNo === 0) {
+          entry.options = data;
+        } else {
+          entry.options = [...entry.options, ...data];
+        }
+        entry.fetchedPages.add(pageNo);
+        entry.hasMore = data.length === pageSize;
+        searchCache.set(searchText, entry);
+
+        // Update component state.
+        setOptions(entry.options);
+        setHasMore(entry.hasMore);
       } catch (err) {
-        } finally {
-        setLoading(false)
+        if (!axiosInstance.isCancel?.(err)) {
+          console.error(err);
+        }
+      } finally {
+        setLoading(false);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [apiUrl, pageSize, JSON.stringify(extraParams)]
-  )
+    // Dependencies are stable thanks to useMemo for cacheKey and JSON.stringify for extraParams.
+    [apiUrl, pageSize, queryParamName, pageParamName, limitParamName, dataKey, searchCache]
+  );
 
-  /* 🔍 Search debounce */
+  // ---------- Effects ----------
+  // Effect to load data when dropdown opens for the first time.
   useEffect(() => {
-    if (!open) return
-    setPage(0)
-    fetchOptions(debouncedSearch, 0)
-  }, [debouncedSearch, open, fetchOptions])
-
-  /* 📜 Pagination */
-  useEffect(() => {
-    if (!open || page === 0) return
-    fetchOptions(debouncedSearch, page)
-  }, [page, open, debouncedSearch, fetchOptions])
-
-  const handleScroll = event => {
-    const { scrollTop, scrollHeight, clientHeight } = event.target
-    if (scrollTop + clientHeight >= scrollHeight - 10 && hasMore && !loading) {
-      setPage(p => p + 1)
+    if (open && !fetchedRef.current) {
+      fetchedRef.current = true;
+      setPage(0);
+      fetchOptions(debouncedSearch, 0);
     }
-  }
+  }, [open, debouncedSearch, fetchOptions]);
 
-  /* ✅ RHF stores ID → Autocomplete needs OBJECT */
-  const selectedValue = multiple
-    ? (Array.isArray(field.value) ? field.value : [])
-      .map(v => (typeof v === 'object' ? v : options.find(opt => getNestedValue(opt, valueKey) === v)))
-      .filter(Boolean)
-    : options.find(opt => getNestedValue(opt, valueKey) === (typeof field.value === 'object' && field.value !== null ? getNestedValue(field.value, valueKey) : field.value)) ||
-    (typeof field.value === 'object' ? field.value : null)
+  // Effect for pagination when page number changes.
+  useEffect(() => {
+    if (!open || page === 0) return;
+    fetchOptions(debouncedSearch, page);
+  }, [page, open, debouncedSearch, fetchOptions]);
+
+  // Effect for search debounce – reset pagination.
+  useEffect(() => {
+    if (!open) return;
+    setPage(0);
+    fetchOptions(debouncedSearch, 0);
+  }, [debouncedSearch, open, fetchOptions]);
+
+  // Cleanup: abort any pending request on unmount.
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
+
+  // Compute selected value for RHF.
+  const selectedValue = useMemo(() => {
+    if (multiple) {
+      return (Array.isArray(field.value) ? field.value : [])
+        .map(v => (typeof v === 'object' ? v : options.find(opt => getNestedValue(opt, valueKey) === v)))
+        .filter(Boolean);
+    }
+    const simpleValue =
+      typeof field.value === 'object' && field.value !== null
+        ? getNestedValue(field.value, valueKey)
+        : field.value;
+    return (
+      options.find(opt => getNestedValue(opt, valueKey) === simpleValue) ||
+      (typeof field.value === 'object' ? field.value : null)
+    );
+  }, [field.value, options, multiple, valueKey]);
+
+  // Scroll handler for infinite scroll.
+  const handleScroll = event => {
+    const { scrollTop, scrollHeight, clientHeight } = event.target;
+    if (scrollTop + clientHeight >= scrollHeight - 10 && hasMore && !loading) {
+      setPage(p => p + 1);
+    }
+  };
 
   return (
     <>
@@ -148,7 +201,6 @@ const RHFAutoComplete = ({
         {labelinput}
         {required && <span style={{ color: 'red' }}>*</span>}
       </Typography>
-
       <Autocomplete
         {...rest}
         fullWidth
@@ -160,39 +212,31 @@ const RHFAutoComplete = ({
         loading={loading}
         filterOptions={x => x}
         isOptionEqualToValue={(o, v) => getNestedValue(o, valueKey) === getNestedValue(v, valueKey)}
-        getOptionLabel={o => typeof labelKey === 'function' ? labelKey(o) : (getNestedValue(o, labelKey) || '')}
-        onOpen={() => {
-          setOpen(true)
-          setPage(0)
-          fetchOptions('', 0)
-        }}
+        getOptionLabel={o => (typeof labelKey === 'function' ? labelKey(o) : getNestedValue(o, labelKey) || '')}
+        onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
         onChange={(_, val) => {
           if (multiple) {
-            field.onChange(val ? val.map(v => returnObject ? v : getNestedValue(v, valueKey)) : [])
+            field.onChange(val ? val.map(v => (returnObject ? v : getNestedValue(v, valueKey))) : []);
           } else {
-            field.onChange(val ? (returnObject ? val : getNestedValue(val, valueKey)) : null)
+            field.onChange(val ? (returnObject ? val : getNestedValue(val, valueKey)) : null);
           }
         }}
         onInputChange={(_, val, reason) => {
-          if (reason === 'input') setSearch(val)
-          if (reason === 'clear') setSearch('')
+          if (reason === 'input') setSearch(val);
+          if (reason === 'clear') setSearch('');
         }}
         ListboxProps={{
           ref: listboxRef,
           onScroll: handleScroll,
-          style: { maxHeight: 250, overflowY: 'auto' }
+          style: { maxHeight: 250, overflowY: 'auto' },
         }}
         PaperComponent={props => (
           <Paper {...props}>
             {props.children}
             {addbtn && (
               <Box sx={{ borderTop: '1px solid #E5E7EB', p: 1 }}>
-                <Button
-                  onMouseDown={e => e.preventDefault()}
-                  onClick={handlebtnclick}
-                  sx={{ textTransform: 'none' }}
-                >
+                <Button onMouseDown={e => e.preventDefault()} onClick={handlebtnclick} sx={{ textTransform: 'none' }}>
                   <ControlPointIcon sx={{ mr: 1 }} />
                   {button_label || 'Add New'}
                 </Button>
@@ -213,13 +257,13 @@ const RHFAutoComplete = ({
                   {loading && <CircularProgress size={18} />}
                   {params.InputProps.endAdornment}
                 </>
-              )
+              ),
             }}
           />
         )}
       />
     </>
-  )
-}
+  );
+};
 
-export default RHFAutoComplete
+export default RHFAutoComplete;

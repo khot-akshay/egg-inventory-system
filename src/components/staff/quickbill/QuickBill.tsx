@@ -239,27 +239,7 @@ const QuickBill = () => {
         />
       </Card>
 
-      {openAdd && (
-        <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />
-      )}
-      {openDelete && (
-        <DeleteDialogPopup
-          show={openDelete}
-          handleclose={() => setOpenDelete(false)}
-          selectedItems={selectedItem?.id}
-          fetchData={fetchGame}
-          label="Are you sure! You want to delete."
-          apiUrl="api/v1/admin/products/deleteProducts/"
-        />
-      )}
-      {openEdit && (
-        <AddProducts
-          open={openEdit}
-          handleClose={() => setOpenEdit(false)}
-          fetchData={fetchGame}
-          selectedItem={selectedItem ?? undefined}
-        />
-      )}
+      
     </>
   )
 }
