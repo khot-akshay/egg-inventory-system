@@ -55,7 +55,7 @@ interface AddStocksFormProps {
   selectedItem?: any
 }
 
-const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps) => {
+const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -413,6 +413,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         customer_id: isNewCustomer ? null : extractId(data.customer_id),
         customer_name: isNewCustomer ? data.customer_name : null,
         phone_number: isNewCustomer ? data.phone_number : null,
+        egg_vendor_purchase_id: extractId(data.egg_vendor_purchase_id),
         paid_amount: paidAmount,
         // payment_type: paymentType,
         lines,
@@ -454,43 +455,31 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   return (
     <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
       <Grid container spacing={2}>
-        <Grid item xs={12} md={12}>
+        <Grid item xs={4}>
           <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
             🥚 Quick Bill
           </Typography>
-          {/* <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography> */}
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography>
         </Grid>
-        <Grid
-          item
-          xs={6}
-          md={8}
-
-        >
-          {/* {pendingAmount !== null && ( */}
-          <Chip
-            label={`DUE: ₹${Number(pendingAmount).toFixed(2)}`}
-            color={pendingAmount > 0 ? 'error' : 'success'}
-            sx={{ fontWeight: 'bold' }}
-          />
-          {/* )} */}
+        <Grid item xs={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {pendingAmount !== null && (
+            <Chip
+              label={`DUE: ₹${Number(pendingAmount).toFixed(2)}`}
+              color={pendingAmount > 0 ? 'error' : 'success'}
+              sx={{ fontWeight: 'bold' }}
+            />
+          )}
         </Grid>
-        <Grid
-          item
-          xs={6}
-          md={4}
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
+        <Grid item xs={6} md={4}>
           <Tooltip title="View Quick Bills List">
+
             <Button
-              variant="contained"
-              onClick={() => handleViewUser()}
-            >
+              variant='contained'
+              onClick={() => handleViewUser()}>
               Bills List
             </Button>
           </Tooltip>
+
         </Grid>
       </Grid>
 
@@ -545,8 +534,23 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
               </Grid>
             </>
           )}
+       
 
-
+            <Grid item xs={12}>
+              <RHFAutoComplete
+                control={control}
+                name="egg_vendor_purchase_id"
+                placeholder="Vehicle Details"
+                labelinput="Vehicle Details"
+                apiUrl="/api/v1/shop/getAllEggVendorPurchases"
+                extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
+                labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
+                valueKey="id"
+                required={!isNewCustomer}
+                disabled={isNewCustomer}
+              />
+            </Grid>
+          
 
           {/* Product Selection */}
           <Grid item xs={12}>
@@ -567,14 +571,14 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
           </Grid>
 
 
-          {(minRate !== null && maxRate !== null) && (
-            <>
-              <Grid item xs={6}>
+          <Grid item xs={12}>
+            {(minRate !== null && maxRate !== null) && (
+              <>
                 <Typography className="input-label">
-                  Price Range
+                  Price per Egg
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={maxRate !== minRate ? 6 : 12}>
+                <Grid container spacing={1} alignItems="center">
+                  {/* <Grid item xs={3} sm={2}>
                     <Button
                       fullWidth
                       variant={watch('rate_per_unit') === minRate ? "contained" : "outlined"}
@@ -585,7 +589,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                     </Button>
                   </Grid>
                   {maxRate !== minRate && (
-                    <Grid item xs={6}>
+                    <Grid item xs={3} sm={2}>
                       <Button
                         fullWidth
                         variant={watch('rate_per_unit') === maxRate ? "contained" : "outlined"}
@@ -595,31 +599,27 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                         {maxRate?.toFixed(2)}
                       </Button>
                     </Grid>
-                  )}
+                  )} */}
+                  <Grid item xs={6} sm={4}>
+                    <TextField
+                      placeholder="Custom Rate"
+                      type="number"
+                      defaultValue=""
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setValue('rate_per_unit', isNaN(val) ? null : val);
+                      }}
+                      inputProps={{ step: "0.01", min: "0" }}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
+                      }}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
-
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                  Price Per Egg
-                </Typography>
-                <TextField
-                  placeholder="Custom Rate"
-                  type="number"
-                  // value={watch('rate_per_unit') || ''}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setValue('rate_per_unit', isNaN(val) ? '' : val);
-                  }}
-                  inputProps={{ step: "0.01", min: "0" }}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
-                  }}
-                />
-              </Grid>
-            </>
-          )}
+              </>
+            )}
+          </Grid>
 
           {/* Integrated Unit and Quantity Selection */}
           <Grid item xs={12}>
@@ -923,4 +923,4 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   )
 }
 
-export default AddQuickBillForm
+export default AddDistributorQuickBill

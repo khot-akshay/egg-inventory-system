@@ -21,13 +21,13 @@ import HorizontalNavItems from 'src/navigation/horizontal'
 import VerticalAppBarContent from './components/vertical/AppBarContent'
 import HorizontalAppBarContent from './components/horizontal/AppBarContent'
 import NotAuthorized from 'src/pages/401'
-import BottomNav from 'src/components/BottomNav'
 
 // ** Hook Import
 import { useSettings } from 'src/@core/hooks/useSettings'
 import ErrorBoundary from 'src/components/common/ErrorBoundry'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import BottomNav from 'src/components/BottomNav'
 
 interface Props {
   children: ReactNode

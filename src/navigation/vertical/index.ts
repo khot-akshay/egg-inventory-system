@@ -50,23 +50,38 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Quick Bill",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff","Distributor"],
+    allowedRoles: ["Staff"],
     path: "/quickBill",
     isPermissionNeeded: true,
     permissionName: "quick_bill", // aligned with backend permission
 
   },
+   {
+    title: "Distributor Quick Bill",
+    icon: "mdi:clipboard-text-outline",
+    allowedRoles: ["Distributor"],
+    path: "/distributorQuickBill",
+    // isPermissionNeeded: true,
+    // permissionName: "quick_bill", // aligned with backend permission
+
+  },
 {
   title: "Day Opening",
   icon: "mdi:calendar-start",
-  allowedRoles: ["Staff", "Distributor"],
+  allowedRoles: ["Staff"],
   path: "/openingDay",
 },
 {
   title: "Day Closing",
   icon: "mdi:calendar-end",
-  allowedRoles: ["Staff", "Distributor"],
+  allowedRoles: ["Staff"],
   path: "/dayclosing",
+},
+{
+  title: " vehicle Closing",
+  icon: "mdi:calendar-end",
+  allowedRoles: ["Distributor"],
+  path: "/distributorVehicleclosing",
 },
 
   {
@@ -114,7 +129,13 @@ const tempObject: VerticalNavItemsType = [
     allowedRoles: ["Administrator"],
     path: "/stockhistory",
   },
-  {
+ {
+    title: "Day Trip",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Distributor"],
+    path: "/managedaytrip",
+  },
+  { 
     title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices
     allowedRoles: ["Administrator"],

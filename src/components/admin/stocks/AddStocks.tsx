@@ -125,7 +125,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
           setPrices(initialPrices)
         }
       } catch (error) {
-        }
+      }
     }
     fetchDefaultCategories()
   }, [selectedItem])
