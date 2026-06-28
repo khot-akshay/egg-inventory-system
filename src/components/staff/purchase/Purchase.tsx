@@ -427,11 +427,10 @@ const Purchase = () => {
           <Grid item xs={12} md={6} >
             <GoBack label="Egg Vendor Purchases" isBack={false} />
           </Grid>
-          <Grid item xs={12} md={3}>
+          {/* <Grid item xs={12} md={3}>
             <SearchInput handleSearch={handleSearch} placeHolder="Search purchase no, vendor..." />
           </Grid>
           <Grid item xs={4} md={1} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {/* List View */}
             <IconButton
               sx={{
                 width: 32,
@@ -455,7 +454,6 @@ const Purchase = () => {
               <Icon icon="material-symbols:list" width={20} />
             </IconButton>
 
-            {/* Grid View */}
             <IconButton
               sx={{
                 width: 32,
@@ -479,7 +477,6 @@ const Purchase = () => {
               <Icon icon="material-symbols:apps" width={20} />
             </IconButton>
 
-            {/* Download Button */}
             <CommonExport
               data={rows}
               fileName="EggVendorPurchases"
@@ -497,9 +494,9 @@ const Purchase = () => {
                 row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : 'NA'
               ]}
             />
-          </Grid>
+          </Grid> */}
 
-          <Grid item xs={12} md={3}>
+          {/* <Grid item xs={12} md={3}>
             <RHFAutoComplete
               control={control}
               name="category_id"
@@ -512,7 +509,7 @@ const Purchase = () => {
               required={false}
               handlebtnclick={() => { }}
             />
-          </Grid>
+          </Grid> */}
 
 
         </Grid>

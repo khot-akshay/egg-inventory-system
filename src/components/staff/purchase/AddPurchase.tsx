@@ -313,7 +313,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               disabled={isNewCustomer}
             />
           </Grid>
-          <Grid item xs={6}>
+          {/* <Grid item xs={6}>
             <RHFAutoComplete
               control={control}
               name="driver_id"
@@ -325,8 +325,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               required={!isNewCustomer}
               disabled={isNewCustomer}
             />
-          </Grid>
-          <Grid item xs={12}>
+          </Grid> */}
+          <Grid item xs={6}>
             <RHFAutoComplete
               control={control}
               name="vendor_id"

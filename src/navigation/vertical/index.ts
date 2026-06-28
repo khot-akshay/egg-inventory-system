@@ -77,8 +77,9 @@ const tempObject: VerticalNavItemsType = [
   allowedRoles: ["Staff"],
   path: "/dayclosing",
 },
+
 {
-  title: " vehicle Closing",
+  title: " Vehicle Closing",
   icon: "mdi:calendar-end",
   allowedRoles: ["Distributor"],
   path: "/distributorVehicleclosing",
@@ -115,14 +116,19 @@ const tempObject: VerticalNavItemsType = [
   allowedRoles: ["Administrator"],
   path: "/distributor",
 },
+  {
+    title: "Expenses",
+    icon: "mdi:cash-minus", // money going out
+    allowedRoles: ["Administrator"],
+    path: "/expense",
+  },
 {
-  title: "Vehicles",
-  icon: "mdi:car-outline",
-  allowedRoles: ["Administrator", "Distributor"],
-  path: "/vehicles",
-  isPermissionNeeded: true,
- permissionName: "vehicle",
+  title: "Day Closing History",
+  icon: "mdi:calendar-end",
+  allowedRoles: ["Administrator"],
+  path: "/dayclosingHistory",
 },
+
  {
     title: "Stock History",
     icon: "mdi:warehouse", // inventory / storage
@@ -147,12 +153,7 @@ const tempObject: VerticalNavItemsType = [
   //   allowedRoles: ["Administrator", "Staff"],
   //   path: "/commission",
   // },
-  {
-    title: "Expenses",
-    icon: "mdi:cash-minus", // money going out
-    allowedRoles: ["Administrator"],
-    path: "/expense",
-  },
+
    {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
@@ -289,6 +290,14 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
+      {
+  title: "Vehicles",
+  icon: "mdi:car-outline",
+  allowedRoles: ["Administrator"],
+  path: "/vehicles",
+  isPermissionNeeded: true,
+ permissionName: "vehicle",
+},
    
 
     ]

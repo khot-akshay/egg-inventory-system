@@ -455,13 +455,13 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   return (
     <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
       <Grid container spacing={2}>
-        <Grid item xs={4}>
+        <Grid item xs={12} md={12}>
           <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
             🥚 Quick Bill
           </Typography>
-          <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography>
+          {/* <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography> */}
         </Grid>
-        <Grid item xs={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Grid item xs={6} md={6}>
           {pendingAmount !== null && (
             <Chip
               label={`DUE: ₹${Number(pendingAmount).toFixed(2)}`}
@@ -470,7 +470,11 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
             />
           )}
         </Grid>
-        <Grid item xs={6} md={4}>
+        <Grid item xs={6} md={6} sx={{
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  }}>
           <Tooltip title="View Quick Bills List">
 
             <Button

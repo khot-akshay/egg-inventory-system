@@ -95,28 +95,28 @@ const DayTripDashboard = () => {
 
 
 
-  const fetchGame = useCallback(async () => {
-    setLoading(true)
-    try {
-      const params: Record<string, any> = {
-        pageNo: page,
-        limit: pageSize,
-        egg_vendor_purchase: true
-      }
+  // const fetchGame = useCallback(async () => {
+  //   setLoading(true)
+  //   try {
+  //     const params: Record<string, any> = {
+  //       pageNo: page,
+  //       limit: pageSize,
+  //       egg_vendor_purchase: true
+  //     }
 
-      if (searchQuery) params['global_search'] = searchQuery
-      if (selectedCategoryId) params['category_id'] = selectedCategoryId
-      if (selectedShopId) params['shop_id'] = selectedShopId
+  //     if (searchQuery) params['global_search'] = searchQuery
+  //     if (selectedCategoryId) params['category_id'] = selectedCategoryId
+  //     if (selectedShopId) params['shop_id'] = selectedShopId
 
-      const response = await axiosInstance.get('/api/v1/shop/getAllQuickbills', { params })
+  //     const response = await axiosInstance.get('/api/v1/shop/getAllQuickbills', { params })
 
-      setRows(response.data.data?.quickbills ?? [])
-      setTotalRows(response.data.data?.count ?? 0)
-    } catch (e) {
-    } finally {
-      setLoading(false)
-    }
-  }, [page, pageSize, searchQuery, selectedCategoryId, selectedShopId])
+  //     setRows(response.data.data?.quickbills ?? [])
+  //     setTotalRows(response.data.data?.count ?? 0)
+  //   } catch (e) {
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }, [page, pageSize, searchQuery, selectedCategoryId, selectedShopId])
 
 
   // useEffect(() => {
@@ -133,17 +133,28 @@ const DayTripDashboard = () => {
   }, [selectedCategoryId, selectedShopId, searchQuery])
 
   // Fetch data
-  useEffect(() => {
-    fetchGame()
-  }, [fetchGame])
+  // useEffect(() => {
+  //   fetchGame()
+  // }, [fetchGame])
 
   const fetchInventoryStock = useCallback(async () => {
 
     setStockLoading(true)
     try {
-      const response = await axiosInstance.get('/api/v1/shop/getInventoryStock', { params: { egg_vendor_purchase: true } })
-      if (response.data?.success) {
-        setStockData(response.data.data)
+      // First, fetch the active day trip to get its ID
+      const activeResp = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor')
+      const active = activeResp.data?.data?.active || []
+      const purchaseId = active.length > 0 ? active[0].id : null;
+
+      if (purchaseId) {
+        const response = await axiosInstance.get('/api/v1/shop/getEggVendorPurchaseDashboard', { 
+          params: { egg_vendor_purchase_id: purchaseId } 
+        })
+        if (response.data?.success) {
+          setStockData(response.data.data)
+        }
+      } else {
+        setStockData(null)
       }
     } catch (error) {
       toast.error('Failed to load stock data')
@@ -159,7 +170,7 @@ const DayTripDashboard = () => {
   useEffect(() => {
     const handleQuickBillAdded = () => {
       setPage(0)
-      fetchGame()
+      // fetchGame()
       fetchInventoryStock()
     }
 
@@ -167,7 +178,7 @@ const DayTripDashboard = () => {
     return () => {
       window.removeEventListener('quickBillAdded', handleQuickBillAdded)
     }
-  }, [fetchGame, fetchInventoryStock])
+  }, [ fetchInventoryStock])
 
 
 

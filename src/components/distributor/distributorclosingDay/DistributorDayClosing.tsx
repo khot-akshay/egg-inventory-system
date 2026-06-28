@@ -33,6 +33,7 @@ import toast from 'react-hot-toast'
 import { useAuth } from 'src/hooks/useAuth'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -75,6 +76,10 @@ interface EggRow {
   openingStock: number
   purchaseToday: number
   soldToday: number
+  shopStock1: number
+  shopStock2: number
+  saleStock: number
+  sellAmount: number
   closingSystem: number
   physicalCount: number
 }
@@ -105,11 +110,11 @@ const DAMAGE_REASONS = [
 ]
 
 const FALLBACK_CATEGORIES: EggRow[] = [
-  { id: 1, name: 'Regular Size Eggs', icon: 'mdi:egg', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 2, name: 'Broken Eggs', icon: 'mdi:egg-off', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 3, name: 'Double Dhill Eggs', icon: 'mdi:egg-outline', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 }
+  { id: 1, name: 'Regular Size Eggs', icon: 'mdi:egg', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 2, name: 'Broken Eggs', icon: 'mdi:egg-off', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 3, name: 'Double Dhill Eggs', icon: 'mdi:egg-outline', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 }
 ]
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
@@ -319,7 +324,7 @@ const EggMobileCard = ({
           ))}
         </Grid>
 
-        <Box mb={1.5}>
+        {/* <Box mb={1.5}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
             Physical Count
           </Typography>
@@ -332,7 +337,7 @@ const EggMobileCard = ({
             InputProps={{ inputProps: { min: 0, style: { fontWeight: 700, fontSize: '1.05rem' } } }}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
           />
-        </Box>
+        </Box> */}
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1.25, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -387,6 +392,8 @@ const DistributorDayClosing = () => {
 
   const { user } = useAuth()
   const shopId = user?.shop_id || user?.shop?.id
+  const router = useRouter()
+  const eggVendorPurchaseId = router.query.egg_vendor_purchase_id
 
   // ── State ────────────────────────────────────────────────────────────────────
   const [stockData, setStockData] = useState<StockData | null>(null)
@@ -427,31 +434,57 @@ const DistributorDayClosing = () => {
       const catResponse = await axiosInstance.get('/api/v1/shop/getAllCategories')
       const categories = catResponse.data?.data?.categories || catResponse.data?.categories || []
 
-      // 2. Fetch inventory stock
-      const stockResponse = await axiosInstance.get(`/api/v1/shop/getInventoryStock?shop_id=${shopId}`)
-      let stockCategories: any[] = []
-      if (stockResponse.data?.success) {
-        const data: StockData = stockResponse.data.data
-        setStockData(data)
-        stockCategories = data.categories || []
+      // 2. Determine active purchase ID
+      let activePurchaseId = router.query.egg_vendor_purchase_id
+      if (!activePurchaseId) {
+        const params = { pageNo: '1', limit: '1', shop_id: String(shopId) }
+        const purchaseListResponse = await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases', { params })
+        const purchases = purchaseListResponse.data?.data?.purchases || []
+        if (purchases.length > 0) {
+          activePurchaseId = purchases[0].id
+        }
       }
 
-      // 3. Map categories to EggRows with initial stock quantities
+      // 3. Fetch dashboard data if we have an ID
+      let dashboardData = null
+      if (activePurchaseId) {
+        const dashResponse = await axiosInstance.get(`/api/v1/shop/getEggVendorPurchaseDashboard?egg_vendor_purchase_id=${activePurchaseId}`)
+        dashboardData = dashResponse.data?.data
+      }
+
+      // 4. Map categories to EggRows
       const dynamicRows = categories.map((cat: any) => {
-        const matchedStock = stockCategories.find(sc => sc.category_id === cat.id)
-        const opening = matchedStock?.opening_count ?? 0
-        const purchase = matchedStock?.purchase_count ?? 0
-        const sold = matchedStock?.sold_count ?? 0
-        const closing = matchedStock?.remaining_count ?? 0
+        const catName = cat.name || "Unknown Category"
+
+        // Parse dashboard data for this category
+        const loadedItem = dashboardData?.loaded?.find((l: any) => l.category === catName)
+        const purchase = loadedItem?.count ?? 0
+        const vehicleStock = loadedItem?.remaining ?? 0
+
+        const sellArray = Array.isArray(dashboardData?.customer_sell)
+          ? dashboardData.customer_sell
+          : dashboardData?.customer_sell?.categories || []
+        const sellItem = sellArray.find((s: any) => s.category === catName)
+        const saleStock = sellItem?.count ?? 0
+        const sellAmount = sellItem?.amount ?? 0
+
+        const shopItems = dashboardData?.shops?.filter((s: any) => s.category === catName) || []
+        const shopStock1 = shopItems[0]?.count ?? 0
+        const shopStock2 = shopItems[1]?.count ?? 0
+
         return {
           id: cat.id,
-          name: cat.name || "Unknown Category",
-          icon: CATEGORY_ICONS[cat.name] ?? CATEGORY_ICONS.default,
-          openingStock: opening,
+          name: catName,
+          icon: CATEGORY_ICONS[catName] ?? CATEGORY_ICONS.default,
+          openingStock: 0,
           purchaseToday: purchase,
-          soldToday: sold,
-          closingSystem: closing,
-          physicalCount: closing
+          soldToday: 0,
+          shopStock1,
+          shopStock2,
+          saleStock,
+          sellAmount,
+          closingSystem: vehicleStock,
+          physicalCount: vehicleStock
         }
       })
       setEggRows(dynamicRows)
@@ -470,12 +503,16 @@ const DistributorDayClosing = () => {
 
   const totals = useMemo(() => {
     return {
-      opening: eggRows.reduce((s, r) => s + r.openingStock, 0),
-      purchase: eggRows.reduce((s, r) => s + r.purchaseToday, 0),
-      sold: eggRows.reduce((s, r) => s + r.soldToday, 0),
-      system: eggRows.reduce((s, r) => s + r.closingSystem, 0),
-      physical: eggRows.reduce((s, r) => s + r.physicalCount, 0),
-      diff: eggRows.reduce((s, r) => s + (r.physicalCount - r.closingSystem), 0)
+      opening: eggRows.reduce((s, r) => s + (r.openingStock || 0), 0),
+      purchase: eggRows.reduce((s, r) => s + (r.purchaseToday || 0), 0),
+      sold: eggRows.reduce((s, r) => s + (r.soldToday || 0), 0),
+      shopStock1: eggRows.reduce((s, r) => s + (r.shopStock1 || 0), 0),
+      shopStock2: eggRows.reduce((s, r) => s + (r.shopStock2 || 0), 0),
+      saleStock: eggRows.reduce((s, r) => s + (r.saleStock || 0), 0),
+      sellAmount: eggRows.reduce((s, r) => s + (r.sellAmount || 0), 0),
+      system: eggRows.reduce((s, r) => s + (r.closingSystem || 0), 0),
+      physical: eggRows.reduce((s, r) => s + (r.physicalCount || 0), 0),
+      diff: eggRows.reduce((s, r) => s + ((r.physicalCount || 0) - (r.closingSystem || 0)), 0)
     }
   }, [eggRows])
 
@@ -691,10 +728,10 @@ const DistributorDayClosing = () => {
                             { name: 'Purchase Stock', width: '10%', align: 'left' },
                             { name: 'Shop Stock 1', width: '10%', align: 'left' },
                             { name: 'Shop Stock 2', width: '10%', align: 'left' },
-
                             { name: 'Sale Stock', width: '10%', align: 'left' },
+                            { name: 'Sell Amount', width: '10%', align: 'left' },
                             { name: 'Vehicle Stock', width: '10%', align: 'left' },
-                            { name: 'Physical Count', width: '15%', align: 'center' },
+                            // { name: 'Physical Count', width: '15%', align: 'center' },
                             { name: 'status ', width: '15%', align: 'center' }
                           ].map(col => (
                             <TableCell
@@ -764,37 +801,16 @@ const DistributorDayClosing = () => {
                               </TableCell>
                               {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.openingStock.toLocaleString()}</Typography></TableCell> */}
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.purchaseToday.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.soldToday.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.soldToday.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.soldToday.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock1.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock2.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.saleStock.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{fmt(row.sellAmount)}</Typography></TableCell>
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}>
                                 <Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>
                                   {row.closingSystem.toLocaleString()}
                                 </Typography>
                               </TableCell>
-                              <TableCell width="15%" align="center" sx={{ py: 0.75, px: 2 }}>
-                                <TextField
-                                  type='number'
-                                  size='small'
-                                  fullWidth
-                                  value={row.physicalCount}
-                                  onChange={e => handlePhysicalChange(row.id, Number(e.target.value))}
-                                  inputProps={{
-                                    min: 0,
-                                    style: {
-                                      fontWeight: 700,
-                                      textAlign: 'center',
-                                      padding: '6px 8px'
-                                    }
-                                  }}
-                                  sx={{
-                                    width: '100%',
-                                    '& .MuiOutlinedInput-root': {
-                                      borderRadius: theme.shape.borderRadius * 0.25
-                                    }
-                                  }}
-                                />
-                              </TableCell>
+
                               <TableCell width="15%" align="center" sx={{ py: 1, px: 2 }}>
                                 <DiffBadge diff={diff} />
                               </TableCell>
@@ -811,11 +827,12 @@ const DistributorDayClosing = () => {
                           </TableCell>
                           {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.opening.toLocaleString()}</Typography></TableCell> */}
                           <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.purchase.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.sold.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.sold.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.sold.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock1.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock2.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.saleStock.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{fmt(totals.sellAmount)}</Typography></TableCell>
                           <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>{totals.system.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.physical.toLocaleString()}</Typography></TableCell>
+                          {/* <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.physical.toLocaleString()}</Typography></TableCell> */}
                           <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><DiffBadge diff={totals.diff} /></TableCell>
                         </TableRow>
                       </TableBody>
@@ -826,7 +843,7 @@ const DistributorDayClosing = () => {
             </SectionCard>
           </Grid>
 
-        
+
         </Grid>
 
         {/* ══════════════════════════════════════════════════════════════════

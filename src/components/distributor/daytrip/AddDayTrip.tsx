@@ -38,7 +38,9 @@ const schema = yup.object().shape({
   }),
   category_id: yup.mixed().nullable(),
   rate_per_unit: yup.number().nullable(),
-  purchase_date: yup.string().nullable()
+  purchase_date: yup.string().nullable(),
+  name: yup.string().nullable(),
+  egg_vendor_purchase_id: yup.mixed().nullable()
 })
 
 interface AddStocksFormProps {
@@ -88,7 +90,8 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
       phone_number: '',
       mixed_cash: null,
       mixed_online: null,
-      egg_vendor_purchase_id: null
+      egg_vendor_purchase_id: null,
+      name: ''
     }
   })
 
@@ -143,6 +146,41 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
       setDamaged(selectedItem.damaged_eggs)
     }
   }, [selectedItem, setValue])
+
+  const [loadedPurchases, setLoadedPurchases] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchDistributorData = async () => {
+      try {
+        const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor')
+        
+        // Fetch both loaded and active purchases to display them
+        const loaded = response.data?.data?.loaded || []
+        const active = response.data?.data?.active || []
+        
+        const allPurchases = [...loaded, ...active]
+        setLoadedPurchases(allPurchases)
+        
+        if (allPurchases.length > 0) {
+          const firstPurchase = allPurchases[0]
+
+          setValue('egg_vendor_purchase_id', firstPurchase)
+
+          if (firstPurchase.purchase_date) {
+            setValue('purchase_date', firstPurchase.purchase_date.split('T')[0])
+          }
+
+          if (firstPurchase.driver?.name) {
+            setValue('name', firstPurchase.driver.name)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch distributor data', err)
+      }
+    }
+
+    fetchDistributorData()
+  }, [setValue])
 
   useEffect(() => {
     if (!selectedCustomer && paymentType === 'credit') {
@@ -310,139 +348,50 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
 
   const grandTotal = cart.reduce((sum, item) => sum + item.total, 0)
 
-  const onSubmit = async (data: any) => {
-    setLoading(true)
+  const handleStartTrip = async () => {
+    setLoading(true);
+
     try {
-      const extractId = (value: any): number | null => {
-        if (value === null || value === undefined) return null
-        if (typeof value === 'number') return value
-        if (typeof value === 'object' && value.id) return Number(value.id)
-        return Number(value)
-      }
+      const purchasesToStart = loadedPurchases.filter(p => p.status === 'loaded');
 
-
-      // If no items in cart and no product details entered, prevent submission
-      // if (cart.length === 0 && !(watch('category_id') && quantity > 0 && watch('rate_per_unit'))) {
-      //   toast.error('Please add at least one product to the list')
-      //   setLoading(false)
-      //   return
-      // }
-      const cashAmount = Number(data.mixed_cash)
-      const upiAmount = Number(data.mixed_online)
-      const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
-      // Determine the overall total amount based on cart or single item
-      const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
-      // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
-      const paidAmount =
-        paymentType === 'credit'
-          ? 0
-          : paymentType === 'mixed'
-            ? cashAmount + upiAmount
-            : totalAmount;
-      let payments: { amount: number; payment_type: string }[] = [];
-      // Build lines for payload
-      let lines: { category_id: any; quantity: number; unit_cost: number; unit_type: string; unit_value: number }[] = [];
-      if (cart.length > 0) {
-        lines = cart.map(item => ({
-          category_id: item.category_id,
-          quantity: item.quantity,
-          unit_cost: item.rate,
-          unit_type: item.unit,
-          unit_value: item.unit_value
-        }));
-      } else if (watch('category_id') && quantity > 0 && watch('rate_per_unit')) {
-        const cat = watch('category_id');
-        const catId = typeof cat === 'object' && cat.id ? cat.id : cat;
-        lines = [{
-          category_id: catId,
-          quantity,
-          unit_cost: Number(watch('rate_per_unit')),
-          unit_type: unit,
-          unit_value: 0
-        }];
-      }
-      //     if (paymentType === 'credit') {
-      //   payments = [{
-      //     amount: 0,
-      //     payment_type: 'credit'
-      //   }];
-      // } else {
-      //   payments = [{
-      //     amount: totalAmount,
-      //     payment_type: paymentType
-      //   }];
-      // }
-
-      if (paymentType === 'mixed') {
-        if (cashAmount > 0) {
-          payments.push({
-            amount: cashAmount,
-            payment_type: 'cash'
-          });
-        }
-
-        if (upiAmount > 0) {
-          payments.push({
-            amount: upiAmount,
-            payment_type: 'upi'
-          });
-        }
-      } else if (paymentType === 'credit') {
-        payments = [{
-          amount: 0,
-          payment_type: 'credit'
-        }];
-      } else {
-        payments = [{
-          amount: totalAmount,
-          payment_type: paymentType
-        }];
-      }
-
-      if (!quantity || quantity <= 0) {
-        toast.error('Quantity is required');
-        setLoading(false);
+      if (purchasesToStart.length === 0) {
+        toast.error("No loaded purchases to start.");
         return;
       }
 
-      const payload = {
-        customer_id: isNewCustomer ? null : extractId(data.customer_id),
-        customer_name: isNewCustomer ? data.customer_name : null,
-        phone_number: isNewCustomer ? data.phone_number : null,
-        egg_vendor_purchase_id: extractId(data.egg_vendor_purchase_id),
-        paid_amount: paidAmount,
-        // payment_type: paymentType,
-        lines,
-        payments
+      // Start all loaded purchases
+      for (const purchase of purchasesToStart) {
+        await axiosInstance.post(
+          `/api/v1/shop/assignEggPurchaseToDistributor?egg_vendor_purchase_id=${purchase.id}`
+        );
       }
 
-      const response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
+      toast.success("Day trip started successfully.");
 
-      if (response.data.success) {
-        toast.success(response.data.message || 'Bill confirmed successfully')
-        // reset({
-        //   customer_id: null,
-        //   category_id: null,
-        //   rate_per_unit: 150,
-        //   customer_name: '',
-        //   phone_number: '',
-        //   mixed_cash: 0,
-        //   mixed_online: 0
-        // })
-        resetBillForm();
+      // Do NOT reset the form to keep Distributor Name visible
+      // resetBillForm();
 
-        if (fetchData) fetchData()
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new Event('quickBillAdded'))
-        }
-        if (handleClose) handleClose()
+      if (fetchData) fetchData();
+
+      // Update local state to reflect 'active' status instead of removing them
+      setLoadedPurchases(prevPurchases => 
+        prevPurchases.map(p => ({ ...p, status: 'active' }))
+      );
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("quickBillAdded"));
       }
+
+      if (handleClose) handleClose();
+      
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Something went wrong')
+      toast.error(
+        error?.response?.data?.message || "Something went wrong"
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleViewUser = () => {
     router.push('/quickbillList')
@@ -459,64 +408,20 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
         </Typography>
       </Box>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           {/* Left Section: Form Controls */}
           <Grid item xs={12} md={12}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <RHFAutoComplete
-                  control={control}
-                  name="egg_vendor_purchase_id"
-                  placeholder="Select Vehicle"
-                  labelinput="Vehicle"
-                  apiUrl="/api/v1/shop/getAllEggVendorPurchases"
-                  extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
-                  labelKey={(opt: any) =>
-                    `${opt.vehicle?.registration_number || opt.vehicle?.name || 'N/A'}`
-                  }
-                  valueKey="id"
-                  returnObject={true}
-                  required
-                />
-              </Grid>
               <Grid item xs={12} sm={6}>
-
-             <RHFInput
-                control={control}
-                name='name'
-                label='Distributor Name'
-                placeholder='Distributor Name'
-                mandatory
-              />
-              </Grid>
-{/* 
-              <Grid item xs={12} sm={6}>
-                <RHFAutoComplete
-                  control={control}
-                  name="category_id"
-                  placeholder="Select Helper / Staff"
-                  labelinput="Helper / Staff"
-                  apiUrl="/api/v1/admin/getAllCategories"
-                  extraParams={{ shop_id: currentStaffShopId || '' }}
-                  dataKey="data.categories"
-                  labelKey="name"
-                  valueKey="id"
-                  returnObject={true}
-                  required
-                />
-              </Grid> */}
-
-              {/* <Grid item xs={12} sm={6}>
                 <RHFInput
                   control={control}
-                  name="rate_per_unit"
-                  label="Opening KM"
-                  placeholder="Enter Opening KM"
-                  inputType="number"
+                  name='name'
+                  label='Distributor Name'
+                  placeholder='Distributor Name'
                   mandatory
+                  disabled
                 />
-              </Grid> */}
+              </Grid>
 
               <Grid item xs={12} sm={6}>
                 <RHFInput
@@ -526,9 +431,12 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
                   placeholder="Select Date"
                   inputType="date"
                   mandatory
+                  disabled
                 />
               </Grid>
-              <Grid item xs={12}>
+              
+              {loadedPurchases.map((purchase) => (
+              <Grid item xs={12} key={purchase.id}>
                 <Paper
                   variant="outlined"
                   sx={{
@@ -543,8 +451,8 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
                       Status
                     </Typography>
                     <Chip
-                      label="Active"
-                      color="success"
+                      label={(purchase?.status || 'LOADED').toUpperCase()}
+                      color={purchase?.status?.toLowerCase() === 'active' ? 'success' : 'warning'}
                       size="small"
                       sx={{ fontWeight: 'bold' }}
                     />
@@ -558,53 +466,76 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
                         Purchase ID
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        {selectedPurchase?.id ? `#${selectedPurchase.id}` : 'Auto Generated'}
+                        {purchase?.id ? `#${purchase.id}` : 'Auto Generated'}
                       </Typography>
                     </Box>
 
-                    {selectedPurchase?.created_at && (
+                    {(purchase?.purchase_no) && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Purchase No
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.primary' }}>
+                          {purchase?.purchase_no}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {purchase?.created_at && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary">
                           Trip Start Time
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.primary' }}>
-                          {moment(selectedPurchase.created_at).format('hh:mm A')}
+                          {moment(purchase.created_at).format('hh:mm A')}
                         </Typography>
                       </Box>
                     )}
 
-                    {(selectedPurchase?.vehicle?.registration_number || selectedPurchase?.vehicle?.name) && (
+                    {(purchase?.vehicle?.registration_number || purchase?.vehicle?.name) && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary">
                           Vehicle Name
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.primary' }}>
-                          {selectedPurchase?.vehicle?.registration_number || selectedPurchase?.vehicle?.name}
+                          {purchase?.vehicle?.registration_number || purchase?.vehicle?.name}
                         </Typography>
                       </Box>
                     )}
 
-                    {(selectedDriver?.name || selectedPurchase?.driver?.name) && (
+                    {(purchase?.driver?.name) && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary">
                           Driver Name
                         </Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.primary' }}>
-                          {selectedDriver?.name || selectedPurchase?.driver?.name}
+                          {purchase?.driver?.name}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {(purchase?.vendor?.name) && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Vendor Name
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'text.primary' }}>
+                          {purchase?.vendor?.name}
                         </Typography>
                       </Box>
                     )}
                   </Stack>
                 </Paper>
               </Grid>
+              ))}
 
               <Grid item xs={12} sx={{ mt: 2 }}>
                 <Button
                   fullWidth
                   variant="contained"
-                  type="submit"
                   size="large"
-                  disabled={loading}
+                  onClick={handleStartTrip}
+                  disabled={loading || !loadedPurchases.some(p => p.status === 'loaded')}
                   sx={{ height: 48 }}
                 >
                   {loading ? (
@@ -615,13 +546,9 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
                 </Button>
               </Grid>
 
-              
             </Grid>
           </Grid>
-
-         
         </Grid>
-      </form>
     </Card>
   )
 }
