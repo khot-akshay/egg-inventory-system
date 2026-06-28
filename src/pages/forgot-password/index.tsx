@@ -135,7 +135,6 @@ const ForgotPassword = () => {
         .catch(error => {
           if (error.response.status == 403) {
             for (let key in error.response.data.data) {
-              , })
               toast.error(error.response.data.data[key].join(','), {
                 position: 'top-center'
               })
@@ -174,7 +173,6 @@ const ForgotPassword = () => {
         .catch(error => {
           if (error.response.status == 403) {
             for (let key in error.response.data.data) {
-              , })
               toast.error(error.response.data.data[key].join(','), {
                 position: 'top-center'
               })

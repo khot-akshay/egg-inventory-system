@@ -72,7 +72,7 @@ export default function DataTreeCheckbox(props:any){
   }
 
   const CategoryNodeWithRadio = (nodes: DataTreeNode) => {
-    // return (
+    return (
       <TreeItem
         key={nodes.id}
         nodeId={nodes.id+""}
