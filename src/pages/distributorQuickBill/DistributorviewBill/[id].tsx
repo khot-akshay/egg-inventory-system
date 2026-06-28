@@ -230,6 +230,7 @@ export default function Viewopportunity() {
       }
     } catch (error) {
       // //}
+    }
   };
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
