@@ -98,7 +98,6 @@ const AddShop = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         toast.success(selectedItem ? 'Shop updated successfully.' : 'Shop added successfully.')
       }
     } catch (e: any) {
-      console.error(e)
       toast.error(
         selectedItem
           ? e?.response?.data?.message ?? 'Failed to update shop. Please try again.'

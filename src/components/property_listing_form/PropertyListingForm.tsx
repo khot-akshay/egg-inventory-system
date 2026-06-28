@@ -54,14 +54,11 @@ const PropertyListingForm = () => {
                 setRows(response.data?.data.data) // Fix here
                 setTotalRows(response?.data?.data?.data.count ?? 0)
 
-                // console.log(response?.data?.data?.data, 'response?.data?.data?.data');
-
-            } else {
+                // } else {
                 setRows([])
                 setTotalRows(0)
             }
         } catch (e) {
-            console.error("Error fetching data:", e)
             setRows([]) // Ensure table doesn't break if an error occurs
             setTotalRows(0)
         } finally {

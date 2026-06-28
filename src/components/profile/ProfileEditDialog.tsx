@@ -43,8 +43,7 @@
 //       fetchData();        
 //       handleClose();     
 //     } catch (error) {
-//       console.error(error);
-//       alert('Failed to update profile');
+//       //       alert('Failed to update profile');
 //     }
 //   };
 
@@ -166,7 +165,6 @@ const ProfileEditDialog = ({ open, handleClose, userData, fetchData }) => {
             fetchData();
             handleClose();
         } catch (error) {
-            console.error(error);
             alert('Failed to update profile');
         }
     };

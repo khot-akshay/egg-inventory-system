@@ -125,7 +125,6 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
           setPrices(initialPrices)
         }
       } catch (error) {
-        console.error("Failed to fetch categories:", error)
       }
     }
     fetchDefaultCategories()
@@ -203,7 +202,6 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
         if (handleClose) handleClose()
       }
     } catch (error: any) {
-      console.error('Error recording purchase:', error)
       toast.error(error?.response?.data?.message || 'Something went wrong')
     } finally {
       setLoading(false)

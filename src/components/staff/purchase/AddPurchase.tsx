@@ -132,8 +132,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           setPrices(initialPrices)
         }
       } catch (error) {
-        console.error("Failed to fetch categories:", error)
-      }
+        }
     }
     fetchDefaultCategories()
   }, [selectedItem])
@@ -178,8 +177,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           }))
         }
       } catch (error) {
-        console.error("Failed to fetch vendor prices:", error)
-      }
+        }
     }
 
     fetchVendorPrices()
@@ -273,15 +271,13 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           try {
             await fetchData(); // This usually calls getAllEggVendorPurchases in the parent
           } catch (e) {
-            console.error('Error refreshing data after submit:', e);
-          }
+            }
         }
         // Ensure the latest purchases are fetched directly
         try {
           await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases');
         } catch (e) {
-          console.error('Error fetching purchases after submit:', e);
-        }
+          }
         // Notify other components to refresh purchase list immediately
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('purchaseAdded'));
@@ -289,7 +285,6 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         if (handleClose) handleClose();
       }
     } catch (error: any) {
-      console.error('Error recording purchase:', error)
       toast.error(error?.response?.data?.message || 'Something went wrong')
     } finally {
       setLoading(false)
@@ -318,7 +313,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               disabled={isNewCustomer}
             />
           </Grid>
-          <Grid item xs={6}>
+          {/* <Grid item xs={6}>
             <RHFAutoComplete
               control={control}
               name="driver_id"
@@ -330,8 +325,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               required={!isNewCustomer}
               disabled={isNewCustomer}
             />
-          </Grid>
-          <Grid item xs={12}>
+          </Grid> */}
+          <Grid item xs={6}>
             <RHFAutoComplete
               control={control}
               name="vendor_id"

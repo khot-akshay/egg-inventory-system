@@ -38,8 +38,7 @@ export default function ViewExpense() {
       }
     } catch (error) {
       setIsLoading(false);
-      console.error(error);
-    }
+      }
   };
 
   useEffect(() => {

@@ -76,8 +76,6 @@ export default function AddCategory({ open, handleClose, fetchData, selectedItem
             } else {
                 url = `/v1/admin/createCategory?category_type=${router.query.slug}`
             }
-            console.log(url);
-
             const response = await axiosInstance.post(url, data);
             if (response.data.success) {
                 toast.success(selectedItem ? 'Category updated successfully.' : 'Category added successfully.',{position: 'top-right'})
@@ -86,8 +84,7 @@ export default function AddCategory({ open, handleClose, fetchData, selectedItem
                 reset()
             }
         } catch (e) {
-            console.error(e);
-        } finally {
+            } finally {
             setIsLoading(false);
         }
     };

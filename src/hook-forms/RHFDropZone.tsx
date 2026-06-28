@@ -158,8 +158,7 @@
 //         }
 //         return '';
 //     })();
-//     console.log(imageUrl,'ghjkk')
-//     return (
+//     //     return (
 //         <Box {...getRootProps()} className={`image-drop ${isDragActive ? 'active' : ''}`}>
 //             <input {...getInputProps()}  />
 //             {isDragActive ? (
@@ -354,37 +353,27 @@ const RHFDropZone: React.FC<RHFDropZoneProps> = ({
     });
 
     const imageUrl = (() => {
-        console.log('value:', value);
-        console.log('imgUrl:', imgUrl);
-        
         // First check if there's a new file being uploaded
         if (value && typeof value !== 'string') {
             // Handle both single file and array of files
             const fileToDisplay = Array.isArray(value) ? value[0] : value;
             if (fileToDisplay instanceof File) {
                 const url = URL.createObjectURL(fileToDisplay);
-                console.log('Generated URL:', url);
                 return url;
             }
         }
         
         // Then check for existing URLs
         if (imgUrl) {
-            console.log('Using imgUrl:', imgUrl);
             return imgUrl;
         } else if (videoUrl) {
-            console.log('Using videoUrl:', videoUrl);
             return videoUrl;
         } else if (pdfUrl) {
-            console.log('Using pdfUrl:', pdfUrl);
             return pdfUrl;
         }
         
-        console.log('No URL found');
         return '';
     })();
-
-    console.log('Final imageUrl:', imageUrl, 'ghjkk');
 
     return (
         <Box {...getRootProps()} className={`image-drop ${isDragActive ? 'active' : ''}`}>

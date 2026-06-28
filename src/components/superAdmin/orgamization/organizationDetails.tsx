@@ -16,7 +16,6 @@ export default function OrganizationDetails() {
             setOrganization(response.data.data)
             setLoading('success')
         } catch (e) {
-            console.log('error ro fetch org:', e)
             setLoading('failed')
         }
     }

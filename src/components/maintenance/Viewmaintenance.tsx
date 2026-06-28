@@ -73,10 +73,8 @@ function Viewmaintenance({ isUpdate }: Props) {
 
             const response = await axiosInstance.get(`v1/admin/getMaintenance?id=${router.query.id}`)
             setExpenseData(response.data.data)
-            // console.log(response.data.data , 'data aaaaaa');
-        } catch (e) {
-            console.log(e)
-        }
+            // } catch (e) {
+            }
     }
 
     const handleUploadImage = async () => {
@@ -90,8 +88,7 @@ function Viewmaintenance({ isUpdate }: Props) {
         try {
             const response = await axiosInstance.post(`v1/admin/addAttachment`, formData)
         } catch (e) {
-            console.log(e)
-        }
+            }
     }
     const onSubmit = async (data) => {
         setIsLoading(true);
@@ -115,7 +112,6 @@ function Viewmaintenance({ isUpdate }: Props) {
             toast.success(response?.data?.message ?? 'Maintenance Added Successfully.')
             router.back()
         } catch (e) {
-            console.error(e)
             if (e.response?.status === 412 && e.response?.data?.data) {
                 for (const key in e.response?.data?.data) {
                     setError(key, { type: 'manual', message: e.response?.data?.data[key].join(',') });
@@ -141,7 +137,6 @@ function Viewmaintenance({ isUpdate }: Props) {
         }
         if (options.length >= totalCount) {
             // If already fetched all available options, stop pagination
-            console.log("No more data to fetch.");
             return;
         }
         setTimeout(async () => {
@@ -159,8 +154,7 @@ function Viewmaintenance({ isUpdate }: Props) {
                     });
                 }
             } catch (e) {
-                console.log(e)
-            } finally {
+                } finally {
                 setfetchingAmenityType(false)
             }
         }, 1000)
@@ -182,8 +176,7 @@ function Viewmaintenance({ isUpdate }: Props) {
             // setValue('payment_mode', expenseData?.payment_mode)
             // setValue('attachment', expenseData?.attachment)
             setValue('attachment', expenseData?.attachment || []);
-            // console.log(expenseData.attachment, 'attachment');
-        }
+            // }
     }, [expenseData])
     const getFileIcon = (fileName) => {
         const ext = fileName.split('.').pop().toLowerCase();
@@ -203,9 +196,6 @@ function Viewmaintenance({ isUpdate }: Props) {
                 return <InsertDriveFileIcon />;
         }
     };
-    console.log(expenseData?.attachment, 'attachment ceck');
-
-
     return (
         <>
             <Typography sx={{ fontSize: '25px', fontWeight: 'bold', textAlign: 'start', flexGrow: 1 }}>

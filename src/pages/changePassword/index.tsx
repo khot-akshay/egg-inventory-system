@@ -147,7 +147,6 @@ const ChangePassword = () => {
             ).then((response) => {
                 setLoading(false)
                 let data = response.data
-                console.log(data)
                 if (data?.success) {
 
                     toast.success(data.message, {
@@ -159,7 +158,6 @@ const ChangePassword = () => {
                 router.back()
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response.status == 403) {
                     for (let key in error.response.data.data) {
                         setError(key, { type: "manual", message: error.response.data.data[key].join(',') })
@@ -171,7 +169,6 @@ const ChangePassword = () => {
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Password Could Not Change', {
                 position: 'top-center',
             })

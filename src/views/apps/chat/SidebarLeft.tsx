@@ -122,8 +122,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       const response = await axiosInstance.get('/admin/v1/operator/get-all')
       setOperators(response.data.data.data)
     } catch (e) {
-      console.log(e)
-    }
+      }
   }
   useEffect(() => {
     fetchOperators()

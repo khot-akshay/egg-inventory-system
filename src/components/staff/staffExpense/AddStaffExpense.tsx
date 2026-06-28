@@ -20,6 +20,7 @@ import axiosInstance from 'src/services/axios'
 import * as yup from 'yup'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import toast, { Toaster } from 'react-hot-toast'
+import { useAuth } from 'src/hooks/useAuth'
 
 const schema = yup.object().shape({
   expense_date: yup.string().required('Expense date is required'),
@@ -34,7 +35,7 @@ const schema = yup.object().shape({
 
   description: yup.string().nullable(),
 
-  shop_id: yup.mixed().required('Shop is required')
+  shop_name: yup.string().nullable()
 })
 
 interface FormData {
@@ -42,7 +43,7 @@ interface FormData {
   category: string
   amount: number
   description: string
-  shop_id: any
+  shop_name: string
 }
 
 interface SelectedItem {
@@ -69,7 +70,7 @@ const defaultValues: FormData = {
   category: '',
   amount: 0,
   description: '',
-  shop_id: null
+  shop_name: ''
 }
 
 const AddStaffExpense = ({
@@ -79,6 +80,7 @@ const AddStaffExpense = ({
   selectedItem
 }: Props) => {
   const [isLoading, setIsLoading] = useState(false)
+  const { user } = useAuth()
 
   const {
     control,
@@ -99,10 +101,7 @@ const AddStaffExpense = ({
         category: data.category,
         amount: Number(data.amount),
         description: data.description,
-        shop_id:
-          typeof data.shop_id === 'object'
-            ? data.shop_id.id
-            : data.shop_id
+        shop_id: selectedItem?.shop_id || user?.shop_id || user?.shop?.id
       }
 
       let url = ''
@@ -121,8 +120,6 @@ const AddStaffExpense = ({
         fetchData()
       }
     } catch (e: any) {
-      console.error(e)
-
       toast.error(
         e?.response?.data?.message ??
           (selectedItem
@@ -150,16 +147,14 @@ const AddStaffExpense = ({
         selectedItem.description || ''
       )
 
-      if (selectedItem.shop_id) {
-        setValue('shop_id', {
-          id: selectedItem.shop_id,
-          name: selectedItem.shop?.name || 'Shop'
-        })
-      }
+      setValue('shop_name', selectedItem.shop?.name || user?.shop?.name || '')
     } else {
-      reset(defaultValues)
+      reset({
+        ...defaultValues,
+        shop_name: user?.shop?.name || ''
+      })
     }
-  }, [selectedItem, setValue, reset])
+  }, [selectedItem, setValue, reset, user])
 
   const handleCloseModal = () => {
     reset(defaultValues)
@@ -204,25 +199,22 @@ const AddStaffExpense = ({
 
         <IconButton onClick={handleCloseModal}>
           <HighlightOffIcon
-            sx={{ color: 'error.main' }}
-            fontSize='large'
+            color='error'
+            sx={{ fontSize: '30px' }}
           />
         </IconButton>
       </DialogTitle>
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
-          <Grid container spacing={2}>
+          <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <RHFAutoComplete
+              <RHFInput
                 control={control}
-                name='shop_id'
-                placeholder='Select Shop'
-                labelinput='Select Shop'
-                apiUrl='/api/v1/admin/getAllShops'
-                labelKey='name'
-                valueKey='id'
-                required
+                name='shop_name'
+                label='Shop Name'
+                placeholder='Shop Name'
+                disabled
               />
             </Grid>
 

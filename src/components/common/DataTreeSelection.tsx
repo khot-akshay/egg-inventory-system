@@ -72,8 +72,7 @@ export default function DataTreeCheckbox(props:any){
   }
 
   const CategoryNodeWithRadio = (nodes: DataTreeNode) => {
-    // console.log(nodes)
-    return (
+    // return (
       <TreeItem
         key={nodes.id}
         nodeId={nodes.id+""}
@@ -85,19 +84,15 @@ export default function DataTreeCheckbox(props:any){
               <Checkbox
                 checked={selected?.some((item:any) => item === nodes.id)}
                 onChange={(e)=>{
-                  console.log(nodes)
                   getOnChange(e.currentTarget.checked, nodes)
-                  // console.log(props.data,nodes.id)
-                  // const allNode: string[] = getChildById(props.data, nodes.id);
-                  // console.log(allNode)
-                  // //combines newly selected nodes with existing selection
+                  // // const allNode: string[] = getChildById(props.data, nodes.id);
+                  // // //combines newly selected nodes with existing selection
                   // //or filters out newly deselected nodes from existing selection
                   // let checked= e.currentTarget.checked
                   // let array = checked
                   //   ? [...selected, ...allNode]
                   //   : selected.filter((value) => !allNode.includes(value));
-                  // console.log(array)
-                  // setSelected(array);
+                  // // setSelected(array);
                   // props.onCategorySelect(array)
                 }
                 }

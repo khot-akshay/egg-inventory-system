@@ -31,8 +31,7 @@ const PurchasePrice = () => {
       setRows(data)
       setTotalRows(response.data.data?.count || data.length || 0)
     } catch (e) {
-      console.log(e)
-    } finally {
+      } finally {
       setLoading(false)
     }
   }

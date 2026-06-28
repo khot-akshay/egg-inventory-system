@@ -39,7 +39,6 @@ const PromocodeList: React.FC = () => {
                 setLoading(false);
             })
             .catch((error) => {
-                console.error(error);
                 setRows([]);
                 setLoading(false);
             });

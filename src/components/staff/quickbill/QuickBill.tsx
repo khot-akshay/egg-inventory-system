@@ -48,11 +48,8 @@ const QuickBill = () => {
       const response = await axiosInstance.get(`/api/v1/shop/getAllQuickbills?${params.toString()}`)
       setRows(response.data.data?.quickbills ?? [])
       setTotalRows(response.data.data?.count ?? 0)
-      console.log('Rows:', response.data.data?.quickbills?.length)
-console.log('Total Count:', response.data.data?.count)
-    } catch (e) {
-      console.error(e)
-    } finally {
+      } catch (e) {
+      } finally {
       setLoading(false)
     }
     
@@ -242,27 +239,7 @@ console.log('Total Count:', response.data.data?.count)
         />
       </Card>
 
-      {openAdd && (
-        <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />
-      )}
-      {openDelete && (
-        <DeleteDialogPopup
-          show={openDelete}
-          handleclose={() => setOpenDelete(false)}
-          selectedItems={selectedItem?.id}
-          fetchData={fetchGame}
-          label="Are you sure! You want to delete."
-          apiUrl="api/v1/admin/products/deleteProducts/"
-        />
-      )}
-      {openEdit && (
-        <AddProducts
-          open={openEdit}
-          handleClose={() => setOpenEdit(false)}
-          fetchData={fetchGame}
-          selectedItem={selectedItem ?? undefined}
-        />
-      )}
+      
     </>
   )
 }

@@ -192,7 +192,6 @@ export default function PromocodeForm() {
             ).then((response) => {
                 setLoading(false)
                 let data = response.data
-                console.log(data)
                 if (data?.success) {
 
                     toast.success(data.message, {
@@ -206,7 +205,6 @@ export default function PromocodeForm() {
                 router.back()
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response.status == 412) {
                     for (let key in error.response.data.data) {
                         setError(key, { type: "manual", message: error.response.data.data[key].join(',') })
@@ -219,7 +217,6 @@ export default function PromocodeForm() {
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Promocode Could Not Added', {
                 position: 'top-center',
             })
@@ -435,7 +432,6 @@ export default function PromocodeForm() {
                                         inputFormat="YYYY-MM-DD"
                                         onChange={(e: Dayjs | null) => {
                                             setStartFrom(e)
-                                            console.log()
                                             setValue('start_from', dayjs(e).format('YYYY-MM-DD'))
                                         }}
                                         value={startFrom}
@@ -459,7 +455,6 @@ export default function PromocodeForm() {
                                         inputFormat="YYYY-MM-DD"
                                         onChange={(e: Dayjs | null) => {
                                             setEndOn(e)
-                                            console.log()
                                             setValue('end_on', dayjs(e).format('YYYY-MM-DD'))
                                         }}
                                         value={endOn}
@@ -673,7 +668,6 @@ export default function PromocodeForm() {
                                                 inputFormat="YYYY-MM-DD"
                                                 onChange={(e: Dayjs | null) => {
                                                     setRegisteredFrom(e)
-                                                    console.log()
                                                     setValue('registered_from', dayjs(e).format('YYYY-MM-DD'))
                                                 }}
                                                 value={registeredFrom}
@@ -697,7 +691,6 @@ export default function PromocodeForm() {
                                                 inputFormat="YYYY-MM-DD"
                                                 onChange={(e: Dayjs | null) => {
                                                     setRegisteredTill(e)
-                                                    console.log()
                                                     setValue('registered_till', dayjs(e).format('YYYY-MM-DD'))
                                                 }}
                                                 value={registeredTill}

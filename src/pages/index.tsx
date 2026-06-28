@@ -15,8 +15,7 @@ import themeConfig from 'src/configs/themeConfig'
  *  Set Home URL based on User Roles
  */
 export const getHomeRoute = (user: any) => {
-console.log(user,'auth12');
-  // if (role === 'CareTaker') return '/care_taker'
+// if (role === 'CareTaker') return '/care_taker'
   // else if(role === 'Manager') return '/turf_management'
   // else
   // const permissionArray = user?.permission?.filter((permission: any) => permission?.parent_id == null)
@@ -46,8 +45,7 @@ const Home = () => {
   useEffect(() => {
     if (auth.user) {
       const homeRoute = getHomeRoute(auth.user)
-console.log(homeRoute,"homeRoute")
-      // Redirect user to Home URL
+// Redirect user to Home URL
       router.replace(homeRoute)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

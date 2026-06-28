@@ -46,8 +46,7 @@ const Faqs = () => {
             setRows(response.data.data.faqs ?? [])
             setTotalRows(response.data.data?.count ?? 0)
         } catch (e) {
-            console.log(e)
-        } finally {
+            } finally {
             setLoading(false)
         }
     }
@@ -68,13 +67,9 @@ const Faqs = () => {
         setOpenEdit(true)
     }
     const handleDeleteOpen = (params: GridCellParams) => {
-        console.log('Delete Clicked:', params.row)
         setSelectedItem(params.row)
         setOpenDelete(true)
-        console.log('Selected Item for delete:', selectedItem)
-
-
-    }
+        }
     const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: GridColDef[]) => {
         const { checked } = event.target;
         try {

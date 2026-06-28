@@ -127,7 +127,6 @@ function Addmaintenance({ turfData }: Props) {
         const formData = new FormData()
 
         const { attachment } = data
-        console.log(attachment)
         // Ensure priority is an object and has a value
         const priorityValue = data.priority?.value || '';
 
@@ -153,7 +152,6 @@ function Addmaintenance({ turfData }: Props) {
             toast.success(response?.data?.message ?? 'Maintenance Added Successfully.')
             router.back()
         } catch (e) {
-            console.error(e)
             if (e.response?.status === 412 && e.response?.data?.data) {
                 for (const key in e.response?.data?.data) {
                     setError(key, { type: 'manual', message: e.response?.data?.data[key].join(',') });
@@ -177,7 +175,6 @@ function Addmaintenance({ turfData }: Props) {
     };
     showValidationErrors(errors);
     const handleImage = (data) => {
-        console.log(data)
         setValue('attachment', data)
 
     }
@@ -189,7 +186,6 @@ function Addmaintenance({ turfData }: Props) {
         }
         if (options.length >= totalCount) {
             // If already fetched all available options, stop pagination
-            console.log("No more data to fetch.");
             return;
         }
         setTimeout(async () => {
@@ -207,8 +203,7 @@ function Addmaintenance({ turfData }: Props) {
                     });
                 }
             } catch (e) {
-                console.log(e)
-            } finally {
+                } finally {
                 setfetchingAmenityType(false)
             }
         }, 1000)

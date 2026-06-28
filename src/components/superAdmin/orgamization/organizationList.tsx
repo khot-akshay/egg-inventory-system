@@ -37,7 +37,6 @@ const OrganizationList = () => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error(error);
         setRows([]);
         setLoading(false);
       });

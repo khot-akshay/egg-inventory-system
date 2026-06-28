@@ -24,7 +24,7 @@
 //     // const date = selectedPromocode.start_from;
 //     // const startFrom = date.substring(0, 10);
 
-//     console.log(); // Output: "22-02-2023"
+//     // Output: "22-02-2023"
 //     return (
 //         <Dialog
 //             scroll='body'

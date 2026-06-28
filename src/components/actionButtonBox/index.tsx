@@ -37,8 +37,6 @@ const ActionButtonBox = ({ newData, apiEndpoint, id, getAllData, quserystatus = 
     setSelectedItem(item?.id);
     setRejectDialog(true);
   };
-  console.log(newData?.documents, "newData")
-
   const rejectedOrPendingCount =
     newData?.documents?.filter(
       (doc) => doc.document_status === 'rejected' || doc.document_status === 'pending'
@@ -83,7 +81,6 @@ const ActionButtonBox = ({ newData, apiEndpoint, id, getAllData, quserystatus = 
         toast.error(response?.message ?? 'Something went wrong');
       }
     } catch (e) {
-      console.error(e);
       toast.error(e?.message ?? 'Error occurred');
     } finally {
       setLoading(false);
@@ -107,7 +104,6 @@ const ActionButtonBox = ({ newData, apiEndpoint, id, getAllData, quserystatus = 
         toast.error(response?.message ?? 'Something went wrong.');
       }
     } catch (e) {
-      console.error(e);
       toast.error(e?.message ?? 'Error occurred.');
     } finally {
       setLoading(false);
@@ -128,7 +124,6 @@ const ActionButtonBox = ({ newData, apiEndpoint, id, getAllData, quserystatus = 
         toast.error(response?.message ?? 'Something went wrong.');
       }
     } catch (e) {
-      console.error(e);
       toast.error(e?.message ?? 'Error occurred.');
     } finally {
       setLoading(false);

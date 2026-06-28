@@ -92,7 +92,6 @@ export default function ProfileUpdatePopup({ show, handleclose, userData, fetchD
                 }
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response.status == 403) {
                     for (const key in error.response.data.data) {
                         setError(key, { type: "manual", message: error.response.data.data[key].join(',') })
@@ -104,7 +103,6 @@ export default function ProfileUpdatePopup({ show, handleclose, userData, fetchD
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Profile Could Not Edited', {
                 position: 'top-center',
             })

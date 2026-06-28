@@ -130,7 +130,6 @@ const AddTermsConditions = ({ open, handleClose, fetchData, selectedItem }: Prop
                 toast.success(selectedItem ? 'Faqs updated successfully.' : 'Faqs added successfully.')
             }
         } catch (e: any) {
-            console.error(e)
             if (e?.response?.data?.data) {
                 const serverErrors = e.response.data.data
                 Object.keys(serverErrors).forEach(field => {

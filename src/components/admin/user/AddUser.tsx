@@ -149,7 +149,6 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         handleCloseModal();
       }
     } catch (e: any) {
-      console.error(e);
       const apiErrors = e?.response?.data?.data;
       if (apiErrors) {
         Object.keys(apiErrors).forEach((key) => {

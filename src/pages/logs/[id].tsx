@@ -45,8 +45,7 @@ export default function AuditDetailsPage() {
             }
         } catch (err) {
             setError("Failed to fetch audit log details");
-            console.error("Error fetching audit log:", err);
-        } finally {
+            } finally {
             setLoading(false);
         }
     };

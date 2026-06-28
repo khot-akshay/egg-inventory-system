@@ -82,7 +82,6 @@ const AddMaterialType = ({ open, handleClose, fetchData, selectedItem }: Props) 
                 toast.success(selectedItem ? 'Material Type updated successfully.' : 'Material Type  added successfully.')
             }
         } catch (e: any) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update Material Type . Please try again.'

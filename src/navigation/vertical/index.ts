@@ -50,30 +50,40 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Quick Bill",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff","Distributor"],
+    allowedRoles: ["Staff"],
     path: "/quickBill",
     isPermissionNeeded: true,
     permissionName: "quick_bill", // aligned with backend permission
 
   },
-  {
-    title: "Day Closing",
+   {
+    title: "Distributor Quick Bill",
     icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff","Distributor"],
-    path: "/dayclosing",
+    allowedRoles: ["Distributor"],
+    path: "/distributorQuickBill",
     // isPermissionNeeded: true,
     // permissionName: "quick_bill", // aligned with backend permission
 
   },
-  {
-    title: "Day Opening",
-    icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Staff","Distributor"],
-    path: "/openingDay",
-    // isPermissionNeeded: true,
-    // permissionName: "quick_bill", // aligned with backend permission
+{
+  title: "Day Opening",
+  icon: "mdi:calendar-start",
+  allowedRoles: ["Staff"],
+  path: "/openingDay",
+},
+{
+  title: "Day Closing",
+  icon: "mdi:calendar-end",
+  allowedRoles: ["Staff"],
+  path: "/dayclosing",
+},
 
-  },
+{
+  title: " Vehicle Closing",
+  icon: "mdi:calendar-end",
+  allowedRoles: ["Distributor"],
+  path: "/distributorVehicleclosing",
+},
 
   {
     title: "Stock",
@@ -106,21 +116,32 @@ const tempObject: VerticalNavItemsType = [
   allowedRoles: ["Administrator"],
   path: "/distributor",
 },
+  {
+    title: "Expenses",
+    icon: "mdi:cash-minus", // money going out
+    allowedRoles: ["Administrator"],
+    path: "/expense",
+  },
 {
-  title: "Vehicles",
-  icon: "mdi:car-outline",
-  allowedRoles: ["Administrator", "Distributor"],
-  path: "/vehicles",
-  isPermissionNeeded: true,
- permissionName: "vehicle",
+  title: "Day Closing History",
+  icon: "mdi:calendar-end",
+  allowedRoles: ["Administrator"],
+  path: "/dayclosingHistory",
 },
+
  {
     title: "Stock History",
     icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Administrator"],
     path: "/stockhistory",
   },
-  {
+ {
+    title: "Day Trip",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Distributor"],
+    path: "/managedaytrip",
+  },
+  { 
     title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices
     allowedRoles: ["Administrator"],
@@ -132,12 +153,7 @@ const tempObject: VerticalNavItemsType = [
   //   allowedRoles: ["Administrator", "Staff"],
   //   path: "/commission",
   // },
-  {
-    title: "Expenses",
-    icon: "mdi:cash-minus", // money going out
-    allowedRoles: ["Administrator"],
-    path: "/expense",
-  },
+
    {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
@@ -274,6 +290,14 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
+      {
+  title: "Vehicles",
+  icon: "mdi:car-outline",
+  allowedRoles: ["Administrator"],
+  path: "/vehicles",
+  isPermissionNeeded: true,
+ permissionName: "vehicle",
+},
    
 
     ]
@@ -302,9 +326,7 @@ const navigation = (): VerticalNavItemsType => {
   const { user } = useAuth();
 
   // Debug logging
-  // console.log('Navigation Debug - User data:', user);
-  // console.log('Navigation Debug - User roles:', user?.roles);
-  // console.log('Navigation Debug - User role (string):', user?.role);
+  // // // :', user?.role);
 
   const hasRole = (roleName: string): boolean => {
     if (user?.is_super_admin) return true;

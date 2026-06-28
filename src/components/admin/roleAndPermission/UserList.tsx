@@ -58,8 +58,7 @@ export default function UserList({ setIsUserUpdated, isUserUpdates }: any) {
       setTotalRows(response.data.data.count ?? 0);
 
     } catch (e) {
-      console.error(e)
-    } finally {
+      } finally {
       setIsLoading(false)
     }
 

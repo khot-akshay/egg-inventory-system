@@ -72,7 +72,6 @@ const CommonExport: React.FC<CommonExportProps> = ({
       
       toast.success('Exported successfully')
     } catch (error) {
-      console.error('Export error:', error)
       toast.error('Failed to export data')
     }
   }

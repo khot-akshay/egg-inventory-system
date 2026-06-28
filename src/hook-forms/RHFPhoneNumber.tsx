@@ -41,8 +41,7 @@ const RHFPhoneNumber: React.FC<RHFPhoneNumberProps> = ({ name, control, mandator
         const response = await axios.get('https://ipapi.co/json/')
         setDefaultCountry(response.data.country_code || 'IN')
       } catch (error) {
-        console.error('Error fetching user country:', error)
-      }
+        }
     }
 
     fetchCountry()

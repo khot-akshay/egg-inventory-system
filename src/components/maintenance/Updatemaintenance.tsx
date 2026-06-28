@@ -72,9 +72,7 @@ function MaintenanceDetails({ turfData }: MaintenanceDetailsProps) {
       const response = await axiosInstance.get(`v1/admin/getMaintenance?id=${router.query.id}`)
       setExpenseData(response.data.data)
     } catch (error) {
-      console.error('Error fetching maintenance data:', error)
-
-    }
+      }
     finally {
       setLoading(false)
     }
@@ -105,8 +103,7 @@ function MaintenanceDetails({ turfData }: MaintenanceDetailsProps) {
       setRejectReason('');
     } catch (error) {
       toast.error('Failed to update status');
-      console.error('API Error:', error);
-    }
+      }
   };
 
 

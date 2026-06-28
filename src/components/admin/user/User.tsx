@@ -66,10 +66,8 @@ const User = () => {
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e: any) {
       if (e.name === 'CanceledError' || e.name === 'AbortError') {
-        console.log('Fetch aborted');
-      } else {
-        console.error(e);
-      }
+        } else {
+        }
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
 // ** Next Imports
 import Head from 'next/head'
@@ -15,8 +15,9 @@ import { Provider } from 'react-redux'
 import NProgress from 'nprogress'
 
 // ** Emotion Imports
-import { CacheProvider } from '@emotion/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { EmotionCache } from '@emotion/cache'
+import { CacheProvider } from '@emotion/react'
 
 // ** Config Imports
 import 'src/configs/i18n'
@@ -105,6 +106,7 @@ const Guard = ({ children, authGuard, guestGuard }: GuardProps) => {
 
 // ** Configure JSS & ClassName
 const App = (props: ExtendedAppProps) => {
+  const queryClient = new QueryClient();
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
   const isOnline = useInternetConnection();
 
@@ -123,7 +125,8 @@ const App = (props: ExtendedAppProps) => {
 
   return (
     <Provider store={store}>
-      <CacheProvider value={emotionCache}>
+      <QueryClientProvider client={queryClient}>
+        <CacheProvider value={emotionCache}>
         <Head>
           <title>{`${themeConfig.templateName} - Admin`}</title>
           <meta
@@ -160,6 +163,7 @@ const App = (props: ExtendedAppProps) => {
           </SettingsProvider>
         </AuthProvider>
       </CacheProvider>
+        </QueryClientProvider>
     </Provider>
   )
 }

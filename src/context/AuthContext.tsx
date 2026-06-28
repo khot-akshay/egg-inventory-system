@@ -51,15 +51,12 @@ const AuthProvider = ({ children }: Props) => {
       if (storedUserData) {
         try {
           const userData = JSON.parse(storedUserData)
-          console.log('InitAuth Debug - Using stored user data:', userData)
           setUser(userData)
         } catch (e) {
-          console.error('Failed to parse stored user data:', e)
           localStorage.removeItem('userData')
         }
       }
 
-      console.log(storedToken, "storedToken")
       if (storedToken) {
         setLoading(true)
         await axiosInstance
@@ -70,10 +67,8 @@ const AuthProvider = ({ children }: Props) => {
           })
           .then((response: any) => {
             setLoading(false)
-            console.log(response, "responsegetcurent")
             const userData = response.data.data
             if (userData) {
-              console.log('InitAuth Debug - Setting user from API:', userData)
               const role = userData.roles?.[0]?.slug || 'admin'
               const fullUserData = { ...userData, role }
               setUser(fullUserData)
@@ -81,7 +76,6 @@ const AuthProvider = ({ children }: Props) => {
             }
           })
           .catch((e) => {
-            console.log(e, "error1")
             setLoading(false)
             signOut()
             setUser(null)
@@ -109,7 +103,6 @@ const AuthProvider = ({ children }: Props) => {
         window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
 
         const returnUrl = router.query.returnUrl
-        console.log(response, response.data.user, "login")
         const userData = response.data.user
         window.localStorage.setItem('userData', JSON.stringify(userData))
         setUser(userData)

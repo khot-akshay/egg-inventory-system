@@ -24,7 +24,7 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
     if (!vendorId) return;
     try {
       setIsLoading(true);
-      const url = `/api/v1/admin/getAllVendorEggPrices?id=${vendorId}`;
+      const url = `/api/v1/admin/getAllVendorEggPrices?vendor_id=${vendorId}`;
       const response = await axiosInstance.get(url);
 
       if (response.data.success) {
@@ -32,13 +32,12 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
         const formattedPrices = fetchedPrices.map((p: any) => ({
           id: p.id,
           category_id: p.category_id,
-          price_per_egg: p.price_per_egg,
+          price_per_egg: Number(p.price_per_egg).toFixed(2),
           name: p.category?.name || "Unknown Category"
         }));
         setPrices(formattedPrices);
       }
     } catch (error: any) {
-      console.error(error);
       toast.error(error?.response?.data?.message || error?.message || "Failed to fetch prices");
     } finally {
       setIsLoading(false);
@@ -80,7 +79,6 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
         toast.error(response.data.message || "Failed to update prices");
       }
     } catch (error: any) {
-      console.error(error);
       toast.error(error?.response?.data?.message || "Something went wrong while updating prices");
     } finally {
       setIsSaving(false);
@@ -107,7 +105,7 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
             <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>
                 {prices.map((item, index) => (
-                  <Grid item xs={6} md={2.4}  key={item.id || item.category_id}>
+                  <Grid item xs={6} md={2.4} key={item.id || item.category_id}>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5 }}>
                       {item.name}
                     </Typography>

@@ -129,15 +129,13 @@ const ForgotPassword = () => {
       setEmailError('');
       axiosInstance.post(`/admin/v1/auth/sendotp`, obj)
         .then(response => {
-          console.log(response.data);
           toast.success(response.data.message)
           setOtpSent(true);
         })
         .catch(error => {
-          console.log(error);
           if (error.response.status == 403) {
             for (let key in error.response.data.data) {
-              console.log(key, { message: error.response.data.data[key].join(','), })
+              , })
               toast.error(error.response.data.data[key].join(','), {
                 position: 'top-center'
               })
@@ -165,7 +163,6 @@ const ForgotPassword = () => {
       setAllField('')
       axiosInstance.post(`/admin/v1/auth/resetpassword`, obj)
         .then(response => {
-          console.log(response.data);
           let data = response.data
           if (data?.success) {
 
@@ -175,10 +172,9 @@ const ForgotPassword = () => {
           router.back()
         })
         .catch(error => {
-          console.log(error);
           if (error.response.status == 403) {
             for (let key in error.response.data.data) {
-              console.log(key, { message: error.response.data.data[key].join(','), })
+              , })
               toast.error(error.response.data.data[key].join(','), {
                 position: 'top-center'
               })
@@ -213,7 +209,6 @@ const ForgotPassword = () => {
         // logInUser(response?.data?.data)
       }
     } catch (e: any) {
-      console.log(e)
       if (e.response?.status == 412 && e.response.data?.data && Object.keys(e.response.data.data).length > 0) {
         for (let key in e.response.data?.data) {
           setError(key, { type: 'manual', message: e.response.data?.data[key].join(',') })

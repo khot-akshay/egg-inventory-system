@@ -66,8 +66,7 @@ const Plants = () => {
   //     setRows(response.data.data.brands ?? [])
   //     setTotalRows(response.data.data?.count ?? 0)
   //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false)
   //   }
   // }
@@ -83,8 +82,7 @@ const Plants = () => {
   //     setRows(response.data.data.brands ?? []);
   //     setTotalRows(response.data.data?.count ?? 0);
   //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false);
   //   }
   // };
@@ -112,11 +110,9 @@ const Plants = () => {
       }
       const response = await axiosInstance.get(`/api/v1/admin/plant/getAllPlants?${params.toString()}`);
       setRows((response.data.data?.data ?? []) as CategoryRow[]);
-      console.log(response.data.data?.data, 'data')
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
-      console.log(e);
-    } finally {
+      } finally {
       setLoading(false);
     }
   }, [page, pageSize, searchQuery, selectedCategoryId, selectedUserId]);
@@ -141,11 +137,9 @@ const Plants = () => {
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as CategoryRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
 
   useEffect(() => {

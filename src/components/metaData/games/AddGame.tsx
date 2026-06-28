@@ -71,7 +71,6 @@ export default function AddGame({ open, handleClose, fetchData, selectedItem }: 
                 toast.success(selectedItem ? 'Game updated successfully.' : 'Game added successfully.')
             }
         } catch (e) {
-            console.error(e);
             if (e.response?.status === 412 && e.response?.data?.data) {
                 for (const key in e.response?.data?.data) {
                   setError(key, { type: 'manual', message: e.response?.data?.data[key].join(',') });

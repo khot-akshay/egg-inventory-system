@@ -33,7 +33,6 @@ const OperatorList = () => {
                 setLoading(false);
             })
             .catch((error) => {
-                console.error(error);
                 setRows([]);
                 setLoading(false);
             });

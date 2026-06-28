@@ -8,7 +8,6 @@ const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 const RHFQuill = ({ control, name, ...rest }) => {
   if (!control) {
-    console.error('Control prop is missing. Please provide a valid control object from useForm.');
     return null;
   }
   const theme = useTheme();
@@ -160,8 +159,7 @@ export default RHFQuill;
 
 // const RHFQuill = ({ control, name, ...rest }) => {
 //   if (!control) {
-//     console.error('Control prop is missing. Please provide a valid control object from useForm.');
-//     return null;
+//     //     return null;
 //   }
 
 //   const theme = useTheme();

@@ -65,7 +65,7 @@ const ChartForSale = (props: LineProps) => {
       }
     }
   }
-  // console.log(dashboardData.graphData.map((item) => (item.week)))
+  // => (item.week)))
 
   const data: ChartData<'line'> = {
     labels: dahboardData?.graphData.map((item) => item.week),

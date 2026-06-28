@@ -155,8 +155,6 @@ const AddDistributor = ({
         fetchData()
       }
     } catch (e: any) {
-      console.error(e)
-
       toast.error(
         e?.response?.data?.message ??
           (selectedItem

@@ -142,9 +142,7 @@ const VerticalNavItems = (props: Props) => {
   const { verticalNavItems } = props
   const auth = useAuth()
   const dispatch = useDispatch()
-console.log(auth,"authhh",auth?.user,"authhhh")
-
-  // ✅ Helper: check if user has a specific permission
+// ✅ Helper: check if user has a specific permission
   const hasPermission = (permissionName?: string): boolean => {
     if (auth?.user?.is_super_admin) return true
     if (!permissionName) return true

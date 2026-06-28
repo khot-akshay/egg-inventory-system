@@ -28,7 +28,6 @@ function CommonDatagrid({
   loading,
   handleRowSelectionChange,
 }: Props) {
-  console.log(totalRows, "totalRows", pageSize, currentPage);
   return (
     <>
 

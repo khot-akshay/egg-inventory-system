@@ -154,7 +154,6 @@ const AddProducts = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         toast.success(response.data.message)
       }
     } catch (e: any) {
-      console.error(e)
       toast.error(
         selectedItem
           ? e?.response?.data?.message ?? 'Failed to update product. Please try again.'

@@ -67,7 +67,6 @@ export default function AddPaymentAccount({ open, handleClose, fetchData, select
                 toast.success(selectedItem ? 'Account updated successfully.' : 'Account added successfully.')
             }
         } catch (e) {
-            console.error(e);
             if (e.response?.status === 412 && e.response?.data?.data) {
                 for (const key in e.response?.data?.data) {
                     setError(key, { type: 'manual', message: e.response?.data?.data[key].join(',') });

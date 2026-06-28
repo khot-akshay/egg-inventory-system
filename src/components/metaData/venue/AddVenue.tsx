@@ -63,7 +63,6 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
     formData.append('is_active', '1')
     // formData.append('user_id', '1')
     // formData.append('user_id', data.user_id?.value)
-    console.log(data.image)
     const { image } = data
 
     if (data.image) {
@@ -84,7 +83,6 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
         toast.success(selectedItem ? 'Venue updated successfully.' : 'Venue added successfully.')
       }
     } catch (e) {
-      console.error(e)
       toast.error(
         selectedItem 
           ? e?.response?.data?.message ?? 'Failed to update Venue. Please try again.' 
@@ -105,8 +103,7 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
   //   }
   //   if (options.length >= totalCount) {
   //     // If already fetched all available options, stop pagination
-  //     console.log('No more data to fetch.')
-  //     return
+  //     //     return
   //   }
   //   setTimeout(async () => {
   //     try {
@@ -126,8 +123,7 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
   //       }
        
   //     } catch (e) {
-  //       console.log(e)
-  //       toast.error(e?.response?.data?.message ?? 'Failed to add Manager. Please try again.')
+  //       //       toast.error(e?.response?.data?.message ?? 'Failed to add Manager. Please try again.')
        
   //     } finally {
   //       setFetchingMember(false)
@@ -142,7 +138,6 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
     }
     if (options.length >= totalCount) {
       // If already fetched all available options, stop pagination
-      console.log('No more data to fetch.')
       return
     }
     setTimeout(async () => {
@@ -160,8 +155,7 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
           })
         }
       } catch (e) {
-        console.log(e)
-      } finally {
+        } finally {
         setFetchingCities(false)
       }
     }, 1000)
@@ -194,8 +188,7 @@ export default function AddVenue({ open, handleClose, fetchData, selectedItem }:
     if (content.length > 0) {
       const image = await convertFileToBase64(content[0])
       setValue('image', image)
-      console.log(image)
-    }
+      }
   }
   return (
     <Dialog

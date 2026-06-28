@@ -68,8 +68,7 @@ const Vendor = () => {
       setRows(response.data.data?.vendors ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
-      console.error(e)
-    } finally {
+      } finally {
       setLoading(false)
     }
   }

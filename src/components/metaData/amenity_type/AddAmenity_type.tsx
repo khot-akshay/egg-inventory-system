@@ -70,7 +70,6 @@ export default function AddAmenity_type ({ open, handleClose , fetchData, select
                 toast.success(selectedItem ? 'Amenity Type updated successfully.' : 'Amenity Type added successfully.')
             }
         } catch (e) {
-            console.error(e);
             toast.error(
                 selectedItem 
                   ? e?.response?.data?.message ?? 'Failed to update amenity type. Please try again.' 

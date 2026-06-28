@@ -126,8 +126,7 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
                     setSelectedCheckbox(computeFullSelection(slugs, perms));
                 }
             } catch (e) {
-                console.error(e);
-            } finally {
+                } finally {
                 if (isMounted) setIsLoading(false);
             }
         };
@@ -165,7 +164,6 @@ const UpdateRolePopupDialog: React.FC<UpdateRoleDialogProps> = ({ openDelete, on
                 toast.success(response.data.message);
             }
         } catch (e:any) {
-            console.error("API Error Response:", e?.response?.data);
             if ((e?.response?.status === 422 || e?.response?.status === 412) && e?.response?.data?.data) {
                 for (const key in e?.response?.data?.data) {
                     setError(key as any, { type: 'manual', message: e?.response?.data?.data[key].join(', ') });

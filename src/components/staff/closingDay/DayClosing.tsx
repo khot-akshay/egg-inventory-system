@@ -456,7 +456,6 @@ const DayClosing = () => {
       })
       setEggRows(dynamicRows)
     } catch (err) {
-      console.error('Failed to fetch stock/category data:', err)
       toast.error('Failed to load stock data')
     } finally {
       setStockLoading(false)
@@ -481,16 +480,17 @@ const DayClosing = () => {
   }, [eggRows])
 
   const paymentAmounts = stockData?.totals?.payment_amounts ?? {}
-  const cashSales = Number(paymentAmounts['cash'] ?? 0)
+  const totalExpense = Number(stockData?.totals?.expense_total ?? 0)
+  const cashSales = Number(paymentAmounts['cash'] ?? 0) + totalExpense
   const onlineSales = Number(paymentAmounts['upi'] ?? 0)
   const creditSales = Number(paymentAmounts['credit'] ?? 0)
   const totalSales = Number(stockData?.totals?.total_amount ?? 0)
-  const totalExpense = Number(stockData?.totals?.expense_total ?? 0)
   const existingCash = Number(stockData?.totals?.existing_cash ?? 0)
   const dueAmount = Number(stockData?.totals?.due_amount ?? 0)
   const damagedCount = Number(stockData?.totals?.damaged_count ?? 0)
 
-  const expectedCash = cashSales - totalExpense + existingCash
+  // Expected cash is just the Cash in Counter
+  const expectedCash = existingCash
   const cashDiff = Number(closingCash || 0) - expectedCash
   const onlineDiff = (Number(payments.upi || 0) + Number(payments.online || 0) + Number(payments.card || 0)) - onlineSales
   const creditDiff = Number(payments.credit || 0) - dueAmount
@@ -558,7 +558,6 @@ const DayClosing = () => {
         toast.error(response.data?.message || 'Failed to submit Day Closing')
       }
     } catch (err: any) {
-      console.error('Failed to submit Day Closing:', err)
       toast.error(err?.response?.data?.message || 'Something went wrong during submission')
     } finally {
       setStockLoading(false)

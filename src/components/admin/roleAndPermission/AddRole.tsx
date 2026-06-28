@@ -66,8 +66,7 @@ const AddRolePopupDialog: React.FC<AddRoleDialogProps> = ({ openDelete, onClose,
             const response = await axiosInstance.get(`/v1/${auth.user?.role}/getAllPermission?parent=true&sort_by=id&sort_order=asc`);
             setAllPermisstion(response.data.data.permissions);
         } catch (e) {
-            console.error(e);
-        }
+            }
     };
 
     useEffect(() => {
@@ -112,9 +111,7 @@ const AddRolePopupDialog: React.FC<AddRoleDialogProps> = ({ openDelete, onClose,
         // setIsIndeterminateCheckbox(false);
     };
     useEffect(() => {
-        console.log(selectedCheckbox)
         const allId = selectedCheckbox?.length > 0 && selectedCheckbox?.length !== allPermisstion.flatMap(item => [item.id, ...(item.children?.map(child => child.id) || [])])?.length
-        console.log(allId)
         setIsIndeterminateCheckbox(allId)
     }, [selectedCheckbox])
     const togglePermission = (id: string) => {
@@ -245,7 +242,6 @@ const AddRolePopupDialog: React.FC<AddRoleDialogProps> = ({ openDelete, onClose,
                         <Grid container>
 
                             {allPermisstion.length > 0 && <DataTreeCheckbox data={allPermisstion} selectedCategories={selectedCheckbox} onCategorySelect={(e: any) => {
-                                console.log(e)
                                 // setValue('categories', e)
                                 setSelectedCheckbox(e)
                             }} />}

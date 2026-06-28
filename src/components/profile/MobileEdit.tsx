@@ -72,8 +72,6 @@ export default function MobileUpdatePopup({ show, handleclose, userData, fetchDa
                 handleOtp()
             }
         } catch (error) {
-            console.log(error)
-
             setLoading(false)
         }
 
@@ -112,7 +110,6 @@ export default function MobileUpdatePopup({ show, handleclose, userData, fetchDa
                 }
 
             }).catch((error) => {
-                console.log(error)
                 if (error.response?.status == 412 && error?.response?.data?.data) {
                     for (const key in error?.response?.data?.data) {
                         setError(key, { type: "manual", message: error.response?.data?.data[key].join(',') })
@@ -126,7 +123,6 @@ export default function MobileUpdatePopup({ show, handleclose, userData, fetchDa
 
         }
         catch (error) {
-            console.log(error)
             toast.error('Profile Could Not Edited', {
                 position: 'top-center',
             })

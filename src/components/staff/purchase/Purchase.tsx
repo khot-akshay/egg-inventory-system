@@ -105,8 +105,7 @@ const Purchase = () => {
   //     setRows(response.data.data.brands ?? [])
   //     setTotalRows(response.data.data?.count ?? 0)
   //   } catch (e) {
-  //     console.log(e)
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false)
   //   }
   // }
@@ -122,8 +121,7 @@ const Purchase = () => {
   //     setRows(response.data.data.brands ?? []);
   //     setTotalRows(response.data.data?.count ?? 0);
   //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
+  //     //   } finally {
   //     setLoading(false);
   //   }
   // };
@@ -144,8 +142,7 @@ const Purchase = () => {
       setRows(response.data.data?.purchases ?? []);
       setTotalRows(response.data.data?.count ?? 0);
     } catch (e) {
-      console.error(e);
-    } finally {
+      } finally {
       setLoading(false);
     }
   };
@@ -199,11 +196,9 @@ const Purchase = () => {
     setOpenEdit(true)
   }
   const handleDeleteOpen = (params: GridCellParams) => {
-    console.log('Delete Clicked:', params.row)
     setSelectedItem(params.row as PurchaseRow)
     setOpenDelete(true)
-    console.log('Selected Item for delete:', selectedItem)
-  }
+    }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
@@ -432,11 +427,10 @@ const Purchase = () => {
           <Grid item xs={12} md={6} >
             <GoBack label="Egg Vendor Purchases" isBack={false} />
           </Grid>
-          <Grid item xs={12} md={3}>
+          {/* <Grid item xs={12} md={3}>
             <SearchInput handleSearch={handleSearch} placeHolder="Search purchase no, vendor..." />
           </Grid>
           <Grid item xs={4} md={1} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {/* List View */}
             <IconButton
               sx={{
                 width: 32,
@@ -460,7 +454,6 @@ const Purchase = () => {
               <Icon icon="material-symbols:list" width={20} />
             </IconButton>
 
-            {/* Grid View */}
             <IconButton
               sx={{
                 width: 32,
@@ -484,7 +477,6 @@ const Purchase = () => {
               <Icon icon="material-symbols:apps" width={20} />
             </IconButton>
 
-            {/* Download Button */}
             <CommonExport
               data={rows}
               fileName="EggVendorPurchases"
@@ -502,9 +494,9 @@ const Purchase = () => {
                 row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : 'NA'
               ]}
             />
-          </Grid>
+          </Grid> */}
 
-          <Grid item xs={12} md={3}>
+          {/* <Grid item xs={12} md={3}>
             <RHFAutoComplete
               control={control}
               name="category_id"
@@ -517,7 +509,7 @@ const Purchase = () => {
               required={false}
               handlebtnclick={() => { }}
             />
-          </Grid>
+          </Grid> */}
 
 
         </Grid>

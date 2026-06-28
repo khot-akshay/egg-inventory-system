@@ -146,7 +146,6 @@ const AddTruckModel = ({ open, handleClose, fetchData, selectedItem }: Props) =>
                 toast.success(selectedItem ? 'Truck Model updated successfully.' : 'Truck Model added successfully.')
             }
         } catch (e) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update Truck Model. Please try again.'
@@ -156,8 +155,6 @@ const AddTruckModel = ({ open, handleClose, fetchData, selectedItem }: Props) =>
             setIsLoading(false)
         }
     }
-
-    console.log(value, "v");
 
     const fetchLoadMore = async () => {
         setfetchingAmenityType(true)
@@ -184,8 +181,7 @@ const AddTruckModel = ({ open, handleClose, fetchData, selectedItem }: Props) =>
                     });
                 }
             } catch (e) {
-                console.log(e)
-            } finally {
+                } finally {
                 setfetchingAmenityType(false)
             }
         }, 1000)
@@ -215,18 +211,13 @@ const AddTruckModel = ({ open, handleClose, fetchData, selectedItem }: Props) =>
             //     label: selectedItem.body_type.charAt(0).toUpperCase() + selectedItem.body_type.slice(1),
             //     value: selectedItem.body_type
             // })
-            // console.log(selectedItem.body_type,selectedItem,"selectedItem");
-            // if (selectedItem?.body_type) {
+            // // if (selectedItem?.body_type) {
             //     const matched = options.find(opt => opt.id === selectedItem.body_type)
 
             //     if (matched) {
             //         setValue('body_type', matched)
             //     }
-            //                                 console.log(selectedItem.body_type,selectedItem,"selectedItem",matched);
-
-            // }
-            console.log(selectedItem.body_type, selectedItem, "selectedItem");
-
+            //                                 // }
             setValue('body_type', selectedItem?.body_type)
             setValue('brand_id', selectedItem?.brand_id)
 

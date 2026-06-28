@@ -10,8 +10,7 @@ import Icon from 'src/@core/components/icon'
 
 const ChipsOnDelete = () => {
   const handleDelete = () => {
-    console.info('You clicked the delete icon.')
-  }
+    }
 
   return (
     <Fragment>

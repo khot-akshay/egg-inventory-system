@@ -113,7 +113,7 @@ const AddVendor = ({ open, handleClose, fetchData, selectedItem }: Props) => {
       }
       let url = ''
       if (selectedItem) {
-        console.log('selectedItem for update:', selectedItem) // debug - remove after fix
+        // debug - remove after fix
         if (!selectedItem.id) {
           toast.error('Vendor ID is missing. Cannot update.')
           return
@@ -122,7 +122,7 @@ const AddVendor = ({ open, handleClose, fetchData, selectedItem }: Props) => {
       } else {
         url = '/api/v1/admin/createVendor'
       }
-      console.log('Submitting to URL:', url) // debug - remove after fix
+      // debug - remove after fix
       const response = await axiosInstance.post(url, payload)
       if (response.data.success) {
         handleCloseModal()
@@ -130,7 +130,6 @@ const AddVendor = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         toast.success(response.data.message)
       }
     } catch (e: any) {
-      console.error(e)
       toast.error(
         selectedItem
           ? e?.response?.data?.message ?? 'Failed to update vendor. Please try again.'

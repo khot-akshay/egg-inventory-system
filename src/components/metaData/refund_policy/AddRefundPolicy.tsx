@@ -137,7 +137,6 @@ const AddRefundPolicy = ({ open, handleClose, fetchData, selectedItem }: Props) 
                 toast.success(selectedItem ? 'Refund Policy updated successfully.' : 'Refund Policy  added successfully.')
             }
         } catch (e: any) {
-            console.error(e)
             toast.error(
                 selectedItem
                     ? e?.response?.data?.message ?? 'Failed to update Refund Policy . Please try again.'

@@ -88,7 +88,6 @@ const AddPolishType = ({ open, handleClose, fetchData, selectedItem }: Props) =>
         toast.success(response.data.message)
       }
     } catch (e: any) {
-      console.error(e)
       const apiError = e?.response?.data
 
       if (apiError?.data?.name?.length) {
