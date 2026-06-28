@@ -99,8 +99,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
-    //  isPermissionNeeded: true,
-    // permissionName: "purchase",
+     isPermissionNeeded: true,
+    permissionName: "purchase",
   },
  {
   title: "Vendors",
