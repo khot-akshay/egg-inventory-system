@@ -4,7 +4,7 @@ import { useAuth } from "src/hooks/useAuth";
 
 const tempObject: VerticalNavItemsType = [
   {
-    title: "",
+    title: "Dashboards",
     icon: "bx:home-circle",
     path: "/dashboards",
     allowedRoles: ["Administrator", "Staff"],
@@ -106,8 +106,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
-    //  isPermissionNeeded: true,
-    // permissionName: "purchase",
+     isPermissionNeeded: true,
+    permissionName: "purchase",
   },
  {
   title: "Vendors",
