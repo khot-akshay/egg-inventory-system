@@ -401,7 +401,7 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
     <Card sx={{ p: { xs: 2, md: 3 }, borderRadius: 2, height: '100%' }}>
       <Box sx={{ mb: 3 }}>
         <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold' }}>
-          🚚 Start Day Trip
+          🚚 Start Route
         </Typography>
         <Typography variant="caption" color="text.secondary">
           {roleName ? `Role: ${roleName}` : 'Distributor Section'}

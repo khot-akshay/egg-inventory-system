@@ -149,9 +149,15 @@ const AppBarContent = (props: Props) => {
         ) : null}
         
         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 1, sm: 4 }, ml: 2 }}>
-          <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
-            Shop Name: {user?.shop?.name || 'Administrator'}
-          </Typography>
+          {(['administrator', 'admin', 'distributor'].includes(user?.role?.toLowerCase() ?? '')) ? (
+            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
+              Role: {user?.roles?.[0]?.name || user?.role}
+            </Typography>
+          ) : (
+            <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
+              Shop Name: {user?.shop?.name}
+            </Typography>
+          )}
           <Typography variant='subtitle1' sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: { xs: '0.875rem', sm: '1.25rem' } }}>
             User Name: {user?.name || user?.fullName || 'Admin'}
           </Typography>

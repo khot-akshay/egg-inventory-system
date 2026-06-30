@@ -134,6 +134,11 @@ const LoginPage = () => {
       redirectURL = '/quickBill';
     }
 
+    // If role is Distributor and no specific returnUrl is set, redirect to managedaytrip
+    if (primaryRole === 'Distributor' && redirectURL === '/') {
+      redirectURL = '/managedaytrip';
+    }
+
     try {
       auth.handleSignIn(
         userData,

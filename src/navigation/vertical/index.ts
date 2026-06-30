@@ -4,12 +4,19 @@ import { useAuth } from "src/hooks/useAuth";
 
 const tempObject: VerticalNavItemsType = [
   {
-    title: "Dashboards",
+    title: "",
     icon: "bx:home-circle",
     path: "/dashboards",
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
+    allowedRoles: ["Administrator", "Staff"],
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
+  },
+
+   {
+    title: "Dashboards",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Distributor"],
+    path: "/managedaytrip",
   },
   // {
   //   title: "Dashboards",
@@ -99,8 +106,8 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
-     isPermissionNeeded: true,
-    permissionName: "purchase",
+    //  isPermissionNeeded: true,
+    // permissionName: "purchase",
   },
  {
   title: "Vendors",
@@ -135,12 +142,7 @@ const tempObject: VerticalNavItemsType = [
     allowedRoles: ["Administrator"],
     path: "/stockhistory",
   },
- {
-    title: "Day Trip",
-    icon: "mdi:warehouse", // inventory / storage
-    allowedRoles: ["Distributor"],
-    path: "/managedaytrip",
-  },
+
   { 
     title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices

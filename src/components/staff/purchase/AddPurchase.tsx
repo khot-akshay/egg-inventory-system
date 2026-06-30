@@ -77,6 +77,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
 
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id
+  const userid = user?.id
 
   // Load existing data if selectedItem is present
   useEffect(() => {
@@ -220,7 +221,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         .map(item => ({
           category_id: item.category_id,
           total_eggs: Number(item.quantity) || 0,
-          price_per_egg: Number(item.price_per_egg) || 0
+          // price_per_egg: Number(item.price_per_egg) || 0
         }))
 
       if (activeItems.length === 0) {
@@ -232,18 +233,18 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
       const payload = {
         vendor_id: extractId(data.vendor_id),
         vehicle_id: extractId(data.vehicle_id),
-        driver_id: extractId(data.driver_id) || 5,
+        driver_id: userid ?? null,
         purchase_date: data.purchase_date || new Date().toISOString().split('T')[0],
         notes: data.notes?.trim() || 'Purchase Order',
         load_immediately: data.load_immediately !== undefined ? Boolean(data.load_immediately) : true,
-        paid_amount: grandTotal,
-        payment_type: paymentType === 'mixed' ? 'cash,upi' : paymentType,
-        payments: paymentType === 'mixed' ? [
-          { amount: Number(data.mixed_cash), payment_type: 'cash' },
-          { amount: Number(data.mixed_online), payment_type: 'upi' }
-        ] : [
-          { amount: grandTotal, payment_type: paymentType }
-        ],
+        // paid_amount: grandTotal,
+        // payment_type: paymentType === 'mixed' ? 'cash,upi' : paymentType,
+        // payments: paymentType === 'mixed' ? [
+        //   { amount: Number(data.mixed_cash), payment_type: 'cash' },
+        //   { amount: Number(data.mixed_online), payment_type: 'upi' }
+        // ] : [
+        //   { amount: grandTotal, payment_type: paymentType }
+        // ],
         items: activeItems
       }
 
