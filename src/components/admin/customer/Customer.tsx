@@ -183,6 +183,16 @@ const Customer = () => {
       },
       hideable: false
     },
+     {
+      field: 'shop.n',
+      headerName: 'Shop Name',
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.shop?.name || 'NA'}
+      </div>
+    },
   {
       field: 'shop.name',
       headerName: 'Customer Name',
@@ -193,6 +203,7 @@ const Customer = () => {
         {params.row?.name || 'NA'}
       </div>
     },
+ 
  
     // {
     //   field: 'name',
@@ -209,25 +220,13 @@ const Customer = () => {
       field: 'categories.name',
       headerName: 'Mobile Number',
       flex: 1,
-      minWidth: 200,
+      minWidth: 150,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
         {params.row?.phone || 'NA'}
       </div>
     },
-  
     {
-      field: 'min_stock_level',
-      headerName: 'Credit Limit',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {Math.floor(Number(params.row?.credit_limit || 0))}
-      </div>
-    },
-  
-  {
       field: 'description.name',
       headerName: 'Email ID',
       flex: 1,
@@ -237,19 +236,19 @@ const Customer = () => {
         {params.row?.email || params.row?.email|| 'NA'}
       </div>
     },
+  
     {
-      field: 'created_at',
-      headerName: 'Created Date',
+      field: 'min_stock_level',
+      headerName: 'due amount',
       flex: 1,
-      minWidth: 180,
+      minWidth: 120,
       sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <DateFormateComponent date={params.row?.created_at ?? ''} />
-      )
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        ₹ {Math.floor(Number(params.row?.deu_amount || 0))}
+      </div>
     },
-    
-
-    {
+  
+  {
       field: 'paid',
       headerName: 'Pay Due Amount',
       minWidth: 150,
@@ -271,6 +270,19 @@ const Customer = () => {
         </>
       ),
     },
+    {
+      field: 'created_at',
+      headerName: 'Created Date',
+      flex: 1,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <DateFormateComponent date={params.row?.created_at ?? ''} />
+      )
+    },
+    
+
+    
     {
       field: 'actions',
       headerName: 'Actions',

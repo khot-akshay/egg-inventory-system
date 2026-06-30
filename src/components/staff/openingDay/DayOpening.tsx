@@ -454,7 +454,8 @@ const DayOpening = () => {
       // API post for Opening Day
       const response = await axiosInstance.post('/api/v1/shop/openDay', payload)
       if (response.data?.success) {
-        toast.success(response.data?.message || 'Day Opening submitted successfully!')
+        toast.success(response.data?.message || 'Day Opening submitted successfully!');
+        router.reload()
 
         // Reset states
         setOpeningCash('')
@@ -821,7 +822,7 @@ const DayOpening = () => {
               </SectionCard>
 
               {/* 2. Payment Verification Card */}
-              <SectionCard>
+              {/* <SectionCard>
                 <Box sx={{ pb: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
                   <SectionTitle
                     icon='mdi:clipboard-check-outline'
@@ -846,7 +847,6 @@ const DayOpening = () => {
                         <VerifyRow label='Other Receivables' value={fmt(otherReceivables)} />
                       </Stack>
 
-                      {/* Blue Total Receivables Banner */}
                       <Box
                         sx={{
                           mt: 3,
@@ -869,7 +869,7 @@ const DayOpening = () => {
                     </>
                   )}
                 </Box>
-              </SectionCard>
+              </SectionCard> */}
 
             </Stack>
           </Grid>
