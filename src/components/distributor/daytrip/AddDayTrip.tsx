@@ -153,14 +153,14 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
     const fetchDistributorData = async () => {
       try {
         const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor')
-        
+
         // Fetch both loaded and active purchases to display them
         const loaded = response.data?.data?.loaded || []
         const active = response.data?.data?.active || []
-        
+
         const allPurchases = [...loaded, ...active]
         setLoadedPurchases(allPurchases)
-        
+
         if (allPurchases.length > 0) {
           const firstPurchase = allPurchases[0]
 
@@ -374,7 +374,7 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
       if (fetchData) fetchData();
 
       // Update local state to reflect 'active' status instead of removing them
-      setLoadedPurchases(prevPurchases => 
+      setLoadedPurchases(prevPurchases =>
         prevPurchases.map(p => ({ ...p, status: 'active' }))
       );
 
@@ -383,7 +383,7 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
       }
 
       if (handleClose) handleClose();
-      
+
     } catch (error: any) {
       toast.error(
         error?.response?.data?.message || "Something went wrong"
@@ -408,34 +408,34 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
         </Typography>
       </Box>
 
-        <Grid container spacing={3}>
-          {/* Left Section: Form Controls */}
-          <Grid item xs={12} md={12}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <RHFInput
-                  control={control}
-                  name='name'
-                  label='Distributor Name'
-                  placeholder='Distributor Name'
-                  mandatory
-                  disabled
-                />
-              </Grid>
+      <Grid container spacing={3}>
+        {/* Left Section: Form Controls */}
+        <Grid item xs={12} md={12}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <RHFInput
+                control={control}
+                name='name'
+                label='Distributor Name'
+                placeholder='Distributor Name'
+                mandatory
+                disabled
+              />
+            </Grid>
 
-              <Grid item xs={12} sm={6}>
-                <RHFInput
-                  control={control}
-                  name="purchase_date"
-                  label="Date"
-                  placeholder="Select Date"
-                  inputType="date"
-                  mandatory
-                  disabled
-                />
-              </Grid>
-              
-              {loadedPurchases.map((purchase) => (
+            <Grid item xs={12} sm={6}>
+              <RHFInput
+                control={control}
+                name="purchase_date"
+                label="Date"
+                placeholder="Select Date"
+                inputType="date"
+                mandatory
+                disabled
+              />
+            </Grid>
+
+            {loadedPurchases.map((purchase) => (
               <Grid item xs={12} key={purchase.id}>
                 <Paper
                   variant="outlined"
@@ -527,28 +527,28 @@ const AddDayTrip = ({ handleClose, fetchData, selectedItem }: AddStocksFormProps
                   </Stack>
                 </Paper>
               </Grid>
-              ))}
+            ))}
 
-              <Grid item xs={12} sx={{ mt: 2 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  size="large"
-                  onClick={handleStartTrip}
-                  disabled={loading || !loadedPurchases.some(p => p.status === 'loaded')}
-                  sx={{ height: 48 }}
-                >
-                  {loading ? (
-                    <CircularProgress size={24} color="inherit" />
-                  ) : (
-                    'Start Day Trip'
-                  )}
-                </Button>
-              </Grid>
-
+            <Grid item xs={12} sx={{ mt: 2 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                onClick={handleStartTrip}
+                disabled={loading || !loadedPurchases.some(p => p.status === 'loaded')}
+                sx={{ height: 48 }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  'Start Day Trip'
+                )}
+              </Button>
             </Grid>
+
           </Grid>
         </Grid>
+      </Grid>
     </Card>
   )
 }

@@ -1,5 +1,6 @@
 import { VerticalNavItemsType } from "src/@core/layouts/types";
 import themeConfig from "src/configs/themeConfig";
+import React from "react";
 import { useAuth } from "src/hooks/useAuth";
 
 const tempObject: VerticalNavItemsType = [
@@ -93,9 +94,9 @@ const tempObject: VerticalNavItemsType = [
 },
 
   {
-    title: "Stock",
+    title: "Transfer to Shop",
     icon: "mdi:warehouse", // inventory / storage
-    allowedRoles: ["Staff","Distributor"],
+    allowedRoles: ["Distributor"],
     path: "/stocks",
      isPermissionNeeded: true,
     permissionName: "stock",
@@ -106,13 +107,13 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:cart-arrow-down", // buying items
     allowedRoles: [ "Staff","Distributor"],
     path: "/purchase",
-     isPermissionNeeded: true,
-    permissionName: "purchase",
+    //  isPermissionNeeded: true,
+    // permissionName: "purchase",
   },
  {
   title: "Vendors",
   icon: "mdi:store-outline",
-  allowedRoles: ["Administrator", "Staff", "Distributor"],
+  allowedRoles: ["Administrator","Distributor"],
   path: "/vendor",
   isPermissionNeeded: true,
  permissionName: "vendor",

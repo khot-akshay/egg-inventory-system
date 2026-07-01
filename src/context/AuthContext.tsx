@@ -147,7 +147,6 @@ const AuthProvider = ({ children }: Props) => {
       })
       .catch((err: { [key: string]: string }) => (errorCallback ? errorCallback(err) : null))
   }
-
   const values = {
     user,
     loading,
@@ -158,7 +157,6 @@ const AuthProvider = ({ children }: Props) => {
     register: handleRegister,
     handleSignIn: handleSignIn
   }
-
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>
 }
 

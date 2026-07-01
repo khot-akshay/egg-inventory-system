@@ -46,7 +46,7 @@ const schema = yup.object().shape({
   category_id: yup.mixed().nullable(),
   rate_per_unit: yup.number().nullable(),
   purchase_date: yup.string().nullable()
-})
+});
 
 interface AddStocksFormProps {
   open?: boolean
@@ -546,8 +546,8 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                 name="egg_vendor_purchase_id"
                 placeholder="Vehicle Details"
                 labelinput="Vehicle Details"
-                apiUrl="/api/v1/shop/getAllEggVendorPurchases"
-                extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
+                apiUrl="/api/v1/shop/getCurrentPurchaseEggDataForDistributor"
+                extraParams={{ active:1}}
                 labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
                 valueKey="id"
                 required={!isNewCustomer}

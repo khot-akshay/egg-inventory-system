@@ -65,7 +65,7 @@ const DayTripDashboard = () => {
     setLoading(true)
     try {
       // Step 1: get the active purchase ID
-      const activeResp = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor')
+      const activeResp = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor', { params: { active: 1 } })
       const active = activeResp.data?.data?.active || []
       const purchaseId = active.length > 0 ? active[0].id : null
 
