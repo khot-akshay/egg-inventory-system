@@ -445,21 +445,10 @@ const DayclosingHistory = () => {
       },
       hideable: false
     },
-    {
-      field: 'customer_name',
-      headerName: 'Customer Name',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.shop?.name || (params.row?.shop_id ? `Shop ${params.row.shop_id}` : 'NA')}
-        </div>
-      )
-    },
+   
     {
       field: 'products',
-      headerName: 'Product & Quantity',
+      headerName: 'Product Name',
       flex: 1.5,
       minWidth: 220,
       sortable: false,
@@ -471,7 +460,7 @@ const DayclosingHistory = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             {categories.map((category: any) => (
               <div key={category.category_id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                {category.category_name || 'Unknown'} : {Number(category.remaining_count ?? 0)}
+                {category.category_name || 'Unknown'} 
               </div>
             ))}
           </Box>
@@ -479,20 +468,20 @@ const DayclosingHistory = () => {
       }
     },
     {
-      field: 'product_rate',
-      headerName: 'Product Rate',
-      flex: 1,
-      minWidth: 120,
+      field: 'productsqq',
+      headerName: 'Closing Stock',
+      flex: 1.5,
+      minWidth: 220,
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const categories = params.row?.categories || []
-        if (!categories.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>
+        if (!categories.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
 
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             {categories.map((category: any) => (
               <div key={category.category_id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                {Number(category.sold_count ?? 0)}
+                 {Number(category.remaining_count ?? 0)}
               </div>
             ))}
           </Box>
@@ -500,69 +489,71 @@ const DayclosingHistory = () => {
       }
     },
     {
-      field: 'product_price',
-      headerName: 'Product Price',
-      flex: 1,
-      minWidth: 130,
+      field: 'sale',
+      headerName: 'Sales Amount',
+      flex: 1.5,
+      minWidth: 220,
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const categories = params.row?.categories || []
-        if (!categories.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>₹0.00</div>
+        if (!categories.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
 
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             {categories.map((category: any) => (
               <div key={category.category_id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                ₹{Number(category.sale_amount ?? 0).toFixed(2)}
+                 {Number(category.sale_amount ?? 0)}
               </div>
             ))}
           </Box>
         )
       }
     },
-    {
-      field: 'total_due',
-      headerName: 'Total Due',
-      flex: 1,
-      minWidth: 130,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{Number(params.row?.due_amount ?? 0).toFixed(2)}
-        </div>
-      )
-    },
-    {
-      field: 'payment',
-      headerName: 'Payment',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => {
-        const payments = params.row?.payments || {}
-        const paymentRows = Object.entries(payments).filter(([, amount]) => Number(amount) > 0)
-        if (!paymentRows.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
+   
+   
+    // {
+    //   field: 'total_due',
+    //   headerName: 'Total Due',
+    //   flex: 1,
+    //   minWidth: 130,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       ₹{Number(params.row?.due_amount ?? 0).toFixed(2)}
+    //     </div>
+    //   )
+    // },
+    // {
+    //   field: 'payment',
+    //   headerName: 'Payment',
+    //   flex: 1,
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => {
+    //     const payments = params.row?.payments || {}
+    //     const paymentRows = Object.entries(payments).filter(([, amount]) => Number(amount) > 0)
+    //     if (!paymentRows.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
 
-        return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-            {paymentRows.map(([type, amount]) => (
-              <div key={type} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize', fontSize: '0.85rem' }}>
-                {type} : ₹{Number(amount).toFixed(2)}
-              </div>
-            ))}
-          </Box>
-        )
-      }
-    },
+    //     return (
+    //       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+    //         {paymentRows.map(([type, amount]) => (
+    //           <div key={type} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize', fontSize: '0.85rem' }}>
+    //             {type} : ₹{Number(amount).toFixed(2)}
+    //           </div>
+    //         ))}
+    //       </Box>
+    //     )
+    //   }
+    // },
     {
       field: 'total_bill',
-      headerName: 'Total Bill',
+      headerName: 'Cash in counter',
       flex: 1,
       minWidth: 130,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{Number(params.row?.sale_amount ?? 0).toFixed(2)}
+          ₹{Number(params.row?.existing_cash ?? 0).toFixed(2)}
         </div>
       )
     },
