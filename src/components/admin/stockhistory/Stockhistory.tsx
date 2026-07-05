@@ -169,8 +169,8 @@ const Stockhistory = () => {
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) =>
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize' }}>
-          {params.row?.movement_type || 'NA'}
+      <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize' }}>
+          {params.row?.movement_type?.replace(/_/g, ' ') || 'NA'}
         </div>
     },
     {

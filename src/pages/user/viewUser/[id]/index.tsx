@@ -173,9 +173,9 @@ export default function Viewopportunity() {
   const [open1, setOpen1] = useState(false);
   const handleClose1 = () => setOpen1(false);
   const dispatch = useDispatch<AppDispatch>();
-  //const handleButtonClick = (data: any) => {
+  const handleButtonClick = (data: any) => {
     setOpen1(true);
-    //};
+  };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -274,9 +274,9 @@ export default function Viewopportunity() {
 
     try {
       const url = `/api/v1/admin/getUserById?id=${resolvedUserId}`;
-      const response = await axiosInstance.get(url, "");
+      const response = await axiosInstance.get(url);
 
-      if (!response?.success) return;
+      if (!response?.data?.success) return;
 
       const userData = response.data?.data ?? response.data;
       setNewData(userData);

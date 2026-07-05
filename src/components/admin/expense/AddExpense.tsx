@@ -24,13 +24,19 @@ import toast, { Toaster } from 'react-hot-toast'
 const schema = yup.object().shape({
   expense_date: yup.string().required('Expense date is required'),
 
-  category: yup.string().required('Category is required'),
-
-  amount: yup
-    .number()
-    .typeError('Amount must be a valid number')
-    .required('Amount is required')
-    .min(1, 'Amount must be greater than 0'),
+  category: yup
+    .string()
+    .trim()
+    .required('Category is required')
+    .min(3, 'Category must be at least 3 characters')
+    .max(255, 'Category must not exceed 255 characters')
+    .matches(/^[A-Za-z\s]+$/, 'Category can contain only letters and spaces'),
+    amount: yup
+      .number()
+      .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : value))
+      .nullable()
+      .required('Amount is required')
+      .min(1, 'Amount must be greater than 0'),
 
   description: yup.string().nullable(),
 
@@ -40,7 +46,7 @@ const schema = yup.object().shape({
 interface FormData {
   expense_date: string
   category: string
-  amount: number
+  amount: number | string
   description: string
   shop_id: any
 }
@@ -65,9 +71,9 @@ interface Props {
 }
 
 const defaultValues: FormData = {
-  expense_date: '',
+  expense_date: new Date().toISOString().split('T')[0],
   category: '',
-  amount: 0,
+  amount: '',
   description: '',
   shop_id: null
 }
@@ -155,7 +161,7 @@ const AddExpense = ({
         })
       }
     } else {
-      reset(defaultValues)
+      reset({ ...defaultValues, expense_date: new Date().toISOString().split('T')[0] })
     }
   }, [selectedItem, setValue, reset])
 

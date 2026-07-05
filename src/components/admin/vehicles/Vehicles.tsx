@@ -324,13 +324,13 @@ const Vehicles = () => {
       flex: 1,
       renderCell: (params: GridCellParams) => (
         <>
-          {checkPermission('vehicle.view') && (
+          {/* {checkPermission('vehicle.view') && (
           <Button
             sx={{ color: 'text.secondary', margin: '-10px' }}
             onClick={() => handleViewUser(params.row.id)}>
             <Icon icon={'ph:eye'} fontSize={24} />
           </Button> 
-          )}
+          )} */}
           {checkPermission('vehicle.update') && (
 
           <Tooltip title='Update Vehicle.' placement='bottom'>
