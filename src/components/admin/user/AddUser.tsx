@@ -64,8 +64,8 @@ interface FormData {
   email: string;
   password?: string;
   phone: string;
-  role_id: number | null;
-  shop_id: number | null;
+  role_id: any;
+  shop_id: any;
   supplier_id?: number | null;
   is_active: boolean;
 }
@@ -104,8 +104,39 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors },
   } = methods;
+
+  const selectedRoleId = watch("role_id");
+  const [distributorRoleId, setDistributorRoleId] = useState<number | null>(null);
+
+  useEffect(() => {
+    axiosInstance.get("/api/v1/getAllRoles")
+      .then((res) => {
+        let data = res.data?.data?.data;
+        if (!Array.isArray(data)) data = res.data?.data;
+        if (!Array.isArray(data)) {
+          const nested = res.data?.data;
+          if (nested && typeof nested === 'object') {
+            data = Object.values(nested).find(Array.isArray) || [];
+          } else {
+            data = [];
+          }
+        }
+        const distRole = data.find((r: any) => r.name?.toLowerCase() === 'distributor');
+        if (distRole) setDistributorRoleId(distRole.id);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  const currentRoleId = typeof selectedRoleId === 'object' && selectedRoleId !== null ? selectedRoleId.id : selectedRoleId;
+
+  useEffect(() => {
+    if (currentRoleId === distributorRoleId && distributorRoleId !== null) {
+      setValue("shop_id", null);
+    }
+  }, [currentRoleId, distributorRoleId, setValue]);
 
   useEffect(() => {
     if (selectedItem) {
@@ -113,8 +144,12 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
         name: selectedItem.name || "",
         email: selectedItem.email || "",
         phone: selectedItem.phone || "",
-        role_id: selectedItem.role_id || (selectedItem.roles?.[0]?.id) || null,
-        shop_id: selectedItem.shop_id || (selectedItem.shop?.id) || null,
+        role_id: selectedItem.roles?.[0]
+          ? { id: selectedItem.roles[0].id, name: selectedItem.roles[0].name }
+          : selectedItem.role_id || null,
+        shop_id: selectedItem.shop
+          ? { id: selectedItem.shop.id, name: selectedItem.shop.name }
+          : selectedItem.shop_id || null,
         supplier_id: selectedItem.supplier_id || null,
         is_active: selectedItem.is_active === true || selectedItem.is_active === 1,
         password: selectedItem.password || "",
@@ -129,6 +164,8 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
     try {
       const payload = {
         ...data,
+        role_id: typeof data.role_id === 'object' && data.role_id !== null ? data.role_id.id : data.role_id,
+        shop_id: typeof data.shop_id === 'object' && data.shop_id !== null ? data.shop_id.id : data.shop_id,
         is_active: data.is_active ? 1 : 0,
       };
 
@@ -235,18 +272,20 @@ const AddUser = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 required
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <RHFAutoComplete
-                control={control}
-                name="shop_id"
-                labelinput="Shop"
-                placeholder="Select Shop"
-                apiUrl="/api/v1/admin/getAllShops"
-                required
-                labelKey="name"
-                valueKey="id"
-              />
-            </Grid>
+            {selectedRoleId !== distributorRoleId && (
+              <Grid item xs={12} sm={6}>
+                <RHFAutoComplete
+                  control={control}
+                  name="shop_id"
+                  labelinput="Shop"
+                  placeholder="Select Shop"
+                  apiUrl="/api/v1/admin/getAllShops"
+                  required
+                  labelKey="name"
+                  valueKey="id"
+                />
+              </Grid>
+            )}
             {/* <Grid item xs={12} sm={6}>
               <RHFAutoComplete
                 control={control}

@@ -20,6 +20,7 @@ import { useRouter } from "next/router";
 import axiosInstance from "src/services/axios";
 import EmailModule from "src/components/common/Links/EmailLink";
 import MobileNumberModule from "src/components/common/Links/MobileNumberModule";
+import DateFormateComponent from "src/components/common/dateFormat/DateFromatModule";
 
 export default function ViewStockMovement() {
   const router = useRouter();
@@ -110,8 +111,8 @@ export default function ViewStockMovement() {
 
               <Grid item xs={12} md={3}>
                 <Typography variant="body2">Movement Type</Typography>
-                <Typography fontWeight={600}>
-                  {stockDetails?.movement_type || "NA"}
+                <Typography fontWeight={600} sx={{ textTransform: 'capitalize' }}>
+                  {stockDetails?.movement_type?.replace(/_/g, ' ') || "NA"}
                 </Typography>
               </Grid>
 
@@ -134,11 +135,7 @@ export default function ViewStockMovement() {
               <Grid item xs={12} md={3}>
                 <Typography variant="body2">Created At</Typography>
                 <Typography fontWeight={600}>
-                  {stockDetails?.created_at
-                    ? moment(stockDetails.created_at).format(
-                        "DD-MM-YYYY HH:mm"
-                      )
-                    : "NA"}
+                  <DateFormateComponent date={stockDetails?.created_at ?? ''} />
                 </Typography>
               </Grid>
 

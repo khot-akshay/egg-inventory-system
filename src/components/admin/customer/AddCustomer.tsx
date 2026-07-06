@@ -83,6 +83,7 @@ const AddCustomer = ({
     control,
     handleSubmit,
     setValue,
+    setError,
     reset
   } = useForm<FormData>({
     resolver: yupResolver(schema),
@@ -116,12 +117,22 @@ const AddCustomer = ({
         fetchData()
       }
     } catch (e: any) {
-      toast.error(
-        e?.response?.data?.message ??
-          (selectedItem
-            ? 'Failed to update customer'
-            : 'Failed to add customer')
-      )
+      if (e?.response?.data?.data) {
+        const validationErrors = e.response.data.data
+        Object.keys(validationErrors).forEach((key) => {
+          setError(key as keyof FormData, {
+            type: 'manual',
+            message: validationErrors[key][0]
+          })
+        })
+      }
+
+      // toast.error(
+      //   e?.response?.data?.message ??
+      //     (selectedItem
+      //       ? 'Failed to update customer'
+      //       : 'Failed to add customer')
+      // )
     } finally {
       setIsLoading(false)
     }

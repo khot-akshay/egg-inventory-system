@@ -25,11 +25,16 @@ import { useAuth } from 'src/hooks/useAuth'
 const schema = yup.object().shape({
   expense_date: yup.string().required('Expense date is required'),
 
-  category: yup.string().required('Category is required'),
-
+category: yup
+  .string()
+  .trim()
+  .required('Category is required')
+  .min(3, 'Category must be at least 3 characters')
+  .max(255, 'Category must not exceed 255 characters')
+  .matches(/^[A-Za-z\s]+$/, 'Category can contain only letters and spaces'),
   amount: yup
     .number()
-    .typeError('Amount must be a valid number')
+    // .typeError('Amount must be a valid number')
     .required('Amount is required')
     .min(1, 'Amount must be greater than 0'),
 
@@ -68,7 +73,7 @@ interface Props {
 const defaultValues: FormData = {
   expense_date: '',
   category: '',
-  amount: 0,
+  amount: '',
   description: '',
   shop_name: ''
 }
@@ -101,7 +106,10 @@ const AddStaffExpense = ({
         category: data.category,
         amount: Number(data.amount),
         description: data.description,
-        shop_id: selectedItem?.shop_id || user?.shop_id || user?.shop?.id
+        // Include shop_id for non-distributor roles, otherwise include distributor's name
+        ...(user?.role === 'distributor'
+          ? { distributor_name: user?.name }
+          : { shop_id: selectedItem?.shop_id || user?.shop_id || user?.shop?.id })
       }
 
       let url = ''
@@ -147,12 +155,16 @@ const AddStaffExpense = ({
         selectedItem.description || ''
       )
 
-      setValue('shop_name', selectedItem.shop?.name || user?.shop?.name || '')
+      setValue('shop_name', selectedItem.shop?.name || (user?.role === 'distributor' ? user?.name : user?.shop?.name) || '')
     } else {
       reset({
         ...defaultValues,
-        shop_name: user?.shop?.name || ''
+        shop_name: user?.role === 'distributor' ? user?.name : user?.shop?.name || ''
       })
+        // Autofill today's date for new expense entries in ISO format for date picker
+        const todayISO = new Date().toISOString().split('T')[0];
+        setValue('expense_date', todayISO);
+
     }
   }, [selectedItem, setValue, reset, user])
 
@@ -212,21 +224,21 @@ const AddStaffExpense = ({
               <RHFInput
                 control={control}
                 name='shop_name'
-                label='Shop Name'
-                placeholder='Shop Name'
+                label={user?.role === 'distributor' ? 'User Name' : 'Shop Name'}
+                placeholder={user?.role === 'distributor' ? 'User Name' : 'Shop Name'}
                 disabled
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <RHFInput
-                control={control}
-                name='expense_date'
-                label='Expense Date'
-                placeholder='Expense Date'
-                type='date'
-                mandatory
-              />
+                  <RHFInput
+                    control={control}
+                    name='expense_date'
+                    label='Expense Date'
+                    placeholder='YYYY-MM-DD'
+                    type='date'
+                    mandatory
+                  />
             </Grid>
 
             <Grid item xs={12} md={6}>
@@ -257,6 +269,7 @@ const AddStaffExpense = ({
                 placeholder='Description'
                 multiline
                 rows={3}
+                mandatory={false}
               />
             </Grid>
           </Grid>

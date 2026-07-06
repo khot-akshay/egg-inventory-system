@@ -198,6 +198,11 @@ const PayDueAmountPopup = ({
         <DialogContent dividers>
           <Grid container spacing={3}>
             <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                Total Due Amount: ₹{Math.floor(Number(selectedItem?.deu_amount || 0))}
+              </Typography>
+            </Grid>
+            <Grid item xs={12}>
               <RHFNumberInput
                 control={control}
                 name='paid_amount'

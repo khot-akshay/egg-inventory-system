@@ -37,12 +37,12 @@ const schema = yup.object().shape({
   //   .required('Capacity is required.')
   //   .min(0, 'Capacity must be 0 or greater.')
   //   .typeError('Capacity must be a valid number'),
-  assigned_user_id: yup
-    .mixed()
-    .required('Assigned User is required.'),
-  driver_id: yup
-    .mixed()
-    .required('Driver is required.'),
+  // assigned_user_id: yup
+  //   .mixed()
+  //   .required('Assigned User is required.'),
+  // driver_id: yup
+  //   .mixed()
+  //   .required('Driver is required.'),
   // shop_id: yup
   //   .mixed()
   //   .required('Shop is required.'),
@@ -253,7 +253,7 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
               <RHFInput control={control} name={'name'} label={'Vehicle Name'} placeholder={'Vehicle Name'} mandatory />
             </Grid>
           
-            <Grid item xs={12} md={6}>
+            {/* <Grid item xs={12} md={6}>
               <RHFAutoComplete
                 control={control}
                 name="assigned_user_id"
@@ -276,7 +276,7 @@ const AddVehicles = ({ open, handleClose, fetchData, selectedItem }: Props) => {
                 valueKey="id"
                 required
               />
-            </Grid>
+            </Grid> */}
               <Grid item xs={12} md={6}>
               <RHFInput control={control} name={'vehicle_type'} label={'Vehicle Type'} placeholder={'Vehicle Type'} mandatory={false} />
             </Grid>
