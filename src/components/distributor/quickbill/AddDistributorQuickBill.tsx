@@ -457,7 +457,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       <Grid container spacing={2}>
         <Grid item xs={12} md={12}>
           <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
-            🥚 Quick Bill
+            🥚 Distributor Quick Bill
           </Typography>
           {/* <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography> */}
         </Grid>
@@ -628,7 +628,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
           {/* Integrated Unit and Quantity Selection */}
           <Grid item xs={12}>
             <Grid container spacing={2} alignItems="flex-end">
-              <Grid item xs={6}>
+              {/* <Grid item xs={6}>
                 <Typography className="input-label">
                   Unit Type
                 </Typography>
@@ -655,7 +655,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                   <ToggleButton value="dozen">12</ToggleButton>
                   <ToggleButton value="half_dozen">6</ToggleButton>
                 </ToggleButtonGroup>
-              </Grid>
+              </Grid> */}
 
               <Grid item xs={6}>
                 <Typography className="input-label">

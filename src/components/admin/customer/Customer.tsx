@@ -183,16 +183,16 @@ const Customer = () => {
       },
       hideable: false
     },
-     {
-      field: 'shop.n',
-      headerName: 'Shop Name',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.shop?.name || 'NA'}
-      </div>
-    },
+    //  {
+    //   field: 'shop.n',
+    //   headerName: 'Shop Name',
+    //   flex: 1,
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //     {params.row?.shop?.name || 'NA'}
+    //   </div>
+    // },
   {
       field: 'shop.name',
       headerName: 'Customer Name',
