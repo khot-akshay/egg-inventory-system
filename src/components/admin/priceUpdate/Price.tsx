@@ -177,6 +177,33 @@ const Price = () => {
       renderCell: (params: GridCellParams) => (
 <p>₹{Number(params.row?.egg_price_max || 0).toFixed(2)}</p>      )
     },
+    {
+      field: 'egg_price_6',
+      headerName: 'Egg Price (6)',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+<p>₹{Number(params.row?.egg_price_6 || 0).toFixed(2)}</p>      )
+    },
+    {
+      field: 'egg_price_12',
+      headerName: 'Egg Price (12)',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+<p>₹{Number(params.row?.egg_price_12 || 0).toFixed(2)}</p>      )
+    },
+    {
+      field: 'egg_price_30',
+      headerName: 'Egg Price (30)',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+<p>₹{Number(params.row?.egg_price_30 || 0).toFixed(2)}</p>      )
+    },
   //   {
   //     field: 'status',
   //     headerName: 'Status',

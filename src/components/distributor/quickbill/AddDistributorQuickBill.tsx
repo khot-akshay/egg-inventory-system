@@ -449,7 +449,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   }
 
   const handleViewUser = () => {
-    router.push('/quickbillList')
+    router.push('/distributorquickbillList')
   }
 
   return (

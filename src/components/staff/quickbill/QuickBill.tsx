@@ -48,13 +48,13 @@ const QuickBill = () => {
       const response = await axiosInstance.get(`/api/v1/shop/getAllQuickbills?${params.toString()}`)
       setRows(response.data.data?.quickbills ?? [])
       setTotalRows(response.data.data?.count ?? 0)
-      } catch (e) {
-      } finally {
+    } catch (e) {
+    } finally {
       setLoading(false)
     }
-    
+
   }
-  
+
 
   useEffect(() => {
     setPage(0)
@@ -239,7 +239,7 @@ const QuickBill = () => {
         />
       </Card>
 
-      
+
     </>
   )
 }

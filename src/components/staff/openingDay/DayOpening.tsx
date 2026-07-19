@@ -819,6 +819,44 @@ const DayOpening = () => {
                     </>
                   )}
                 </Box>
+                 {!isMobile && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              flexWrap: 'wrap',
+              width: '100%',
+              mt: 6
+            }}
+          >
+            {/* <FormControlLabel
+              control={
+                <Checkbox
+                  checked={confirmed}
+                  onChange={e => setConfirmed(e.target.checked)}
+                  color='primary'
+                />
+              }
+              label={
+                <Typography variant='body2' fontWeight={600} sx={{ color: theme.palette.text.secondary }}>
+                  I confirm that all opening stock counts and cash in hand have been verified.
+                </Typography>
+              }
+            /> */}
+            <Button
+              variant='contained'
+              size='large'
+              // disabled={!confirmed}
+              startIcon={<Icon icon='mdi:check-all' />}
+              onClick={handleSubmit}
+              sx={{ borderRadius: theme.shape.borderRadius * 0.33, px: 4, fontWeight: 700 }}
+            >
+              Submit Day Opening
+            </Button>
+          </Box>
+        )}
               </SectionCard>
 
               {/* 2. Payment Verification Card */}
@@ -879,44 +917,7 @@ const DayOpening = () => {
         {/* ══════════════════════════════════════════════════════════════════
             FOOTER ACTIONS (Desktop)
         ══════════════════════════════════════════════════════════════════ */}
-        {!isMobile && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 2,
-              flexWrap: 'wrap',
-              width: '100%',
-              mt: 2
-            }}
-          >
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={confirmed}
-                  onChange={e => setConfirmed(e.target.checked)}
-                  color='primary'
-                />
-              }
-              label={
-                <Typography variant='body2' fontWeight={600} sx={{ color: theme.palette.text.secondary }}>
-                  I confirm that all opening stock counts and cash in hand have been verified.
-                </Typography>
-              }
-            />
-            <Button
-              variant='contained'
-              size='large'
-              disabled={!confirmed}
-              startIcon={<Icon icon='mdi:check-all' />}
-              onClick={handleSubmit}
-              sx={{ borderRadius: theme.shape.borderRadius * 0.33, px: 4, fontWeight: 700 }}
-            >
-              Submit Day Opening
-            </Button>
-          </Box>
-        )}
+       
       </Stack>
 
       {/* ══════════════════════════════════════════════════════════════════

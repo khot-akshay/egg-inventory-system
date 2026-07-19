@@ -62,6 +62,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
   const [minRate, setMinRate] = useState<number | null>(null)
   const [maxRate, setMaxRate] = useState<number | null>(null)
+  const [currentProductDetails, setCurrentProductDetails] = useState<any>(null)
   const [paymentType, setPaymentType] = useState('cash')
   const [unit, setUnit] = useState('');
   const [unitValue, setUnitValue] = useState(30);
@@ -88,8 +89,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     context: { isNewCustomer, totalCartEggs },
     defaultValues: {
       customer_id: null,
-      category_id: null,
-      rate_per_unit: 150,
+      category_id: { id: 1, name: 'Regular Size Eggs' } as any,
+      rate_per_unit: null,
       purchase_date: new Date().toISOString().split('T')[0],
       customer_name: '',
       phone_number: '',
@@ -111,8 +112,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const resetBillForm = () => {
     reset({
       customer_id: null,
-      category_id: null,
-      rate_per_unit: 150,
+      category_id: { id: 1, name: 'Regular Size Eggs' } as any,
+      rate_per_unit: '',
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
@@ -130,6 +131,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
     setMinRate(null)
     setMaxRate(null)
+    setCurrentProductDetails(null)
   }
 
   useEffect(() => {
@@ -187,20 +189,38 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     fetchPendingAmount()
   }, [selectedCustomer, isNewCustomer])
 
-  const totalEggs = quantity * unitValue
+  const totalEggs = Number(quantity) * unitValue
   const finalEggs = totalEggs - damaged
 
   const handleUnitChange = (_: any, value: any) => {
     if (!value) return
     setUnit(value)
     let val = 1
-    if (value === 'tray') val = 30
-    if (value === 'dozen') val = 12
-    if (value === 'half_dozen') val = 6
 
-    // We set quantity directly to the unit value as requested
-    setQuantity(val)
-    // Keep unitValue as 1 so that totalEggs (quantity * unitValue) remains correct
+    if (value === 'tray') {
+      val = 30
+      // Directly use the fixed tray price from product details
+      const price30 = currentProductDetails?.egg_price_30
+      if (price30 != null) {
+        setValue('rate_per_unit', parseFloat(String(price30)))
+      }
+    } else if (value === 'dozen') {
+      val = 12
+      // Directly use the fixed dozen price from product details
+      const price12 = currentProductDetails?.egg_price_12
+      if (price12 != null) {
+        setValue('rate_per_unit', parseFloat(String(price12)))
+      }
+    } else if (value === 'half_dozen') {
+      val = 6
+      // Directly use the fixed half-dozen price from product details
+      const price6 = currentProductDetails?.egg_price_6
+      if (price6 != null) {
+        setValue('rate_per_unit', parseFloat(String(price6)))
+      }
+    }
+
+    setQuantity(String(val))
     setUnitValue(1)
   }
 
@@ -219,26 +239,24 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
             if (products && products.length > 0) {
               const product = products[0]
+              setCurrentProductDetails(product)
               const min = parseFloat(product.egg_price_min)
               const max = parseFloat(product.egg_price_max)
 
               if (!isNaN(min) && !isNaN(max)) {
                 setMinRate(min)
                 setMaxRate(max)
-                // Set the default rate to the minimum rate if current rate is invalid or default
-                const currentRate = watch('rate_per_unit')
-                if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
-                  setValue('rate_per_unit', min)
-                }
               }
             } else {
               setMinRate(null)
               setMaxRate(null)
+              setCurrentProductDetails(null)
             }
           }
         } catch (error) {
           setMinRate(null)
           setMaxRate(null)
+          setCurrentProductDetails(null)
         }
       }
     };
@@ -248,8 +266,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
 
   const resetProductFields = () => {
-    setValue('category_id', null)
-    setValue('rate_per_unit', 150)
+    setValue('category_id', { id: 1, name: 'Regular Size Eggs' } as any)
+    setValue('rate_per_unit', null)
 
     setUnit('')
     setUnitValue(30)
@@ -296,7 +314,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       total_eggs: totalEggs,
       damaged_eggs: damaged,
       rate: rate_per_unit,
-      total: quantity * rate_per_unit
+      total: ['tray','dozen','half_dozen'].includes(unit) ? rate_per_unit : quantity * rate_per_unit
     }
 
     setCart(prev => [...prev, newItem])
@@ -333,7 +351,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       // }
       const cashAmount = Number(data.mixed_cash)
       const upiAmount = Number(data.mixed_online)
-      const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
+      const isBundleUnit = ['tray','dozen','half_dozen'].includes(unit);
+      const lineTotal = isBundleUnit ? Number(watch('rate_per_unit') || 0) : quantity * Number(watch('rate_per_unit') || 0);
       // Determine the overall total amount based on cart or single item
       const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
       // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
@@ -357,10 +376,14 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       } else if (watch('category_id') && quantity > 0 && watch('rate_per_unit')) {
         const cat = watch('category_id');
         const catId = typeof cat === 'object' && cat.id ? cat.id : cat;
+        // When bundle toggle is active, rate_per_unit is the total bundle price (e.g. 35 for 6 eggs)
+        // Backend expects per-egg cost, so divide by quantity
+        const rateValue = Number(watch('rate_per_unit'));
+        const costPerUnit = ['tray','dozen','half_dozen'].includes(unit) ? rateValue / quantity : rateValue;
         lines = [{
           category_id: catId,
           quantity,
-          unit_cost: Number(watch('rate_per_unit')),
+          unit_cost: costPerUnit,
           unit_type: unit,
           unit_value: 0
         }];
@@ -567,59 +590,6 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
           </Grid>
 
 
-          {(minRate !== null && maxRate !== null) && (
-            <>
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                  Price Range
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={maxRate !== minRate ? 6 : 12}>
-                    <Button
-                      fullWidth
-                      variant={watch('rate_per_unit') === minRate ? "contained" : "outlined"}
-                      onClick={() => setValue('rate_per_unit', minRate)}
-                      sx={{ height: 40 }}
-                    >
-                      {minRate?.toFixed(2)}
-                    </Button>
-                  </Grid>
-                  {maxRate !== minRate && (
-                    <Grid item xs={6}>
-                      <Button
-                        fullWidth
-                        variant={watch('rate_per_unit') === maxRate ? "contained" : "outlined"}
-                        onClick={() => setValue('rate_per_unit', maxRate)}
-                        sx={{ height: 40 }}
-                      >
-                        {maxRate?.toFixed(2)}
-                      </Button>
-                    </Grid>
-                  )}
-                </Grid>
-              </Grid>
-
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                  Price Per Egg
-                </Typography>
-                <TextField
-                  placeholder="Custom Rate"
-                  type="number"
-                  // value={watch('rate_per_unit') || ''}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setValue('rate_per_unit', isNaN(val) ? '' : val);
-                  }}
-                  inputProps={{ step: "0.01", min: "0" }}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
-                  }}
-                />
-              </Grid>
-            </>
-          )}
 
           {/* Integrated Unit and Quantity Selection */}
           <Grid item xs={12}>
@@ -653,6 +623,59 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </ToggleButtonGroup>
               </Grid>
 
+          {(minRate !== null && maxRate !== null) && (
+            <>
+              {/* <Grid item xs={6}>
+                <Typography className="input-label">
+                  Price Range
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={maxRate !== minRate ? 6 : 12}>
+                    <Button
+                      fullWidth
+                      variant={watch('rate_per_unit') === minRate ? "contained" : "outlined"}
+                      onClick={() => setValue('rate_per_unit', minRate)}
+                      sx={{ height: 40 }}
+                    >
+                      {minRate?.toFixed(2)}
+                    </Button>
+                  </Grid>
+                  {maxRate !== minRate && (
+                    <Grid item xs={6}>
+                      <Button
+                        fullWidth
+                        variant={watch('rate_per_unit') === maxRate ? "contained" : "outlined"}
+                        onClick={() => setValue('rate_per_unit', maxRate)}
+                        sx={{ height: 40 }}
+                      >
+                        {maxRate?.toFixed(2)}
+                      </Button>
+                    </Grid>
+                  )}
+                </Grid>
+              </Grid> */}
+
+              <Grid item xs={6}>
+                <Typography className="input-label">
+                 Egg Price {minRate?.toFixed(2)} to  {maxRate?.toFixed(2)}
+                </Typography>
+                <TextField
+                  placeholder="Egg Price"
+                  type="number"
+                  value={watch('rate_per_unit') ?? ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setValue('rate_per_unit', isNaN(val) ? '' : val);
+                  }}
+                  inputProps={{ step: "0.01", min: "0" }}
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
+                  }}
+                />
+              </Grid>
+            </>
+          )}
               <Grid item xs={6}>
                 <Typography className="input-label">
                   Quantity
@@ -739,14 +762,17 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1 }}>
                   <Typography variant="subtitle2" sx={{ mr: 1, fontWeight: 'bold' }}>
                     Total Amount:
                   </Typography>
                   {quantity > 0 && watch('rate_per_unit') && watch('category_id') ? (
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      ₹{(quantity * Number(watch('rate_per_unit') || 0)).toFixed(2)}
+                      ₹{(unit && unit !== 'custom'
+                        ? Number(watch('rate_per_unit') || 0)
+                        : quantity * Number(watch('rate_per_unit') || 0)
+                      ).toFixed(2)}
                     </Typography>
                   ) : (
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
