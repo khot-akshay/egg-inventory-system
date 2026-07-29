@@ -45,7 +45,8 @@ const schema = yup.object().shape({
   }),
   category_id: yup.mixed().nullable(),
   rate_per_unit: yup.number().nullable(),
-  purchase_date: yup.string().nullable()
+  purchase_date: yup.string().nullable(),
+  egg_vendor_purchase_id: yup.mixed().nullable()
 });
 
 interface AddStocksFormProps {
@@ -94,7 +95,8 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
-      mixed_online: null
+      mixed_online: null,
+      egg_vendor_purchase_id: null
     }
   })
 
@@ -109,6 +111,8 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
 
 
   const resetBillForm = () => {
+    const currentPurchaseId = watch('egg_vendor_purchase_id')
+    
     reset({
       customer_id: null,
       category_id: null,
@@ -116,7 +120,8 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
-      mixed_online: null
+      mixed_online: null,
+      egg_vendor_purchase_id: currentPurchaseId
     })
 
     setUnit('')
@@ -147,6 +152,23 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       setDamaged(selectedItem.damaged_eggs)
     }
   }, [selectedItem, setValue])
+
+  useEffect(() => {
+    const fetchActivePurchase = async () => {
+      try {
+        const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor', { 
+          params: { active: 1 } 
+        })
+        const active = response.data?.data?.active || []
+        if (active.length > 0) {
+          setValue('egg_vendor_purchase_id', active[0])
+        }
+      } catch (error) {
+        console.error('Failed to fetch active purchase:', error)
+      }
+    }
+    fetchActivePurchase()
+  }, [setValue])
 
   useEffect(() => {
     if (!selectedCustomer && paymentType === 'credit') {
@@ -492,6 +514,21 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
           {/* Shop Selection */}
+
+           <Grid item xs={12}>
+              <RHFAutoComplete
+                control={control}
+                name="egg_vendor_purchase_id"
+                placeholder="Vehicle Details"
+                labelinput="Vehicle Details"
+                apiUrl="/api/v1/shop/getCurrentPurchaseEggDataForDistributor"
+                extraParams={{ active:1}}
+                labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
+                valueKey="id"
+                required={!isNewCustomer}
+                disabled={isNewCustomer}
+              />
+            </Grid>
           <Grid item xs={8}>
             <RHFAutoComplete
               control={control}
@@ -540,20 +577,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
           )}
        
 
-            <Grid item xs={12}>
-              <RHFAutoComplete
-                control={control}
-                name="egg_vendor_purchase_id"
-                placeholder="Vehicle Details"
-                labelinput="Vehicle Details"
-                apiUrl="/api/v1/shop/getCurrentPurchaseEggDataForDistributor"
-                extraParams={{ active:1}}
-                labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
-                valueKey="id"
-                required={!isNewCustomer}
-                disabled={isNewCustomer}
-              />
-            </Grid>
+           
           
 
           {/* Product Selection */}
@@ -575,13 +599,10 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
           </Grid>
 
 
-          <Grid item xs={12}>
-            {(minRate !== null && maxRate !== null) && (
-              <>
-                <Typography className="input-label">
-                  Price per Egg
-                </Typography>
-                <Grid container spacing={1} alignItems="center">
+          {/* <Grid item xs={6} md={12}> */}
+            {/* {(minRate !== null && maxRate !== null) && ( */}
+              {/* <> */}
+              
                   {/* <Grid item xs={3} sm={2}>
                     <Button
                       fullWidth
@@ -604,9 +625,12 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                       </Button>
                     </Grid>
                   )} */}
-                  <Grid item xs={6} sm={4}>
+                  <Grid item xs={6} md={6}>
+                      <Typography className="input-label">
+                  Price per Egg
+                </Typography>
                     <TextField
-                      placeholder="Custom Rate"
+                      placeholder="Price per Egg"
                       type="number"
                       defaultValue=""
                       onChange={(e) => {
@@ -620,14 +644,11 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                       }}
                     />
                   </Grid>
-                </Grid>
-              </>
-            )}
-          </Grid>
+              {/* </> */}
+            {/* )} */}
+          {/* </Grid> */}
 
           {/* Integrated Unit and Quantity Selection */}
-          <Grid item xs={12}>
-            <Grid container spacing={2} alignItems="flex-end">
               {/* <Grid item xs={6}>
                 <Typography className="input-label">
                   Unit Type
@@ -759,8 +780,6 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                   )}
                 </Box>
               </Grid>
-            </Grid>
-          </Grid>
 
           {/* Add to List Button */}
           <Grid item xs={12}>

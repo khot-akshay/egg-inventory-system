@@ -181,16 +181,16 @@ const StaffExpense = () => {
       },
       hideable: false
     },
-  {
-      field: 'shop.name',
-      headerName: 'Shop',
-      flex: 1,
-      minWidth: 200,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.shop?.name || 'NA'}
-      </div>
-    },
+  // {
+  //     field: 'shop.name',
+  //     headerName: 'Shop',
+  //     flex: 1,
+  //     minWidth: 200,
+  //     sortable: false,
+  //     renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+  //       {params.row?.shop?.name || 'NA'}
+  //     </div>
+  //   },
  
     // {
     //   field: 'name',

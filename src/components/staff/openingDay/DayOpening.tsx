@@ -430,10 +430,10 @@ const DayOpening = () => {
   const handleSaveDraft = () => toast.success('Draft saved successfully!')
 
   const handleSubmit = async () => {
-    if (!confirmed) {
-      toast.error('Please confirm before submitting.')
-      return
-    }
+    // if (!confirmed) {
+    //   toast.error('Please confirm before submitting.')
+    //   return
+    // }
 
     if (eggRows.length === 0) {
       toast.error('Cannot submit day opening: Egg categories list is empty.')
@@ -455,7 +455,7 @@ const DayOpening = () => {
       const response = await axiosInstance.post('/api/v1/shop/openDay', payload)
       if (response.data?.success) {
         toast.success(response.data?.message || 'Day Opening submitted successfully!');
-        router.reload()
+        window.location.reload()
 
         // Reset states
         setOpeningCash('')

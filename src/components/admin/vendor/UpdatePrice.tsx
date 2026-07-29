@@ -97,10 +97,6 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
             <Box display="flex" justifyContent="center" p={4}>
               <CircularProgress />
             </Box>
-          ) : prices.length === 0 ? (
-            <Typography variant="body1" color="text.secondary">
-              No prices found for this vendor.
-            </Typography>
           ) : (
             <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>

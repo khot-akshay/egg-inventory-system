@@ -164,6 +164,22 @@ const LoginPage = () => {
       if (response?.success) {
         // response.data contains { access_token, user, etc }
         logInUser(response.data)
+        
+        // Call getCurrentUser API immediately after login to get complete user data including day_session
+        try {
+          const currentUserResponse = await axiosInstance.get('/api/v1/admin/getCurrentUser')
+          if (currentUserResponse?.data?.data) {
+            // Update user state with complete data from getCurrentUser
+            const completeUserData = currentUserResponse.data.data
+            const primaryRole = (completeUserData?.roles && completeUserData.roles.length > 0) 
+              ? completeUserData.roles[0].name 
+              : 'Staff'
+            auth.setUser({ ...completeUserData, role: primaryRole })
+            window.localStorage.setItem('userData', JSON.stringify({ ...completeUserData, role: primaryRole }))
+          }
+        } catch (error) {
+          console.error('Failed to fetch current user:', error)
+        }
       }
     } catch (e: any) {
       if (e?.response?.status == 412 && e?.response.data && Object.keys(e?.response.data.data).length > 0) {
