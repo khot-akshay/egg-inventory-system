@@ -64,6 +64,19 @@ interface StockData {
     sold_count: number
     total_amount: number
   }
+  payment_summary?: {
+    cash: number
+    online: number
+    upi: number
+    card: number
+    credit: number
+    mixed: number
+    other: number
+    total: number
+    expense_amount: number
+    total_cash: number
+    cash_in_hand: number
+  }
 }
 
 const DistributorQuickbillDashboard = () => {
@@ -78,8 +91,8 @@ const DistributorQuickbillDashboard = () => {
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [stockData, setStockData] = useState<StockData | null>(null)
-  const [stockLoading, setStockLoading] = useState(false)
+  const [dashboardData, setDashboardData] = useState<StockData | null>(null)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
   const theme = useTheme();
   const router = useRouter()
   const { user } = useAuth()
@@ -137,37 +150,48 @@ const DistributorQuickbillDashboard = () => {
     fetchGame()
   }, [fetchGame])
 
-  const fetchInventoryStock = useCallback(async () => {
-
-    setStockLoading(true)
+  const fetchDashboard = useCallback(async () => {
+    setDashboardLoading(true)
     try {
-      const response = await axiosInstance.get('/api/v1/shop/getInventoryStock', { params: { egg_vendor_purchase: true } })
-      if (response.data?.success) {
-        setStockData(response.data.data)
+      // Step 1: get the active purchase ID
+      const activeResp = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor', { params: { active: 1 } })
+      const active = activeResp.data?.data?.active || []
+      const purchaseId = active.length > 0 ? active[0].id : null
+
+      if (purchaseId) {
+        // Step 2: fetch dashboard for that purchase
+        const response = await axiosInstance.get('/api/v1/shop/getEggVendorPurchaseDashboard', {
+          params: { egg_vendor_purchase_id: purchaseId }
+        })
+        if (response.data?.success) {
+          setDashboardData(response.data.data)
+        }
+      } else {
+        setDashboardData(null)
       }
     } catch (error) {
-      toast.error('Failed to load stock data')
+      toast.error('Failed to load dashboard data')
     } finally {
-      setStockLoading(false)
+      setDashboardLoading(false)
     }
   }, [currentStaffShopId])
 
   useEffect(() => {
-    fetchInventoryStock()
-  }, [fetchInventoryStock])
+    fetchDashboard()
+  }, [fetchDashboard])
 
   useEffect(() => {
     const handleQuickBillAdded = () => {
       setPage(0)
       fetchGame()
-      fetchInventoryStock()
+      fetchDashboard()
     }
 
     window.addEventListener('quickBillAdded', handleQuickBillAdded)
     return () => {
       window.removeEventListener('quickBillAdded', handleQuickBillAdded)
     }
-  }, [fetchGame, fetchInventoryStock])
+  }, [fetchGame, fetchDashboard])
 
 
 
@@ -261,7 +285,7 @@ const DistributorQuickbillDashboard = () => {
 
       </Card> */}
       <Grid container spacing={3}>
-        {stockLoading ? (
+        {dashboardLoading ? (
           Array.from({ length: 4 }).map((_, index) => (
             <Grid item xs={12} sm={6} md={3} key={index}>
               <CommonSkeleton variant="rectangular" height={96} sx={{ borderRadius: 4 }} />
@@ -272,75 +296,80 @@ const DistributorQuickbillDashboard = () => {
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title='Total Stock'
-                value={stockData?.totals?.remaining_count || 0}
-                percentage={stockData?.growth || 0}
+                value={dashboardData?.remaining_eggs || 0}
+                percentage={dashboardData?.growth || 0}
                 icon='mdi:warehouse'
                 color='success'
                 link='/stocks'
-                items={(stockData?.categories || []).map(item => ({
+                items={(dashboardData?.loaded || []).map(item => ({
                   id: item.id,
-                  label: item.category_name,
-                  value: item.remaining_count
+                  label: item.category,
+                  value: item.remaining
                 }))}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title='Total Egg Sell'
-                value={stockData?.totals?.sold_count || 0}
-                percentage={stockData?.growth || 0}
+                value={dashboardData?.profit_loss?.sales_eggs || 0}
+                percentage={dashboardData?.growth || 0}
                 icon='mdi:warehouse'
                 color='success'
                 link='/stocks'
-                items={(stockData?.categories || []).map(item => ({
-                  id: item.id,
+                items={(dashboardData?.egg_sale_summary || []).map(item => ({
+                  id: item.category_id,
                   label: item.category_name,
-                  value: item.sold_count
+                  value: item.total_quantity
                 }))}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title='Total Sell'
-                value={`₹ ${stockData?.totals?.total_amount || 0}`}
-                percentage={stockData?.growth || 0}
+                value={dashboardData?.profit_loss?.sales_eggs || 0}
+                percentage={dashboardData?.growth || 0}
                 icon='mdi:warehouse'
                 color='success'
                 link='/stocks'
-                items={(stockData?.categories || []).map(item => ({
-                  id: item.id,
+                items={(dashboardData?.egg_sale_summary || []).map(item => ({
+                  id: item.category_id,
                   label: item.category_name,
-                  value: `₹ ${Number(item.total_amount).toFixed(2) || 0}`
+                  value: item.total_amount
                 }))}
               />
             </Grid>
+          
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title="Payment Summary"
-                value={`₹${Number(stockData?.totals?.total_amount || 0).toFixed(2)}`}
+                value={`₹${Number(dashboardData?.payment_summary?.total || 0).toFixed(2)}`}
                 icon="mdi:cash-multiple"
                 color="success"
                 items={[
-                  ...Object.entries(stockData?.totals?.payment_amounts || {})
-                    .filter(([key]) => ["cash", "upi", "credit"].includes(key))
-                    .map(([key, value]) => ({
-                      id: key,
-                      label: key.charAt(0).toUpperCase() + key.slice(1),
-                      value: `₹${Number(
-                        key === "credit"
-                          ? stockData?.totals?.due_amount || 0
-                          : value
-                      ).toFixed(2)}`
-                    })),
+                  {
+                    id: 'cash',
+                    label: 'Cash',
+                    value: `₹${Number(dashboardData?.payment_summary?.cash || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'upi',
+                    label: 'UPI',
+                    value: `₹${Number(dashboardData?.payment_summary?.upi || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'credit',
+                    label: 'Credit',
+                    value: `₹${Number(dashboardData?.payment_summary?.credit || 0).toFixed(2)}`
+                  },
                   {
                     id: 'expense',
                     label: 'Expense',
-                    value: `₹${Number(stockData?.totals?.expense_total || 0).toFixed(2)}`
+                    value: `₹${Number(dashboardData?.payment_summary?.expense_amount || 0).toFixed(2)}`
                   },
                   {
-                    id: 'existing_cash',
-                    label: 'Cash in Counter',
-                    value: `₹${Number(stockData?.totals?.existing_cash || 0).toFixed(2)}`
+                    id: 'cash_in_hand',
+                    label: 'Cash in Hand',
+                    value: `₹${Number(dashboardData?.payment_summary?.cash_in_hand || 0).toFixed(2)}`
                   }
                 ]}
               />
