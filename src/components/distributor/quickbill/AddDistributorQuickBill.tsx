@@ -90,7 +90,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     defaultValues: {
       customer_id: null,
       category_id: null,
-      rate_per_unit: 150,
+      rate_per_unit: '',
       purchase_date: new Date().toISOString().split('T')[0],
       customer_name: '',
       phone_number: '',
@@ -116,7 +116,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     reset({
       customer_id: null,
       category_id: null,
-      rate_per_unit: 150,
+      rate_per_unit: '',
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
@@ -249,7 +249,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                 setMaxRate(max)
                 // Set the default rate to the minimum rate if current rate is invalid or default
                 const currentRate = watch('rate_per_unit')
-                if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
+                if (!currentRate || currentRate > max || currentRate < min || currentRate === '') {
                   setValue('rate_per_unit', min)
                 }
               }
@@ -271,7 +271,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
 
   const resetProductFields = () => {
     setValue('category_id', null)
-    setValue('rate_per_unit', 150)
+    setValue('rate_per_unit',null)
 
     setUnit('')
     setUnitValue(30)
@@ -632,7 +632,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                     <TextField
                       placeholder="Price per Egg"
                       type="number"
-                      defaultValue=""
+                      value={watch('rate_per_unit') || ''}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
                         setValue('rate_per_unit', isNaN(val) ? null : val);

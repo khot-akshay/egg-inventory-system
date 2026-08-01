@@ -352,7 +352,7 @@ const DistributorQuickbillDashboard = () => {
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title="Payment Summary"
-                value={`₹${Number(dashboardData?.totals?.total_amount || 0).toFixed(2)}`}
+                value={`₹${Number(dashboardData?.payment_summary?.total || 0).toFixed(2)}`}
                 icon="mdi:cash-multiple"
                 color="success"
                 items={[
