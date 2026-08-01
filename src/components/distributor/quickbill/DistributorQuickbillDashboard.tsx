@@ -63,6 +63,17 @@ interface StockData {
     sale_count: number
     sold_count: number
     total_amount: number
+    payment_amounts?: {
+      cash: number
+      upi: number
+      online: number
+      card: number
+      credit: number
+      mixed: number
+      other: number
+    }
+    expense_total?: number
+    existing_cash?: number
   }
   payment_summary?: {
     cash: number
@@ -338,11 +349,10 @@ const DistributorQuickbillDashboard = () => {
                 }))}
               />
             </Grid>
-          
             <Grid item xs={12} sm={6} md={4}>
               <CardOneCount
                 title="Payment Summary"
-                value={`₹${Number(dashboardData?.payment_summary?.total || 0).toFixed(2)}`}
+                value={`₹${Number(dashboardData?.totals?.total_amount || 0).toFixed(2)}`}
                 icon="mdi:cash-multiple"
                 color="success"
                 items={[
@@ -374,7 +384,6 @@ const DistributorQuickbillDashboard = () => {
                 ]}
               />
             </Grid>
-
           </>
         )}
       </Grid>

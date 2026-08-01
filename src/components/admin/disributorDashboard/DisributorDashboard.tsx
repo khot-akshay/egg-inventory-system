@@ -287,7 +287,7 @@ const DisributorDashboard = () => {
       <Grid container spacing={3}>
 
         {/* 1. Total Loaded (from vendor) */}
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item xs={12} md={4}>
           <CardOneCount
             title="Total Loaded"
             value={total_eggs}
@@ -303,7 +303,7 @@ const DisributorDashboard = () => {
         </Grid>
 
         {/* 2. Remaining in Vehicle */}
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item xs={12} md={4}>
           <CardOneCount
             title="Remaining in Vehicle"
             value={remaining_eggs}
@@ -322,7 +322,7 @@ const DisributorDashboard = () => {
         {(shops || []).map((shop, idx) => {
           const shopTotal = (shop.categories || []).reduce((s, c) => s + c.count, 0)
           return (
-            <Grid item xs={12} sm={6} md={6} key={idx}>
+            <Grid item xs={12} md={4} key={idx}>
               <CardOneCount
                 title={`Transferred → ${shop.shop_name}`}
                 value={shopTotal}
@@ -340,7 +340,7 @@ const DisributorDashboard = () => {
         })}
 
         {/* 4. Customer Sell */}
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item xs={12} md={4}>
           <CardOneCount
             title="Customer Sales"
             value={`₹ ${Number(customer_sell?.total_amount || 0).toFixed(2)}`}
@@ -357,7 +357,7 @@ const DisributorDashboard = () => {
 
         {/* 5. Gross Profit */}
         {profit_loss && (
-          <Grid item xs={12} sm={6} md={6}>
+          <Grid item xs={12} md={4}>
             <CardOneCount
               title="Gross Profit"
               value={`₹ ${Number(profit_loss.gross_profit).toFixed(2)}`}
@@ -372,6 +372,42 @@ const DisributorDashboard = () => {
             />
           </Grid>
         )}
+
+         <Grid item xs={12} md={4}>
+              <CardOneCount
+                title="Payment Summary"
+                value={`₹${Number(dashboardData?.payment_summary?.total || 0).toFixed(2)}`}
+                icon="mdi:cash-multiple"
+                color="success"
+                items={[
+                  {
+                    id: 'cash',
+                    label: 'Cash',
+                    value: `₹${Number(dashboardData?.payment_summary?.cash || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'upi',
+                    label: 'UPI',
+                    value: `₹${Number(dashboardData?.payment_summary?.upi || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'credit',
+                    label: 'Credit',
+                    value: `₹${Number(dashboardData?.payment_summary?.credit || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'expense',
+                    label: 'Expense',
+                    value: `₹${Number(dashboardData?.payment_summary?.expense_amount || 0).toFixed(2)}`
+                  },
+                  {
+                    id: 'cash_in_hand',
+                    label: 'Cash in Hand',
+                    value: `₹${Number(dashboardData?.payment_summary?.cash_in_hand || 0).toFixed(2)}`
+                  }
+                ]}
+              />
+            </Grid>
 
       </Grid>
     </>
