@@ -528,7 +528,7 @@ const DayClosing = () => {
           physical_count: Number(item.physicalCount)
         })),
         payments: {
-          cash: Number(payments.cash),
+          cash: Number(closingCash || 0),
           upi: Number(payments.upi),
           online: Number(payments.online),
           card: Number(payments.card),

@@ -280,7 +280,7 @@ function Dashboard() {
                           label: key.charAt(0).toUpperCase() + key.slice(1),
                           value: `₹${Number(
                             key === "credit"
-                              ? stockData?.totals?.credit || 0
+                              ? stockData?.totals?.payment_amounts?.credit || 0
                               : value
                           ).toFixed(2)}`
                         })),
