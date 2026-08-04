@@ -18,6 +18,7 @@ import moment from 'moment'
 
 const schema = yup.object().shape({
   shop_id: yup.mixed().required('Shop is required'),
+  egg_vendor_purchase_id: yup.mixed().required('Vehicle Details is required'),
   driver_id: yup.mixed().nullable(),
   purchase_date: yup.string().nullable(),
   notes: yup.string().nullable(),
