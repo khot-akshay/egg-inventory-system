@@ -247,11 +247,6 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
               if (!isNaN(min) && !isNaN(max)) {
                 setMinRate(min)
                 setMaxRate(max)
-                // Set the default rate to the minimum rate if current rate is invalid or default
-                const currentRate = watch('rate_per_unit')
-                if (!currentRate || currentRate > max || currentRate < min || currentRate === '') {
-                  setValue('rate_per_unit', min)
-                }
               }
             } else {
               setMinRate(null)
@@ -450,10 +445,14 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
         }];
       }
 
-      if (!quantity || quantity <= 0) {
-        toast.error('Quantity is required');
-        setLoading(false);
-        return;
+      // Only validate product entry fields when cart is empty.
+      // If cart has items, these fields were already used to build the cart — skip validation.
+      if (cart.length === 0) {
+        if (!quantity || quantity <= 0) {
+          toast.error('Quantity is required');
+          setLoading(false);
+          return;
+        }
       }
 
       const payload = {
@@ -657,7 +656,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                     <TextField
                       placeholder="Price per Egg"
                       type="number"
-                      // value={watch('rate_per_unit') || ''}
+                      value={watch('rate_per_unit') || ''}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
                         setValue('rate_per_unit', isNaN(val) ? null : val);
