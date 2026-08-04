@@ -358,13 +358,38 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
       // Determine the overall total amount based on cart or single item
       const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
+
+      // Create rounded bill total for backend validation
+      const roundedBillTotal = Math.round(totalAmount);
+
+      // Validate mixed payment amounts
+      if (paymentType === 'mixed') {
+        const totalPaid = cashAmount + upiAmount;
+
+        // Never allow overpayment
+        if (totalPaid > roundedBillTotal) {
+          toast.error('Total payment cannot exceed the bill amount.');
+          setLoading(false);
+          return;
+        }
+
+        // Without customer, full payment is required
+        if (!selectedCustomer && totalPaid !== roundedBillTotal) {
+          toast.error('Please pay the full bill amount or select a customer for the remaining credit amount.');
+          setLoading(false);
+          return;
+        }
+
+        // With customer, partial payment is allowed
+      }
+
       // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
       const paidAmount =
         paymentType === 'credit'
           ? 0
           : paymentType === 'mixed'
             ? cashAmount + upiAmount
-            : totalAmount;
+            : roundedBillTotal;
       let payments: { amount: number; payment_type: string }[] = [];
       // Build lines for payload
       let lines: { category_id: any; quantity: number; unit_cost: number; unit_type: string; unit_value: number }[] = [];
@@ -420,7 +445,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
         }];
       } else {
         payments = [{
-          amount: totalAmount,
+          amount: roundedBillTotal,
           payment_type: paymentType
         }];
       }
@@ -632,7 +657,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                     <TextField
                       placeholder="Price per Egg"
                       type="number"
-                      value={watch('rate_per_unit') || ''}
+                      // value={watch('rate_per_unit') || ''}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
                         setValue('rate_per_unit', isNaN(val) ? null : val);

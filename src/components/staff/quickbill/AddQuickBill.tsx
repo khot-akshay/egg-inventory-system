@@ -422,7 +422,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         // When bundle toggle is active, rate_per_unit is the total bundle price (e.g. 35 for 6 eggs)
         // Backend expects per-egg cost, so divide by quantity
         const rateValue = Number(watch('rate_per_unit'));
-        const costPerUnit = ['tray','dozen','half_dozen'].includes(unit) ? rateValue / quantity : rateValue;
+        const costPerUnit = ['tray','dozen','half_dozen'].includes(unit) ? rateValue / unitValue : rateValue;
         lines = [{
           category_id: catId,
           quantity,
