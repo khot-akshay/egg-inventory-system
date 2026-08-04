@@ -241,7 +241,7 @@ const EggMobileCard = ({
               type='number'
               size='small'
               fullWidth
-              disabled
+              disabled={isDayOpened}
               value={row.openingStock || 0}
               onChange={e => onOpeningStockChange(row.id, Number(e.target.value))}
               inputProps={{ min: 0, style: { fontWeight: 700 } }}
@@ -315,6 +315,7 @@ const DayOpening = () => {
   const [openingCash, setOpeningCash] = useState<number | string>('')
   const [sessionDate, setSessionDate] = useState(dayjs().format('YYYY-MM-DD'))
   const [confirmed, setConfirmed] = useState(false)
+  const [isDayOpened, setIsDayOpened] = useState((user as any)?.day_session?.opening_flag || false)
 
   // Denominations state
   const [showDenominations, setShowDenominations] = useState(false)
@@ -507,9 +508,28 @@ const DayOpening = () => {
               <Icon icon='mdi:weather-sunny' fontSize={24} />
             </Box>
             <Box>
-              <Typography variant='h5' fontWeight={800} sx={{ color: theme.palette.text.primary }}>
-                Day Opening
-              </Typography>
+              <Stack direction='row' alignItems='center' spacing={1.5}>
+                <Typography variant='h5' fontWeight={800} sx={{ color: theme.palette.text.primary }}>
+                  Day Opening
+                </Typography>
+                {isDayOpened && (
+                  <Box
+                    sx={{
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: theme.shape.borderRadius * 0.5,
+                      bgcolor: theme.palette.success.light + '33',
+                      color: theme.palette.success.dark,
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5
+                    }}
+                  >
+                    Day Opened
+                  </Box>
+                )}
+              </Stack>
               <Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
                 {dayjs(sessionDate).format('dddd, DD MMMM YYYY')}
               </Typography>
@@ -525,6 +545,26 @@ const DayOpening = () => {
             sx={{ width: 170, '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.25 } }}
           />
         </Box>
+
+        {/* Success Banner when Day Opening is already completed */}
+        {isDayOpened && (
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: theme.shape.borderRadius * 0.5,
+              bgcolor: theme.palette.success.light + '22',
+              border: `1px solid ${theme.palette.success.main + '44'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5
+            }}
+          >
+            <Icon icon='mdi:check-circle' color={theme.palette.success.main} fontSize={24} />
+            <Typography variant='body1' fontWeight={600} sx={{ color: theme.palette.success.dark }}>
+              Today's Day Opening is already completed.
+            </Typography>
+          </Box>
+        )}
 
         {/* ══════════════════════════════════════════════════════════════════
             LAYOUT COLUMNS
@@ -644,7 +684,7 @@ const DayOpening = () => {
                                 <TextField
                                   type='number'
                                   size='small'
-                                  disabled
+                                  disabled={isDayOpened}
                                   value={row.openingStock || 0}
                                   onChange={e => handleOpeningStockChange(row.id, Number(e.target.value))}
                                   inputProps={{
@@ -732,6 +772,7 @@ const DayOpening = () => {
                         <TextField
                           type='number'
                           size='small'
+                          disabled={isDayOpened}
                           value={openingCash}
                           onChange={e => handleOpeningCashChange(e.target.value)}
                           InputProps={{
@@ -846,14 +887,23 @@ const DayOpening = () => {
               }
             /> */}
             <Button
-              variant='contained'
+              variant={isDayOpened ? 'outlined' : 'contained'}
               size='large'
-              // disabled={!confirmed}
-              startIcon={<Icon icon='mdi:check-all' />}
+              disabled={isDayOpened}
+              startIcon={isDayOpened ? <Icon icon='mdi:check-circle' /> : <Icon icon='mdi:check-all' />}
               onClick={handleSubmit}
-              sx={{ borderRadius: theme.shape.borderRadius * 0.33, px: 4, fontWeight: 700 }}
+              sx={{
+                borderRadius: theme.shape.borderRadius * 0.33,
+                px: 4,
+                fontWeight: 700,
+                ...(isDayOpened && {
+                  bgcolor: theme.palette.action.disabledBackground,
+                  color: theme.palette.text.disabled,
+                  borderColor: theme.palette.divider
+                })
+              }}
             >
-              Submit Day Opening
+              {isDayOpened ? 'Day Opening Completed' : 'Submit Day Opening'}
             </Button>
           </Box>
         )}

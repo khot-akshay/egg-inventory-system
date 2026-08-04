@@ -900,7 +900,7 @@ const DistributorDayClosing = () => {
               <Divider sx={{ my: 2 }} />
               <Stack spacing={0.5} mb={2}>
                 <VerifyRow label='Online / UPI Sales' value={fmt(onlineSales)} />
-                <VerifyRow label='Online Refunds' value={fmt(0)} />
+                {/* <VerifyRow label='Online Refunds' value={fmt(0)} /> */}
                 <VerifyRow label='Expected Online Amt' value={fmt(onlineSales)} />
               </Stack>
 
@@ -908,7 +908,7 @@ const DistributorDayClosing = () => {
                 UPI Received
               </Typography>
               <TextField
-                type='number'
+                type='number' 
                 size='small'
                 fullWidth
                 placeholder='Enter received UPI amount'
@@ -940,8 +940,8 @@ const DistributorDayClosing = () => {
               <Divider sx={{ my: 2 }} />
               <Stack spacing={0.5} mb={2}>
                 <VerifyRow label='Credit Sales' value={fmt(creditSales)} />
-                <VerifyRow label='Receipts Against Credit' value={fmt(0)} />
-                <VerifyRow label='Pending Credit (Due)' value={fmt(dueAmount)} />
+                {/* <VerifyRow label='Receipts Against Credit' value={fmt(0)} />
+                <VerifyRow label='Pending Credit (Due)' value={fmt(dueAmount)} /> */}
               </Stack>
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 Credit Received
