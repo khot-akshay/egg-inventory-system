@@ -377,15 +377,25 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       // Create rounded bill total for backend validation
       const roundedBillTotal = Math.round(totalAmount);
 
-      // Validate mixed payment amounts - allow partial payment
-      // Total payment must not exceed rounded bill total
+      // Validate mixed payment amounts
       if (paymentType === 'mixed') {
-        const totalPayment = cashAmount + upiAmount;
-        if (totalPayment > roundedBillTotal) {
-          toast.error('Sum of payments cannot exceed the rounded bill total');
+        const totalPaid = cashAmount + upiAmount;
+
+        // Never allow overpayment
+        if (totalPaid > roundedBillTotal) {
+          toast.error('Total payment cannot exceed the bill amount.');
           setLoading(false);
           return;
         }
+
+        // Without customer, full payment is required
+        if (!selectedCustomer && totalPaid !== roundedBillTotal) {
+          toast.error('Please pay the full bill amount or select a customer for the remaining credit amount.');
+          setLoading(false);
+          return;
+        }
+
+        // With customer, partial payment is allowed
       }
 
       // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
