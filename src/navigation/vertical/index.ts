@@ -39,6 +39,14 @@ const tempObject: VerticalNavItemsType = [
 
 
   {
+    title: "Cash Book",
+  icon: "mdi:book-open-page-variant",
+    path: '/cashbook',
+    allowedRoles: ["Administrator"],
+    // isPermissionNeeded: true,
+    // permissionName: "dashboard",
+  },
+  {
     title: "Product Price",
     icon: "mdi:credit-card-outline",
     path: '/price',

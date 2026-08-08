@@ -4,10 +4,9 @@ import { useController } from 'react-hook-form'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined'
-import Link from 'next/link'
-import { styled } from '@mui/material/styles'
 import ControlPointIcon from '@mui/icons-material/ControlPoint'
 import WarningAmberIcon from '@mui/icons-material/WarningAmber'
+import { styled } from '@mui/material/styles'
 interface RHFInputProps {
   control: any // You should replace 'any' with the actual type of 'control' if possible
   name: string
@@ -31,7 +30,7 @@ interface RHFInputProps {
   handleForgotPass?: () => void
 }
 
-const LinkStyled = styled(Link)(({ theme }) => ({
+const LinkStyled = styled('a')(({ theme }) => ({
   textDecoration: 'none',
   color: '#2C5FE2',
   fontWeight: 'bold',

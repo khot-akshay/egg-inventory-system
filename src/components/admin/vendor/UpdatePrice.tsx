@@ -101,7 +101,7 @@ export default function UpdatePrice({ vendorId }: UpdatePriceProps) {
             <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>
                 {prices.map((item, index) => (
-                  <Grid item xs={6} md={2.4} key={item.id || item.category_id}>
+                  <Grid item xs={6} md={4} key={item.id || item.category_id}>
                     <Typography variant="body1" color="text.secondary" sx={{ mb: 0.5 }}>
                       {item.name}
                     </Typography>

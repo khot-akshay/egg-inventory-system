@@ -33,6 +33,12 @@ import toast from 'react-hot-toast'
 import { useAuth } from 'src/hooks/useAuth'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import dayjs from 'dayjs'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete'
+import RHFInput from 'src/hook-forms/RHFInput'
+import RHFNumberInput from 'src/hook-forms/RHFNUmberInput'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -111,6 +117,19 @@ const FALLBACK_CATEGORIES: EggRow[] = [
   { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
   { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 }
 ]
+
+// ─── Category Transfer Schema ─────────────────────────────────────────────────────
+const categoryTransferSchema = yup.object().shape({
+  category_id: yup.mixed().required('From category is required'),
+  transfer_to_category_id: yup.mixed().required('To category is required'),
+  transfer_count: yup.number().typeError('Transfer count must be a number').required('Transfer count is required').min(1, 'Transfer count must be at least 1').transform((value, originalValue) => {
+    if (originalValue === '' || originalValue === null || originalValue === undefined) {
+      return undefined
+    }
+    return Number(originalValue)
+  }),
+  notes: yup.string().nullable()
+})
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -392,6 +411,7 @@ const DayClosing = () => {
   const [stockData, setStockData] = useState<StockData | null>(null)
   const [stockLoading, setStockLoading] = useState(false)
   const [eggRows, setEggRows] = useState<EggRow[]>(FALLBACK_CATEGORIES)
+  const [categories, setCategories] = useState<any[]>([])
 
   // Payments verification controlled state
   const [payments, setPayments] = useState({
@@ -418,14 +438,32 @@ const DayClosing = () => {
   // Confirmation
   const [confirmed, setConfirmed] = useState(false)
 
+  // Category stock transfer form
+  const {
+    control: categoryTransferControl,
+    handleSubmit: handleCategoryTransferSubmit,
+    reset: resetCategoryTransfer,
+    formState: { errors: categoryTransferErrors }
+  } = useForm({
+    resolver: yupResolver(categoryTransferSchema),
+    defaultValues: {
+      category_id: null,
+      transfer_to_category_id: null,
+      transfer_count: '',
+      notes: ''
+    }
+  })
+  const [transferLoading, setTransferLoading] = useState(false)
+
   // ── API ──────────────────────────────────────────────────────────────────────
   const fetchInventoryAndCategories = useCallback(async () => {
     if (!shopId) return
     setStockLoading(true)
     try {
       // 1. Fetch categories
-      const catResponse = await axiosInstance.get('/api/v1/shop/getAllCategories')
-      const categories = catResponse.data?.data?.categories || catResponse.data?.categories || []
+      const catResponse = await axiosInstance.get(`/api/v1/shop/getAllCategories?shop_id=${shopId}`)
+      const categoriesData = catResponse.data?.data?.categories || catResponse.data?.categories || []
+      setCategories(categoriesData)
 
       // 2. Fetch inventory stock
       const stockResponse = await axiosInstance.get(`/api/v1/shop/getInventoryStock?shop_id=${shopId}`)
@@ -437,7 +475,7 @@ const DayClosing = () => {
       }
 
       // 3. Map categories to EggRows with initial stock quantities
-      const dynamicRows = categories.map((cat: any) => {
+      const dynamicRows = categoriesData.map((cat: any) => {
         const matchedStock = stockCategories.find(sc => sc.category_id === cat.id)
         const opening = matchedStock?.opening_count ?? 0
         const purchase = matchedStock?.purchase_count ?? 0
@@ -465,6 +503,36 @@ const DayClosing = () => {
   useEffect(() => {
     fetchInventoryAndCategories()
   }, [fetchInventoryAndCategories])
+
+  // Category stock transfer API function
+  const handleCategoryTransfer = async (data: any) => {
+    setTransferLoading(true)
+    try {
+      const payload = {
+        category_id: typeof data.category_id === 'object' ? data.category_id.id : data.category_id,
+        transfer_to_category_id: typeof data.transfer_to_category_id === 'object' ? data.transfer_to_category_id.id : data.transfer_to_category_id,
+        transfer_count: Number(data.transfer_count),
+        notes: data.notes || '',
+        shop_id: shopId
+      }
+
+      const response = await axiosInstance.post('/api/v1/shop/updateCategoryStock', payload)
+
+      if (response.data?.success) {
+        toast.success('Category stock transferred successfully')
+        // Reset form
+        resetCategoryTransfer()
+        // Refresh stock data
+        fetchInventoryAndCategories()
+      } else {
+        toast.error(response.data?.message || 'Failed to transfer stock')
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to transfer stock')
+    } finally {
+      setTransferLoading(false)
+    }
+  }
 
   // ── Derived values ──────────────────────────────────────────────────────────
 
@@ -609,6 +677,87 @@ const DayClosing = () => {
           />
         </Box>
 
+        {/* Category Stock Transfer Section */}
+        <Card sx={{ mb: 3, borderRadius: theme.shape.borderRadius * 0.5 }}>
+          <CardContent>
+                                            <SectionTitle icon='mdi:swap-horizontal' title='Waste Stock Transfer' />
+
+          
+
+            <Grid container spacing={2} marginTop={2}>
+              <Grid item xs={12} sm={6} md={3}>
+                <RHFAutoComplete
+                  control={categoryTransferControl}
+                  name="category_id"
+                  placeholder="Select From Category"
+                  labelinput="From Category"
+                  apiUrl="/api/v1/shop/getAllCategories"
+                  extraParams={{ shop_id: shopId || '' }}
+                  dataKey="data.categories"
+                  labelKey="name"
+                  valueKey="id"
+                  returnObject={true}
+                  required
+                  multiple={false}
+                  addbtn={false}
+                  handlebtnclick={() => {}}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={3}>
+                <RHFAutoComplete
+                  control={categoryTransferControl}
+                  name="transfer_to_category_id"
+                  placeholder="Select To Category"
+                  labelinput="To Category"
+                  apiUrl="/api/v1/shop/getAllCategories"
+                  extraParams={{ shop_id: shopId || '' }}
+                  dataKey="data.categories"
+                  labelKey="name"
+                  valueKey="id"
+                  returnObject={true}
+                  required
+                  multiple={false}
+                  addbtn={false}
+                  handlebtnclick={() => {}}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={2}>
+                <RHFNumberInput
+                  control={categoryTransferControl}
+                  name="transfer_count"
+                  label="Transfer Count "
+                  placeholder="Enter count"
+                  mandatory
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6} md={4}>
+                <RHFInput
+                  control={categoryTransferControl}
+                  name="notes"
+                  label="Notes"
+                  placeholder="Add notes (optional)"
+                  mandatory={false}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button
+                  variant='contained'
+                  onClick={handleCategoryTransferSubmit(handleCategoryTransfer)}
+                  disabled={transferLoading}
+                  startIcon={<Icon icon='mdi:swap-horizontal' />}
+                  sx={{ minWidth: 150 }}
+                >
+                  {transferLoading ? 'Transferring...' : 'Transfer Stock'}
+                </Button>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
         {/* ══════════════════════════════════════════════════════════════════
             SECTION 1 — KPI SUMMARY CARDS
         ══════════════════════════════════════════════════════════════════ */}
@@ -651,7 +800,7 @@ const DayClosing = () => {
                   gap: 1
                 }}
               >
-                <SectionTitle icon='mdi:egg-multiple' title='Egg Stock Summary' />
+                <SectionTitle icon='mdi:egg' title='Egg Stock Summary' />
                 <Stack direction='row' spacing={1}>
                   <Chip
                     size='small'
@@ -991,9 +1140,9 @@ const DayClosing = () => {
               <SectionTitle icon='mdi:credit-card-clock-outline' title='Credit Verification' />
               <Divider sx={{ my: 2 }} />
               <Stack spacing={0.5} mb={2}>
-                <VerifyRow label='Credit Sales' value={fmt(creditSales)} />
-                <VerifyRow label='Receipts Against Credit' value={fmt(0)} />
-                <VerifyRow label='Pending Credit (Due)' value={fmt(dueAmount)} />
+                {/* <VerifyRow label='Credit Sales' value={fmt(creditSales)} />
+                <VerifyRow label='Receipts Against Credit' value={fmt(0)} /> */}
+                <VerifyRow label='Credit ' value={fmt(dueAmount)} />
               </Stack>
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 Credit Received
