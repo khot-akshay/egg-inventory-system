@@ -171,10 +171,10 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   }, [setValue])
 
   useEffect(() => {
-    if (!selectedCustomer && paymentType === 'credit') {
+    if (!selectedCustomer && !isNewCustomer && paymentType === 'credit') {
       setPaymentType('cash')
     }
-  }, [selectedCustomer, paymentType])
+  }, [selectedCustomer, isNewCustomer, paymentType])
 
   useEffect(() => {
     const fetchPendingAmount = async () => {
@@ -369,7 +369,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
         }
 
         // Without customer, full payment is required
-        if (!selectedCustomer && totalPaid !== roundedBillTotal) {
+        if (!selectedCustomer && !isNewCustomer && totalPaid !== roundedBillTotal) {
           toast.error('Please pay the full bill amount or select a customer for the remaining credit amount.');
           setLoading(false);
           return;
@@ -908,7 +908,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                 { id: 'upi', label: 'Online', icon: <PhonelinkRingIcon /> },
                 { id: 'credit', label: 'Credit', icon: <EventNoteIcon /> },
                 { id: 'mixed', label: 'Mixed', icon: <EventNoteIcon /> }
-              ].filter(type => type.id !== 'credit' || selectedCustomer).map(type => (
+              ].filter(type => type.id !== 'credit' || selectedCustomer || isNewCustomer).map(type => (
                 <Grid item xs={3} key={type.id}>
                   <Button
                     fullWidth

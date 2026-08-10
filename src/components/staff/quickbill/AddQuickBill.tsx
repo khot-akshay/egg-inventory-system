@@ -158,10 +158,10 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   }, [selectedItem, setValue])
 
   useEffect(() => {
-    if (!selectedCustomer && paymentType === 'credit') {
+    if (!selectedCustomer && !isNewCustomer && paymentType === 'credit') {
       setPaymentType('cash')
     }
-  }, [selectedCustomer, paymentType])
+  }, [selectedCustomer, isNewCustomer, paymentType])
 
   useEffect(() => {
     const fetchPendingAmount = async () => {
@@ -388,8 +388,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
           return;
         }
 
-        // Without customer, full payment is required
-        if (!selectedCustomer && totalPaid !== roundedBillTotal) {
+        // Without customer, full payment is required (skip if creating a new customer)
+        if (!selectedCustomer && !isNewCustomer && totalPaid !== roundedBillTotal) {
           toast.error('Please pay the full bill amount or select a customer for the remaining credit amount.');
           setLoading(false);
           return;
@@ -422,7 +422,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         // When bundle toggle is active, rate_per_unit is the total bundle price (e.g. 35 for 6 eggs)
         // Backend expects per-egg cost, so divide by quantity
         const rateValue = Number(watch('rate_per_unit'));
-        const costPerUnit = ['tray','dozen','half_dozen'].includes(unit) ? rateValue / unitValue : rateValue;
+        const costPerUnit = ['tray', 'dozen', 'half_dozen'].includes(unit) ? rateValue / unitValue : rateValue;
         lines = [{
           category_id: catId,
           quantity,
@@ -499,6 +499,13 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         //   mixed_online: 0
         // })
         resetBillForm();
+
+        // Refetch the customer list so that any newly created customer shows up
+        try {
+          await axiosInstance.get('/api/v1/shop/getAllCustomers');
+        } catch (e) {
+          console.error('Failed to refetch customer list:', e);
+        }
 
         if (fetchData) fetchData()
         if (typeof window !== 'undefined') {
@@ -666,9 +673,9 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </ToggleButtonGroup>
               </Grid>
 
-          {(minRate !== null && maxRate !== null) && (
-            <>
-              {/* <Grid item xs={6}>
+              {(minRate !== null && maxRate !== null) && (
+                <>
+                  {/* <Grid item xs={6}>
                 <Typography className="input-label">
                   Price Range
                 </Typography>
@@ -698,38 +705,38 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </Grid>
               </Grid> */}
 
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                 Egg Price {minRate?.toFixed(2)} to  {maxRate?.toFixed(2)}
-                </Typography>
-                <TextField
-                  placeholder="Egg Price"
-                  type="number"
-                  value={isEditingEggPrice ? eggPriceInputValue : (perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '')}
-                  onFocus={() => {
-                    setIsEditingEggPrice(true);
-                    setEggPriceInputValue(perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '');
-                  }}
-                  onBlur={() => {
-                    setIsEditingEggPrice(false);
-                    setEggPriceInputValue('');
-                  }}
-                  onChange={(e) => {
-                    setEggPriceInputValue(e.target.value);
-                    const val = parseFloat(e.target.value);
-                    // Convert per-egg price back to bundle price
-                    const bundlePrice = (unit && unit !== 'custom' && val) ? val * unitValue : val;
-                    setValue('rate_per_unit', isNaN(bundlePrice) ? null : bundlePrice);
-                  }}
-                  inputProps={{ step: "0.01", min: "0" }}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
-                  }}
-                />
-              </Grid>
-            </>
-          )}
+                  <Grid item xs={6}>
+                    <Typography className="input-label">
+                      Egg Price {minRate?.toFixed(2)} to  {maxRate?.toFixed(2)}
+                    </Typography>
+                    <TextField
+                      placeholder="Egg Price"
+                      type="number"
+                      value={isEditingEggPrice ? eggPriceInputValue : (perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '')}
+                      onFocus={() => {
+                        setIsEditingEggPrice(true);
+                        setEggPriceInputValue(perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '');
+                      }}
+                      onBlur={() => {
+                        setIsEditingEggPrice(false);
+                        setEggPriceInputValue('');
+                      }}
+                      onChange={(e) => {
+                        setEggPriceInputValue(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        // Convert per-egg price back to bundle price
+                        const bundlePrice = (unit && unit !== 'custom' && val) ? val * unitValue : val;
+                        setValue('rate_per_unit', isNaN(bundlePrice) ? null : bundlePrice);
+                      }}
+                      inputProps={{ step: "0.01", min: "0" }}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
               <Grid item xs={6}>
                 <Typography className="input-label">
                   Quantity
@@ -938,7 +945,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 { id: 'upi', label: 'Online', icon: <PhonelinkRingIcon /> },
                 { id: 'credit', label: 'Credit', icon: <EventNoteIcon /> },
                 { id: 'mixed', label: 'Mixed', icon: <EventNoteIcon /> }
-              ].filter(type => type.id !== 'credit' || selectedCustomer).map(type => (
+              ].filter(type => type.id !== 'credit' || selectedCustomer || isNewCustomer).map(type => (
                 <Grid item xs={3} key={type.id}>
                   <Button
                     fullWidth

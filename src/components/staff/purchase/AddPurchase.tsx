@@ -2,7 +2,7 @@ import {
   Card, Typography, Button,
   TextField,
   Box, useTheme, useMediaQuery, CircularProgress,
-  Grid, Divider
+  Grid, Divider, Alert
 } from '@mui/material'
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -45,6 +45,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
   const [loading, setLoading] = useState(false)
   const [isNewCustomer, setIsNewCustomer] = useState(false)
   const [paymentType, setPaymentType] = useState('cash')
+  const [isRouteActive, setIsRouteActive] = useState(false)
   const [prices, setPrices] = useState<{
     category_id: number
     price_per_egg: string
@@ -184,6 +185,33 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
     fetchVendorPrices()
   }, [selectedVendor, selectedItem])
 
+  // Check if there's an active route
+  useEffect(() => {
+    const checkActiveRoute = async () => {
+      try {
+        const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor?active=1')
+        if (response.data.success) {
+          const purchaseData = response.data.data || response.data
+          setIsRouteActive(!!purchaseData)
+        }
+      } catch (error) {
+        setIsRouteActive(false)
+      }
+    }
+    checkActiveRoute()
+
+    // Listen for purchase added events to refresh route status
+    const handleStatusChange = () => {
+      checkActiveRoute()
+    }
+    window.addEventListener('purchaseAdded', handleStatusChange)
+    window.addEventListener('routeStatusChanged', handleStatusChange)
+    return () => {
+      window.removeEventListener('purchaseAdded', handleStatusChange)
+      window.removeEventListener('routeStatusChanged', handleStatusChange)
+    }
+  }, [])
+
   const handlePriceChange = (index: number, value: string) => {
     const newPrices = [...prices]
     newPrices[index].price_per_egg = value
@@ -270,18 +298,23 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         // Refresh the purchases list after a successful submit
         if (fetchData) {
           try {
-            await fetchData(); // This usually calls getAllEggVendorPurchases in the parent
+            await fetchData(); // This usually calls getCurrentPurchaseEggDataForDistributor in the parent
           } catch (e) {
             }
         }
         // Ensure the latest purchases are fetched directly
         try {
-          await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases');
+          const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor?active=1');
+          if (response.data.success) {
+            const purchaseData = response.data.data || response.data
+            setIsRouteActive(!!purchaseData)
+          }
         } catch (e) {
           }
         // Notify other components to refresh purchase list immediately
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('purchaseAdded'));
+          window.dispatchEvent(new Event('routeStatusChanged'));
         }
         if (handleClose) handleClose();
       }
@@ -483,16 +516,43 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
             </Grid>
           )} */}
 
+          {/* Active Route Alert */}
+          {isRouteActive && (
+            <Grid item xs={12} sx={{ mt: 2 }}>
+              <Alert severity="error" sx={{ borderRadius: theme.shape.borderRadius }}>
+                Route is active - Cannot create new purchase while a route is active
+              </Alert>
+            </Grid>
+          )}
+
           {/* Confirm Bill Button */}
           <Grid item xs={12} sx={{ mt: 3 }}>
-            <Button
-              fullWidth
-              variant="contained"
-              type="submit"
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Order'}
-            </Button>
+            {isRouteActive ? (
+              <Button
+                fullWidth
+                variant="outlined"
+                disabled
+                sx={{
+                  color: theme.palette.error.main,
+                  borderColor: theme.palette.error.main,
+                  '&:hover': {
+                    borderColor: theme.palette.error.main,
+                    backgroundColor: 'transparent'
+                  }
+                }}
+              >
+                Route is active
+              </Button>
+            ) : (
+              <Button
+                fullWidth
+                variant="contained"
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Order'}
+              </Button>
+            )}
           </Grid>
         </Grid>
       </form>
