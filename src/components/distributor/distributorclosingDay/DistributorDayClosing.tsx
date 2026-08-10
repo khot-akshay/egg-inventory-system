@@ -341,9 +341,13 @@ const EggMobileCard = ({
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1.25, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Difference
+            Status
           </Typography>
-          <DiffBadge diff={diff} />
+          {row.closingSystem === 0 ? (
+            <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+          ) : (
+            <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -840,7 +844,11 @@ const DistributorDayClosing = () => {
                               </TableCell>
 
                               <TableCell width="15%" align="center" sx={{ py: 1, px: 2 }}>
-                                <DiffBadge diff={diff} />
+                                {row.closingSystem === 0 ? (
+                                  <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                                ) : (
+                                  <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                                )}
                               </TableCell>
                             </TableRow>
                           )
