@@ -192,7 +192,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
         const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor?active=1')
         if (response.data.success) {
           const purchaseData = response.data.data || response.data
-          setIsRouteActive(!!purchaseData)
+          const isActive = purchaseData?.active?.length > 0 || purchaseData?.active_count > 0;
+          setIsRouteActive(!!isActive)
         }
       } catch (error) {
         setIsRouteActive(false)
@@ -307,7 +308,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
           const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor?active=1');
           if (response.data.success) {
             const purchaseData = response.data.data || response.data
-            setIsRouteActive(!!purchaseData)
+            const isActive = purchaseData?.active?.length > 0 || purchaseData?.active_count > 0;
+            setIsRouteActive(!!isActive)
           }
         } catch (e) {
           }
@@ -527,8 +529,8 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
 
           {/* Confirm Bill Button */}
           <Grid item xs={12} sx={{ mt: 3 }}>
-            {isRouteActive ? (
-              <Button
+            {/* {isRouteActive ? ( */}
+              {/* <Button
                 fullWidth
                 variant="outlined"
                 disabled
@@ -543,7 +545,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               >
                 Route is active
               </Button>
-            ) : (
+            ) : ( */}
               <Button
                 fullWidth
                 variant="contained"
@@ -552,7 +554,7 @@ const AddPurchaseForm = ({ handleClose, fetchData, selectedItem }: AddStocksForm
               >
                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Order'}
               </Button>
-            )}
+            {/* )} */}
           </Grid>
         </Grid>
       </form>
