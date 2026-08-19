@@ -1,7 +1,8 @@
-import { Box, Button, Card, Grid, Typography, Stack } from '@mui/material'
+import { Box, Button, Card, Grid, Typography, Stack, TextField, Autocomplete, CircularProgress } from '@mui/material'
 import { GridCellParams, GridColDef } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
+import dayjs from 'dayjs'
 
 import GoBack from 'src/components/common/goBack/GoBackButton';
 import axiosInstance from 'src/services/axios'
@@ -10,9 +11,7 @@ import SearchInput from 'src/components/common/SearchInput';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import AddManulyEntry from './AddManulyEntry';
-
-
-
+import CashBookReportAdapter from './CashBookReportAdapter';
 
 interface Shop {
   id: number
@@ -80,6 +79,61 @@ const Cashbook = () => {
   const [searchQuery, setQuery] = useState("");
   const [openAdd, setOpenAdd] = useState(false);
   const [totalAmounts, setTotalAmounts] = useState<any>(null);
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [selectedShop, setSelectedShop] = useState<any>(null)
+  const [shops, setShops] = useState<any[]>([])
+  const [shopsLoading, setShopsLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [users, setUsers] = useState<any[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [selectedDirection, setSelectedDirection] = useState<string>('')
+  const [selectedMethod, setSelectedMethod] = useState<string>('')
+  const [selectedPartyType, setSelectedPartyType] = useState<string>('')
+
+  // Fetch shops for filter
+  const fetchShops = async () => {
+    setShopsLoading(true)
+    try {
+      const response = await axiosInstance.get('/api/v1/admin/getAllShops')
+      let shopsData = response.data.data?.shops || []
+      // Ensure shopsData is always an array
+      if (!Array.isArray(shopsData)) {
+        shopsData = []
+      }
+      setShops(shopsData)
+    } catch (e) {
+      console.error('Failed to fetch shops', e)
+      setShops([]) // Set empty array on error
+    } finally {
+      setShopsLoading(false)
+    }
+  }
+
+  // Fetch users for filter
+  const fetchUsers = async () => {
+    setUsersLoading(true)
+    try {
+      const response = await axiosInstance.get('/api/v1/admin/getAllUsers')
+      let usersData = response.data.data?.users || response.data.data || []
+      // Ensure usersData is always an array
+      if (!Array.isArray(usersData)) {
+        usersData = []
+      }
+      setUsers(usersData)
+    } catch (e) {
+      console.error('Failed to fetch users', e)
+      setUsers([]) // Set empty array on error
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  // Fetch shops and users on mount
+  useEffect(() => {
+    fetchShops()
+    fetchUsers()
+  }, [])
 
   const fetchGame = async () => {
     setLoading(true)
@@ -90,6 +144,13 @@ const Cashbook = () => {
       })
 
       if (searchQuery) params.append('global_search', searchQuery)
+      if (startDate) params.append('from', startDate)
+      if (endDate) params.append('to', endDate)
+      if (selectedShop && selectedShop.id) params.append('shop_id', String(selectedShop.id))
+      if (selectedUser && selectedUser.id) params.append('user_id', String(selectedUser.id))
+      if (selectedDirection) params.append('direction', selectedDirection)
+      if (selectedMethod) params.append('method', selectedMethod)
+      if (selectedPartyType) params.append('party_type', selectedPartyType)
 
       const response = await axiosInstance.get(
         `/api/v1/admin/getCashbookEntries?${params.toString()}`
@@ -105,27 +166,36 @@ const Cashbook = () => {
 
   const fetchTotalAmounts = async () => {
     try {
-      const response = await axiosInstance.get('/api/v1/admin/getCashbookTotalAmount')
+      const params = new URLSearchParams()
+      if (startDate) params.append('from', startDate)
+      if (endDate) params.append('to', endDate)
+      if (selectedShop && selectedShop.id) params.append('shop_id', String(selectedShop.id))
+      if (selectedUser && selectedUser.id) params.append('user_id', String(selectedUser.id))
+      if (selectedDirection) params.append('direction', selectedDirection)
+      if (selectedMethod) params.append('method', selectedMethod)
+      if (selectedPartyType) params.append('party_type', selectedPartyType)
+      
+      const response = await axiosInstance.get(`/api/v1/admin/getCashbookTotalAmount?${params.toString()}`)
       setTotalAmounts(response.data.data.totalAmount)
     } catch (e) {
       console.error('Failed to fetch total amounts', e)
     }
   }
 
-  // Reset page when search changes
+  // Reset page when search, date, shop, user, or direction changes
   useEffect(() => {
     setPage(0)
-  }, [searchQuery])
+  }, [searchQuery, startDate, endDate, selectedShop, selectedUser, selectedDirection, selectedMethod, selectedPartyType])
 
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, searchQuery])
+  }, [page, pageSize, searchQuery, startDate, endDate, selectedShop, selectedUser, selectedDirection, selectedMethod, selectedPartyType])
 
-  // Fetch total amounts on mount
+  // Fetch total amounts on mount and when dates, shop, user, or direction change
   useEffect(() => {
     fetchTotalAmounts()
-  }, [])
+  }, [startDate, endDate, selectedShop, selectedUser, selectedDirection, selectedMethod, selectedPartyType])
 
 
 
@@ -288,26 +358,173 @@ const Cashbook = () => {
       </Grid>
 
       <Card sx={{ p: 5 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" sx={{ mb: 3 }}>
-
-          {/* Left Side: Back Button and Title */}
-          <Box display="flex" alignItems="center" gap={2}>
+        <Grid container spacing={3} >
+          <Grid item xs={12} md={9}>
             <GoBack label="Cashbook" isBack={false} />
-          </Box>
 
-          {/* Right Side: Search */}
-          <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-            <Grid item xs={12} sm="auto">
-              <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
-            </Grid>
-            <Grid item xs={12} sm="auto">
+          </Grid>
+          <Grid item xs={12} md={3} align="right">
+          <CashBookReportAdapter searchQuery={searchQuery} rowsPerPage={pageSize} startDate={startDate} endDate={endDate} selectedShop={selectedShop} selectedUser={selectedUser} selectedDirection={selectedDirection} selectedMethod={selectedMethod} selectedPartyType={selectedPartyType} />
               <Button onClick={() => setOpenAdd(true)} variant='contained'>
                 Add Entry <AddCircleOutlineIcon sx={{ ml: 1 }} />
               </Button>
+          </Grid>
+  <Grid item xs={12} sm="auto">
+              <Autocomplete
+                size="small"
+                options={shops}
+                getOptionLabel={(option) => option?.name || ''}
+                value={selectedShop}
+                onChange={(_, newValue) => setSelectedShop(newValue)}
+                loading={shopsLoading}
+                sx={{ minWidth: 200 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Shop Name"
+                    placeholder="Select Shop"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {shopsLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
             </Grid>
-          </Box>
-
-        </Box>
+            <Grid item xs={12} sm="auto">
+              <Autocomplete
+                size="small"
+                options={users}
+                getOptionLabel={(option) => option?.name || ''}
+                value={selectedUser}
+                onChange={(_, newValue) => setSelectedUser(newValue)}
+                loading={usersLoading}
+                sx={{ minWidth: 200 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="User Name"
+                    placeholder="Select User"
+                    InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {usersLoading ? <CircularProgress size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Autocomplete
+                size="small"
+                options={[{ label: 'All', value: '' }, { label: 'In', value: 'in' }, { label: 'Out', value: 'out' }]}
+                getOptionLabel={(option) => option.label}
+                value={selectedDirection ? { label: selectedDirection === 'in' ? 'In' : 'Out', value: selectedDirection } : { label: 'All', value: '' }}
+                onChange={(_, newValue) => setSelectedDirection(newValue?.value || '')}
+                sx={{ minWidth: 150 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Direction"
+                    placeholder="Select Direction"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Autocomplete
+                size="small"
+                options={[{ label: 'All', value: '' }, { label: 'Cash', value: 'cash' }, { label: 'Online', value: 'online' }, { label: 'Card', value: 'card' }]}
+                getOptionLabel={(option) => option.label}
+                value={selectedMethod ? { label: selectedMethod, value: selectedMethod } : { label: 'All', value: '' }}
+                onChange={(_, newValue) => setSelectedMethod(newValue?.value || '')}
+                sx={{ minWidth: 150 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Method"
+                    placeholder="Select Method"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Autocomplete
+                size="small"
+                options={[{ label: 'All', value: '' }, { label: 'Shop', value: 'shop' }, { label: 'Distributor', value: 'distributor' }, { label: 'Vendor', value: 'vendor' }, { label: 'Manual', value: 'manual' }]}
+                getOptionLabel={(option) => option.label}
+                value={selectedPartyType ? { label: selectedPartyType.charAt(0).toUpperCase() + selectedPartyType.slice(1), value: selectedPartyType } : { label: 'All', value: '' }}
+                onChange={(_, newValue) => setSelectedPartyType(newValue?.value || '')}
+                sx={{ minWidth: 150 }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Party Type"
+                    placeholder="Select Party Type"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Grid container spacing={1} justifyContent={{ xs: 'flex-start', md: 'flex-end' }} alignItems="center">
+                <Grid item>
+                  <TextField
+                    label="Start Date"
+                    type="date"
+                    size="small"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ minWidth: 160 }}
+                  />
+                </Grid>
+                <Grid item>
+                  <TextField
+                    label="End Date"
+                    type="date"
+                    size="small"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: startDate }}
+                    sx={{ minWidth: 160 }}
+                  />
+                </Grid>
+                <Grid item>
+                  <Button
+                    variant="outlined"
+                    // size="small"
+                onClick={() => {
+                      setStartDate('')
+                      setEndDate('')
+                      // setSelectedShop(null)
+                      // setSelectedUser(null)
+                      // setSelectedDirection('')
+                      // setSelectedMethod('')
+                      // setSelectedPartyType('')
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </Grid>
+              </Grid>
+            </Grid>
+        </Grid>
+       
         <CommonDatagrid
           totalRows={totalRows}
           pageSize={pageSize}

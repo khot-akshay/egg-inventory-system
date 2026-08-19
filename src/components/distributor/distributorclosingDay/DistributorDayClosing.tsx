@@ -623,7 +623,6 @@ const DistributorDayClosing = () => {
         setPayments({ cash: 0, upi: 0, online: 0, card: 0, credit: 0 })
         setConfirmed(false)
         setRemarks('')
-
         // Refetch data
         await fetchInventoryAndCategories()
       }

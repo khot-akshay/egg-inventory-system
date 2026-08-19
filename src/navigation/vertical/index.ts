@@ -62,6 +62,24 @@ const tempObject: VerticalNavItemsType = [
     isPermissionNeeded: true,
     permissionName: "customer",
   },
+
+  {
+    title: "Purchases",
+    icon: "mdi:cart-arrow-down", // buying items
+    allowedRoles: [ "Distributor"],
+    path: "/purchase",
+    //  isPermissionNeeded: true,
+    // permissionName: "purchase",
+  },
+  
+  {
+    title: "Transfer to Shop",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Distributor"],
+    path: "/stocks",
+    isPermissionNeeded: true,
+    permissionName: "stock",
+  },
    {
     title: "Distributor Quick Bill",
     icon: "mdi:clipboard-text-outline",
@@ -71,6 +89,8 @@ const tempObject: VerticalNavItemsType = [
     // permissionName: "quick_bill", // aligned with backend permission
 
   },
+
+  
   // {
   //   title: "Products",
   //   icon: "mdi:clipboard-text-outline",
@@ -105,22 +125,7 @@ const tempObject: VerticalNavItemsType = [
 
 
 
-  {
-    title: "Transfer to Shop",
-    icon: "mdi:warehouse", // inventory / storage
-    allowedRoles: ["Distributor"],
-    path: "/stocks",
-    isPermissionNeeded: true,
-    permissionName: "stock",
-  },
- {
-    title: "Purchases",
-    icon: "mdi:cart-arrow-down", // buying items
-    allowedRoles: [ "Distributor"],
-    path: "/purchase",
-    //  isPermissionNeeded: true,
-    // permissionName: "purchase",
-  },
+ 
     {
     title: " Vehicle Closing",
     icon: "mdi:calendar-end",

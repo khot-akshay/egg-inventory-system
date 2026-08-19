@@ -82,7 +82,7 @@ interface EggRow {
   purchaseToday: number
   soldToday: number
   closingSystem: number
-  physicalCount: number
+  physicalCount: number | string
 }
 
 interface DamagedEgg {
@@ -111,11 +111,11 @@ const DAMAGE_REASONS = [
 ]
 
 const FALLBACK_CATEGORIES: EggRow[] = [
-  { id: 1, name: 'Regular Size Eggs', icon: 'mdi:egg', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 2, name: 'Broken Eggs', icon: 'mdi:egg-off', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 3, name: 'Double Dhill Eggs', icon: 'mdi:egg-outline', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: 0 }
+  { id: 1, name: 'Regular Size Eggs', icon: 'mdi:egg', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: '' },
+  { id: 2, name: 'Broken Eggs', icon: 'mdi:egg-off', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: '' },
+  { id: 3, name: 'Double Dhill Eggs', icon: 'mdi:egg-outline', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: '' },
+  { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: '' },
+  { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, closingSystem: 0, physicalCount: '' }
 ]
 
 // ─── Category Transfer Schema ─────────────────────────────────────────────────────
@@ -275,10 +275,10 @@ const EggMobileCard = ({
   onPhysicalChange
 }: {
   row: EggRow
-  onPhysicalChange: (id: number, val: number) => void
+  onPhysicalChange: (id: number, val: number | string) => void
 }) => {
   const theme = useTheme()
-  const diff = row.physicalCount - row.closingSystem
+  const diff = (Number(row.physicalCount) || 0) - row.closingSystem
 
   return (
     <Card
@@ -347,7 +347,7 @@ const EggMobileCard = ({
             size='medium'
             fullWidth
             value={row.physicalCount}
-            onChange={e => onPhysicalChange(row.id, Number(e.target.value))}
+            onChange={e => onPhysicalChange(row.id, e.target.value === '' ? '' : Number(e.target.value))}
             InputProps={{ inputProps: { min: 0, style: { fontWeight: 700, fontSize: '1.05rem' } } }}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
           />
@@ -489,7 +489,7 @@ const DayClosing = () => {
           purchaseToday: purchase,
           soldToday: sold,
           closingSystem: closing,
-          physicalCount: closing
+          physicalCount: ''
         }
       })
       setEggRows(dynamicRows)
@@ -542,8 +542,8 @@ const DayClosing = () => {
       purchase: eggRows.reduce((s, r) => s + r.purchaseToday, 0),
       sold: eggRows.reduce((s, r) => s + r.soldToday, 0),
       system: eggRows.reduce((s, r) => s + r.closingSystem, 0),
-      physical: eggRows.reduce((s, r) => s + r.physicalCount, 0),
-      diff: eggRows.reduce((s, r) => s + (r.physicalCount - r.closingSystem), 0)
+      physical: eggRows.reduce((s, r) => s + (Number(r.physicalCount) || 0), 0),
+      diff: eggRows.reduce((s, r) => s + ((Number(r.physicalCount) || 0) - r.closingSystem), 0)
     }
   }, [eggRows])
 
@@ -569,7 +569,7 @@ const DayClosing = () => {
 
   const fmt = (n: number) => `₹ ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-  const handlePhysicalChange = (id: number, val: number) => {
+  const handlePhysicalChange = (id: number, val: number | string) => {
     setEggRows(prev => prev.map(r => r.id === id ? { ...r, physicalCount: val } : r))
   }
 
@@ -593,7 +593,7 @@ const DayClosing = () => {
         closing_cash: Number(closingCash || 0),
         categories: eggRows.map(item => ({
           category_id: item.id,
-          physical_count: Number(item.physicalCount)
+          physical_count: Number(item.physicalCount) || 0
         })),
         payments: {
           cash: Number(closingCash || 0),
@@ -840,7 +840,7 @@ const DayClosing = () => {
                             { name: 'Opening Stock', width: '10%', align: 'left' },
                             { name: 'Purchase Stock', width: '10%', align: 'left' },
                             { name: 'Sale Stock', width: '10%', align: 'left' },
-                            { name: 'Closing Stock', width: '10%', align: 'left' },
+                            { name: 'Expected Stock', width: '10%', align: 'left' },
                             { name: 'Physical Count', width: '15%', align: 'center' },
                             { name: 'Difference', width: '15%', align: 'center' }
                           ].map(col => (
@@ -867,7 +867,7 @@ const DayClosing = () => {
                       </TableHead>
                       <TableBody>
                         {eggRows.map((row, idx) => {
-                          const diff = row.physicalCount - row.closingSystem
+                          const diff = (Number(row.physicalCount) || 0) - row.closingSystem
                           return (
                             <TableRow
                               key={row.id}
@@ -923,7 +923,7 @@ const DayClosing = () => {
                                   size='small'
                                   fullWidth
                                   value={row.physicalCount}
-                                  onChange={e => handlePhysicalChange(row.id, Number(e.target.value))}
+                                  onChange={e => handlePhysicalChange(row.id, e.target.value === '' ? '' : Number(e.target.value))}
                                   inputProps={{
                                     min: 0,
                                     style: {
@@ -980,7 +980,7 @@ const DayClosing = () => {
                     Category Differences
                   </Typography> */}
                   {eggRows.map(row => {
-                    const diff = row.physicalCount - row.closingSystem
+                    const diff = (Number(row.physicalCount) || 0) - row.closingSystem
                     const diffText = diff === 0 ? 'Matched' : `${diff > 0 ? '+' : ''}${diff}`
                     const color = diff === 0 ? 'success' : diff > 0 ? 'warning' : 'error'
                     return (

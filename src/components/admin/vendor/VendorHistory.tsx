@@ -231,8 +231,8 @@ useEffect(() => {
     {
       field: 'vehicle',
       headerName: 'Vehicle',
-      flex: 1,
-      minWidth: 140,
+      flex: 0.5,
+      minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
@@ -269,18 +269,34 @@ useEffect(() => {
     },
        {
       field: 'total_eggs',
-      headerName: 'Total Eggs',
+      headerName: 'price per Eggs',
       flex: 1,
-      minWidth: 120,
+      minWidth: 300,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.total_eggs ?? 0}
-        </div>
+       <Box sx={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row.items?.map((item: any) => (
+<div key={item.id}>
+  {`${item.category?.name || 'NA'}: ${Number(item.price_per_egg || 0).toFixed(2)}`}
+</div>          )) || 'NA'}
+        </Box>
       )
     },
    
-   
+    {
+      field: 'category_egg_countsegg',
+      headerName: 'Product (total price)',
+      flex: 1,
+      minWidth: 300,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <Box sx={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row.items?.map((item: any) => (
+            <div key={item.id}>{`${item.category?.name || 'NA'}: ${item.line_amount || 0}`}</div>
+          )) || 'NA'}
+        </Box>
+      ),
+    },
 
     // {
     //   field: 'status',
