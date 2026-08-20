@@ -7,7 +7,7 @@ export interface ColumnDef {
   label: string;
   align?: 'left' | 'center' | 'right';
   width?: string;
-  format?: (value: any, row: any) => React.ReactNode;
+  format?: (value: any, row: any, index: number) => React.ReactNode;
 }
 
 interface ReportTableProps {
@@ -44,7 +44,8 @@ const ReportTable: React.FC<ReportTableProps> = ({ columns, data, pdfTheme, titl
                 }}
               >
                 <div style={{ borderBottom: `1px solid ${pdfTheme.border}`, paddingBottom: '2px', marginBottom: '4px' }}>
-                  {title} | Shop: {shopName}
+                  {title} 
+                  {/* | Shop: {shopName} */}
                 </div>
               </td>
             </tr>
@@ -104,7 +105,7 @@ const ReportTable: React.FC<ReportTableProps> = ({ columns, data, pdfTheme, titl
                         wordBreak: 'break-word'
                       }}
                     >
-                      {col.format ? col.format(value, row) : (value ?? '-')}
+                      {col.format ? col.format(value, row, rowIndex) : (value ?? '-')}
                     </td>
                   );
                 })}

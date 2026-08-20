@@ -26,9 +26,9 @@ const ReportHeader: React.FC<ReportHeaderProps> = ({ title, shopName, pdfTheme, 
         <Typography sx={{ color: pdfTheme.text, fontWeight: 'bold', fontSize: '16px', lineHeight: 1.2 }}>
           {title}
         </Typography>
-        <Typography sx={{ color: pdfTheme.text, fontSize: '10px', lineHeight: 1.2, mt: 0.25 }}>
+        {/* <Typography sx={{ color: pdfTheme.text, fontSize: '10px', lineHeight: 1.2, mt: 0.25 }}>
           Shop: {shopName}
-        </Typography>
+        </Typography> */}
       </Box>
     </Box>
   );

@@ -1,4 +1,4 @@
-import { Box, Button, Card, Grid, Typography, Stack, TextField, Autocomplete, CircularProgress } from '@mui/material'
+import { Box, Button, Card, Grid, Typography, Stack, TextField, Autocomplete, CircularProgress, InputAdornment, IconButton } from '@mui/material'
 import { GridCellParams, GridColDef } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
@@ -9,9 +9,11 @@ import axiosInstance from 'src/services/axios'
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule';
 import SearchInput from 'src/components/common/SearchInput';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ClearIcon from '@mui/icons-material/Clear';
 
 import AddManulyEntry from './AddManulyEntry';
 import CashBookReportAdapter from './CashBookReportAdapter';
+import RHFFilterAutocomplete from 'src/hook-forms/RHFFilterAutocomplete';
 
 interface Shop {
   id: number
@@ -166,16 +168,16 @@ const Cashbook = () => {
 
   const fetchTotalAmounts = async () => {
     try {
-      const params = new URLSearchParams()
-      if (startDate) params.append('from', startDate)
-      if (endDate) params.append('to', endDate)
-      if (selectedShop && selectedShop.id) params.append('shop_id', String(selectedShop.id))
-      if (selectedUser && selectedUser.id) params.append('user_id', String(selectedUser.id))
-      if (selectedDirection) params.append('direction', selectedDirection)
-      if (selectedMethod) params.append('method', selectedMethod)
-      if (selectedPartyType) params.append('party_type', selectedPartyType)
+      // const params = new URLSearchParams()
+      // if (startDate) params.append('from', startDate)
+      // if (endDate) params.append('to', endDate)
+      // if (selectedShop && selectedShop.id) params.append('shop_id', String(selectedShop.id))
+      // if (selectedUser && selectedUser.id) params.append('user_id', String(selectedUser.id))
+      // if (selectedDirection) params.append('direction', selectedDirection)
+      // if (selectedMethod) params.append('method', selectedMethod)
+      // if (selectedPartyType) params.append('party_type', selectedPartyType)
       
-      const response = await axiosInstance.get(`/api/v1/admin/getCashbookTotalAmount?${params.toString()}`)
+      const response = await axiosInstance.get(`/api/v1/admin/getCashbookTotalAmount`)
       setTotalAmounts(response.data.data.totalAmount)
     } catch (e) {
       console.error('Failed to fetch total amounts', e)
@@ -243,45 +245,25 @@ const Cashbook = () => {
         {params.row?.user?.name || 'NA'}
       </div>
     },
-    {
-      field: 'direction',
-      headerName: 'Direction',
-      flex: 1,
-      minWidth: 100,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ 
-          whiteSpace: 'normal', 
-          wordBreak: 'break-word', 
-          lineHeight: 1.5,
-          color: params.row?.direction === 'in' ? 'success.main' : 'error.main',
-          fontWeight: 'bold'
-        }}>
-          {params.row?.direction?.toUpperCase() || 'NA'}
-        </div>
-      )
-    },
-    {
-      field: 'method',
-      headerName: 'Method',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.method || 'NA'}
-      </div>
-    },
-    {
-      field: 'amount',
-      headerName: 'Amount',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        ₹ {Math.floor(Number(params.row?.amount || 0))}
-      </div>
-    },
-    {
+    // {
+    //   field: 'direction',
+    //   headerName: 'Direction',
+    //   flex: 1,
+    //   minWidth: 100,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ 
+    //       whiteSpace: 'normal', 
+    //       wordBreak: 'break-word', 
+    //       lineHeight: 1.5,
+    //       color: params.row?.direction === 'in' ? 'success.main' : 'error.main',
+    //       fontWeight: 'bold'
+    //     }}>
+    //       {params.row?.direction?.toUpperCase() || 'NA'}
+    //     </div>
+    //   )
+    // },
+      {
       field: 'party_type',
       headerName: 'Party Type',
       flex: 1,
@@ -291,26 +273,69 @@ const Cashbook = () => {
         {params.row?.party_type || 'NA'}
       </div>
     },
-    // {
-    //   field: 'description',
-    //   headerName: 'Description',
-    //   flex: 1,
-    //   minWidth: 200,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //     {params.row?.description || 'NA'}
-    //   </div>
-    // },
-    {
-      field: 'entry_date',
-      headerName: 'Entry Date',
+    
+     {
+      field: 'description',
+      headerName: 'Note',
       flex: 1,
-      minWidth: 180,
+      minWidth: 200,
       sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <DateFormateComponent date={params.row?.entry_date ?? ''} />
-      )
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.description || 'NA'}
+      </div>
     },
+    {
+      field: 'method',
+      headerName: 'Method',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.method || 'NA'}
+      </div>
+    },
+    {
+      field: 'amount_in',
+      headerName: 'Amount in ',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.direction?.toUpperCase() === 'IN' ? `₹ ${Math.floor(Number(params.row?.amount || 0))}` : '-'}
+      </div>
+    },
+    {
+      field: 'amount_out',
+      headerName: 'Amount out',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.direction?.toUpperCase() === 'OUT' ? `₹ ${Math.floor(Number(params.row?.amount || 0))}` : '-'}
+      </div>
+    },
+    {
+      field: 'balence',
+      headerName: 'Balance',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+        {params.row?.balence || 'NA'}
+      </div>
+    },
+    
+   
+    // {
+    //   field: 'entry_date',
+    //   headerName: 'Entry Date',
+    //   flex: 1,
+    //   minWidth: 180,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <DateFormateComponent date={params.row?.entry_date ?? ''} />
+    //   )
+    // },
     {
       field: 'created_at',
       headerName: 'Created Date',
@@ -370,113 +395,58 @@ const Cashbook = () => {
               </Button>
           </Grid>
   <Grid item xs={12} sm="auto">
-              <Autocomplete
-                size="small"
+              <RHFFilterAutocomplete
                 options={shops}
-                getOptionLabel={(option) => option?.name || ''}
                 value={selectedShop}
-                onChange={(_, newValue) => setSelectedShop(newValue)}
+                onChange={(newValue) => setSelectedShop(newValue)}
                 loading={shopsLoading}
-                sx={{ minWidth: 200 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Shop Name"
-                    placeholder="Select Shop"
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {shopsLoading ? <CircularProgress size={20} /> : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
+                label="Shop Name"
+                placeholder="Select Shop"
+                minWidth={150}
               />
             </Grid>
             <Grid item xs={12} sm="auto">
-              <Autocomplete
-                size="small"
+              <RHFFilterAutocomplete
                 options={users}
-                getOptionLabel={(option) => option?.name || ''}
                 value={selectedUser}
-                onChange={(_, newValue) => setSelectedUser(newValue)}
+                onChange={(newValue) => setSelectedUser(newValue)}
                 loading={usersLoading}
-                sx={{ minWidth: 200 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="User Name"
-                    placeholder="Select User"
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {usersLoading ? <CircularProgress size={20} /> : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      ),
-                    }}
-                  />
-                )}
+                label="User Name"
+                placeholder="Select User"
+                minWidth={170}
               />
             </Grid>
             <Grid item xs={12} sm="auto">
-              <Autocomplete
-                size="small"
+              <RHFFilterAutocomplete
                 options={[{ label: 'All', value: '' }, { label: 'In', value: 'in' }, { label: 'Out', value: 'out' }]}
-                getOptionLabel={(option) => option.label}
+                labelKey="label"
                 value={selectedDirection ? { label: selectedDirection === 'in' ? 'In' : 'Out', value: selectedDirection } : { label: 'All', value: '' }}
-                onChange={(_, newValue) => setSelectedDirection(newValue?.value || '')}
-                sx={{ minWidth: 150 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Direction"
-                    placeholder="Select Direction"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                )}
+                onChange={(newValue) => setSelectedDirection(newValue?.value || '')}
+                label="Direction"
+                placeholder="Select Direction"
+                minWidth={150}
               />
             </Grid>
             <Grid item xs={12} sm="auto">
-              <Autocomplete
-                size="small"
+              <RHFFilterAutocomplete
                 options={[{ label: 'All', value: '' }, { label: 'Cash', value: 'cash' }, { label: 'Online', value: 'online' }, { label: 'Card', value: 'card' }]}
-                getOptionLabel={(option) => option.label}
+                labelKey="label"
                 value={selectedMethod ? { label: selectedMethod, value: selectedMethod } : { label: 'All', value: '' }}
-                onChange={(_, newValue) => setSelectedMethod(newValue?.value || '')}
-                sx={{ minWidth: 150 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Method"
-                    placeholder="Select Method"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                )}
+                onChange={(newValue) => setSelectedMethod(newValue?.value || '')}
+                label="Method"
+                placeholder="Select Method"
+                minWidth={150}
               />
             </Grid>
             <Grid item xs={12} sm="auto">
-              <Autocomplete
-                size="small"
+              <RHFFilterAutocomplete
                 options={[{ label: 'All', value: '' }, { label: 'Shop', value: 'shop' }, { label: 'Distributor', value: 'distributor' }, { label: 'Vendor', value: 'vendor' }, { label: 'Manual', value: 'manual' }]}
-                getOptionLabel={(option) => option.label}
+                labelKey="label"
                 value={selectedPartyType ? { label: selectedPartyType.charAt(0).toUpperCase() + selectedPartyType.slice(1), value: selectedPartyType } : { label: 'All', value: '' }}
-                onChange={(_, newValue) => setSelectedPartyType(newValue?.value || '')}
-                sx={{ minWidth: 150 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Party Type"
-                    placeholder="Select Party Type"
-                    InputLabelProps={{ shrink: true }}
-                  />
-                )}
+                onChange={(newValue) => setSelectedPartyType(newValue?.value || '')}
+                label="Party Type"
+                placeholder="Select Party Type"
+                minWidth={150}
               />
             </Grid>
             <Grid item xs={12} sm="auto">
@@ -490,6 +460,20 @@ const Cashbook = () => {
                     onChange={(e) => setStartDate(e.target.value)}
                     InputLabelProps={{ shrink: true }}
                     sx={{ minWidth: 160 }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => setStartDate('')}
+                            edge="end"
+                            aria-label="clear start date"
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
                 <Grid item>
@@ -502,6 +486,20 @@ const Cashbook = () => {
                     InputLabelProps={{ shrink: true }}
                     inputProps={{ min: startDate }}
                     sx={{ minWidth: 160 }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => setEndDate('')}
+                            edge="end"
+                            aria-label="clear end date"
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
                   />
                 </Grid>
                 <Grid item>
@@ -511,11 +509,11 @@ const Cashbook = () => {
                 onClick={() => {
                       setStartDate('')
                       setEndDate('')
-                      // setSelectedShop(null)
-                      // setSelectedUser(null)
-                      // setSelectedDirection('')
-                      // setSelectedMethod('')
-                      // setSelectedPartyType('')
+                      setSelectedShop(null)
+                      setSelectedUser(null)
+                      setSelectedDirection('')
+                      setSelectedMethod('')
+                      setSelectedPartyType('')
                     }}
                   >
                     Reset

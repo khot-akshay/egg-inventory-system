@@ -7,11 +7,14 @@ import {
   useTheme,
   Chip,
   Button,
-  Tooltip
+  Tooltip,
+  TextField,
+  InputAdornment
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ClearIcon from "@mui/icons-material/Clear";
 import axiosInstance from "src/services/axios";
 import EmailModule from "src/components/common/Links/EmailLink";
 import MobileNumberModule from "src/components/common/Links/MobileNumberModule";
@@ -20,22 +23,28 @@ import GoBack from "src/components/common/goBack/GoBackButton";
 import SearchInput from "src/components/common/SearchInput";
 import CommonDatagrid from "src/components/common/DatagridData.tsx/CommonDatagrid";
 import DateFormateComponent from "src/components/common/dateFormat/DateFromatModule";
+import RHFFilterAutocomplete from "src/hook-forms/RHFFilterAutocomplete";
+import CustomerReportAdapter from "./CustomerReportAdapter";
 
 
 export default function ViewCustomer() {
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [customerDetails, setCustomerDetails] = useState<any>({});
-   const [rows, setRows] = useState<CategoryRow[]>([])
-    const [totalRows, setTotalRows] = useState(0)
-    const [loading, setLoading] = useState(true)
-    const [pageSize, setPageSize] = useState(10)
-    const [page, setPage] = useState(0)
-    const [openAdd, setOpenAdd] = useState(false)
-    const [openDelete, setOpenDelete] = useState(false)
-    const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
-    const [openEdit, setOpenEdit] = useState(false)
-    const [searchQuery, setQuery] = useState("");
+  const [rows, setRows] = useState<CategoryRow[]>([])
+  const [totalRows, setTotalRows] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [pageSize, setPageSize] = useState(10)
+  const [page, setPage] = useState(0)
+  const [customerTotals, setCustomerTotals] = useState<any>({})
+  const [openAdd, setOpenAdd] = useState(false)
+  const [openDelete, setOpenDelete] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
+  const [openEdit, setOpenEdit] = useState(false)
+  const [searchQuery, setQuery] = useState("");
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedType, setSelectedType] = useState('');
   const router = useRouter();
   const { id } = router.query;
   const { back } = useRouter();
@@ -54,42 +63,52 @@ export default function ViewCustomer() {
       }
     } catch (error) {
       setIsLoading(false);
-      }
+    }
   };
 
   useEffect(() => {
     getAllData();
   }, [id]);
 
-   const fetchGame = async () => {
-      if (!id) return;
-      setLoading(true)
-      try {
-        const params = new URLSearchParams({
-          pageNo: String(page),
-          limit: String(pageSize),
-          customer_id: String(id) // dynamically passing the customer id from the route
-        })
-  
-        if (searchQuery) params.append('global_search', searchQuery)
-  
-        const response = await axiosInstance.get(
-          `/api/v1/admin/getAllQuickbills?${params.toString()}`
-        )
-  
-        setRows(response.data.data?.quickbills ?? response.data.data?.data ?? [])
-        setTotalRows(response.data.data?.count ?? 0)
-      } catch (e) {
-        } finally {
-        setLoading(false)
-      }
+  const fetchGame = async () => {
+    if (!id) return;
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        pageNo: String(page),
+        limit: String(pageSize),
+        customer_id: String(id) // dynamically passing the customer id from the route
+      })
+
+      if (searchQuery) params.append('global_search', searchQuery)
+      if (startDate) params.append('from', startDate)
+      if (endDate) params.append('to', endDate)
+      if (selectedType) params.append('type', selectedType)
+
+      const response = await axiosInstance.get(
+        `/api/v1/admin/getAllQuickbills?${params.toString()}`
+      )
+
+      const fetchedRows = response.data.data?.records ?? response.data.data?.data ?? [];
+      const uniqueRows = fetchedRows.map((row: any, index: number) => ({
+        ...row,
+        _original_id: row.id,
+        id: row.uuid || `${row.id || 'no-id'}-${index}`
+      }));
+      setRows(uniqueRows);
+      setTotalRows(response.data.data?.total_count ?? 0)
+      setCustomerTotals(response.data.data?.customer_totals ?? {})
+    } catch (e) {
+    } finally {
+      setLoading(false)
     }
+  }
 
-    useEffect(() => {
-      fetchGame()
-    }, [page, pageSize, searchQuery, id])
+  useEffect(() => {
+    fetchGame()
+  }, [page, pageSize, searchQuery, id, startDate, endDate, selectedType])
 
-     const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     setPage(newPage)
   }
 
@@ -98,224 +117,181 @@ export default function ViewCustomer() {
   }
 
 
-   const columns: GridColDef[] = [
-       {
-         field: 'id',
-         headerName: 'Sr. No.',
-         flex: 0.5,
-         minWidth: 80,
+  const columns: GridColDef[] = [
+    {
+      field: 'id',
+      headerName: 'Sr. No.',
+      flex: 0.5,
+      minWidth: 80,
+
+      sortable: false,
+      renderCell: index => {
+        const rowIndex = index.api.getRowIndex(index.row.id)
+        return page * pageSize + (rowIndex % pageSize) + 1
+      },
+      hideable: false
+    },
+
+    {
+      field: 'customer_name',
+      headerName: 'note',
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.description || 'NA'}
+        </div>
+      )
+    },
+    {
+      field: 'shop',
+      headerName: 'Product & Quantity',
+      flex: 1.5,
+      minWidth: 180,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                {item.category?.name || 'Unknown'} : {Number(item.quantity)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'quantity',
+      headerName: 'Product Rate',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                ₹{Number(item.unit_cost || 0).toFixed(2)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'unit_cost',
+      headerName: 'Product Price',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                ₹{Number(item.line_total || 0).toFixed(2)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'total_due',
+      headerName: 'Paid',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        if (params.row?.type === 'quickbill') {
+          const payments = params.row?.meta?.payments || [];
+          const nonCreditPayments = payments.filter((p: any) => p.payment_type !== 'credit');
+          if (!nonCreditPayments.length) {
+            return (
+              <div style={{ textTransform: 'capitalize', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+                {params.row?.status || 'NA'}
+              </div>
+            );
+          }
+          return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, height: '100%', justifyContent: 'center' }}>
+              {nonCreditPayments.map((p: any, i: number) => (
+                <div key={i} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize' }}>
+                  {p.payment_type} : ₹{p.amount}
+                </div>
+              ))}
+            </Box>
+          );
+        }
+        return (
+          <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+            ₹{params.row?.amount || '0'}
+          </div>
+        );
+      }
+    },
+    {
+      field: 'status',
+      headerName: 'credit',
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const payments = params.row?.meta?.payments || [];
+        const creditPayments = payments.filter((p: any) => p.payment_type === 'credit');
+
+        if (!creditPayments.length) {
+          return (
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+              -
+            </div>
+          );
+        }
+
+        const balanceDue = params.row?.balance_due ?? '0';
+
+        return (
+          <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize' }}>
+            Credit : ₹{balanceDue}
+          </div>
+        );
+      }
+    },
+    {
+      field: 'total',
+      headerName: 'Total Bill',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          ₹{params.row?.total || '0'}
+        </div>
+      )
+    },
+
+
+
+    {
+      field: 'created_at',
+      headerName: 'Created Date',
+      flex: 1,
+      minWidth: 150,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <DateFormateComponent date={params.row?.created_at ?? ''} />
+      )
+    },
    
-         sortable: false,
-         renderCell: index => {
-           const rowIndex = index.api.getRowIndex(index.row.id)
-           return page * pageSize + (rowIndex % pageSize) + 1
-         },
-         hideable: false
-       },
-   
-       {
-         field: 'customer_name',
-         headerName: 'customer name',
-         flex: 1,
-         minWidth: 150,
-         sortable: false,
-         renderCell: (params: GridCellParams) => (
-           <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-             {params.row?.customer?.name || 'NA'}
-           </div>
-         )
-       },
-       {
-         field: 'shop',
-         headerName: 'Product & Quantity',
-         flex: 1.5,
-         minWidth: 180,
-         sortable: false,
-         renderCell: (params: GridCellParams) => {
-           const items = params.row?.items || [];
-           if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>;
-           return (
-             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-               {items.map((item: any, idx: number) => (
-                 <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                   {item.category?.name || 'Unknown'} : {Number(item.quantity)}
-                 </div>
-               ))}
-             </Box>
-           );
-         }
-       },
-       {
-         field: 'quantity',
-         headerName: 'Product Rate',
-         flex: 1,
-         minWidth: 100,
-         sortable: false,
-         renderCell: (params: GridCellParams) => {
-           const items = params.row?.items || [];
-           if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
-           return (
-             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-               {items.map((item: any, idx: number) => (
-                 <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                   ₹{Number(item.unit_cost || 0).toFixed(2)}
-                 </div>
-               ))}
-             </Box>
-           );
-         }
-       },
-       {
-         field: 'unit_cost',
-         headerName: 'Product Price',
-         flex: 1,
-         minWidth: 100,
-         sortable: false,
-         renderCell: (params: GridCellParams) => {
-           const items = params.row?.items || [];
-           if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
-           return (
-             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-               {items.map((item: any, idx: number) => (
-                 <div key={idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                   ₹{Number(item.line_total || 0).toFixed(2)}
-                 </div>
-               ))}
-             </Box>
-           );
-         }
-       },
-        {
-         field: 'total_due',
-         headerName: 'Total Due',
-         flex: 1,
-         minWidth: 120,
-         sortable: false,
-         renderCell: (params: GridCellParams) => (
-           <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-             ₹{params.row?.balance_due || '0'}
-           </div>
-         )
-       },
-       {
-         field: 'status',
-         headerName: 'Payment',
-         flex: 1,
-         minWidth: 150,
-         sortable: false,
-         renderCell: (params: GridCellParams) => {
-           const payments = params.row?.meta?.payments || [];
-           if (!payments.length) {
-             return (
-               <div style={{ textTransform: 'capitalize' }}>
-                 {params.row?.status || 'NA'}
-               </div>
-             );
-           }
-   
-           return (
-             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, height: '100%', justifyContent: 'center' }}>
-               {payments.map((p: any, i: number) => (
-                 // <Typography
-                 //   key={i}
-                 //   variant="body2"
-                 //   sx={{
-                 //     textTransform: 'capitalize',
-                 //     fontWeight: 500,
-                 //     fontSize: '0.8rem',
-                 //     // color:
-                 //     //   p.payment_type === 'cash' ? 'success.main' : 
-                 //     //   p.payment_type === 'upi' ? 'info.main' : 
-                 //     //   p.payment_type === 'credit' ? 'error.main' : 'text.primary'
-                 //   }}
-                 // >
-                 //   {p.payment_type} : ₹{p.amount}
-                 // </Typography>
-                         <div key={i} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 , textTransform: 'capitalize',}}>
-                   {p.payment_type} : ₹{p.amount}
-   
-   </div>
-               ))}
-             </Box>
-           );
-         }
-       },
-       {
-         field: 'total',
-         headerName: 'Total Bill',
-         flex: 1,
-         minWidth: 120,
-         sortable: false,
-         renderCell: (params: GridCellParams) => (
-           <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-             ₹{params.row?.total || '0'}
-           </div>
-         )
-       },
-      
-      
-   
-       // {
-       //   field: 'status',
-       //   headerName: 'Status',
-       //   minWidth: 150,
-       //   sortable: false,
-       //   renderCell: (params: GridCellParams) => {
-       //     const isActive = params.row.is_active === true || params.row.is_active === 1 || params.row.is_active === '1';
-       //     return (
-       //       <Stack direction='row' alignItems='center' spacing={5}>
-       //         <p>{isActive ? 'Active' : 'Inactive'}</p>
-       //         <Switch checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
-       //       </Stack>
-       //     );
-       //   },
-       //   flex: 1,
-       // },
-       {
-         field: 'created_at',
-         headerName: 'Created Date',
-         flex: 1,
-         minWidth: 150,
-         sortable: false,
-         renderCell: (params: GridCellParams) => (
-           <DateFormateComponent date={params.row?.created_at ?? ''} />
-         )
-       },
-       // {
-       //   field: 'actions',
-       //   headerName: 'Actions',
-       //   minWidth: 150,
-       //   sortable: false,
-       //   flex: 1,
-       //   renderCell: (params: GridCellParams) => (
-       //     <>
-       //       {/* {checkPermission('update_brand') && ( */}
-       //       <Button
-       //         sx={{ color: 'text.secondary', margin: '-10px' }}
-       //         onClick={() => handleViewUser(params.row.id)}>
-       //         <Icon icon={'ph:eye'} fontSize={24} />
-       //       </Button>
-       //       <Tooltip title='Update Product.' placement='bottom'>
-       //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-       //           <Icon icon={'circum:edit'} fontSize={24} />
-       //         </Button>
-       //       </Tooltip>
-       //       {/* )} */}
-       //       {/* {checkPermission('delete_brand') && (  */}
-   
-       //       <Tooltip title='Delete Product.' placement='bottom'>
-       //         <Button
-       //           sx={{ color: 'text.secondary', margin: '-10px' }}
-       //           onClick={() => handleDeleteOpen(params)}
-       //         >
-       //           <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
-       //         </Button>
-       //       </Tooltip>
-       //       {/* )} */}
-       //     </>
-       //   ),
-       // },
-     ]
+  ]
 
   return (
     <>
@@ -377,7 +353,7 @@ export default function ViewCustomer() {
             <Grid container spacing={2}>
               <Grid item xs={12} md={12} sx={{ mb: 2 }}>
                 <Grid container spacing={2}>
-                   <Grid item xs={12} md={4} sx={{ mb: 2 }}>
+                  <Grid item xs={12} md={4} sx={{ mb: 2 }}>
                     <Typography variant="body1">Shop Name</Typography>
                     <Typography
                       variant="subtitle1"
@@ -395,7 +371,7 @@ export default function ViewCustomer() {
                       {customerDetails?.name || "NA"}
                     </Typography>
                   </Grid>
-                    <Grid item xs={12} md={4} sx={{ mb: 2 }}>
+                  <Grid item xs={12} md={4} sx={{ mb: 2 }}>
                     <Typography variant="body1">Due Amount</Typography>
                     <Typography
                       variant="subtitle1"
@@ -468,100 +444,153 @@ export default function ViewCustomer() {
               </Grid>
             </Grid>
           </Card>
-           <Card sx={{ p: 5,mt:3 }}  >
-                  <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" sx={{ mb: 3 }}>
-          
-                    {/* Left Side: Back Button and Title */}
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <GoBack label="Customer" isBack={false} />
-                    </Box>
-          
-                    {/* Right Side: Search and Add Button */}
-                    <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-          
-                      {/* <Grid item xs={12} sm="auto" sx={{ minWidth: 250 }}>
-                        <TextField
-                          variant="outlined"
-                          size="small"
-                          placeholder="Search..."
-                          value={searchQuery}
-                          onChange={(e) => {
-                            setPage(0);
-                            setSearchQuery(e.target.value);
-                          }}
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position="start">
-                                <GridSearchIcon />
-                              </InputAdornment>
-                            ),
-                          }}
-                        />
-                      </Grid> */}
-                      {/* <Grid item xs={12} sm="auto">
-                        <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
-          
-                      </Grid> */}
-          
-          
-          
-          
-                      <Grid item xs={12} sm="auto">
-                        {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
+
+          <Card sx={{ p: 5, mt: 3 }}  >
+            {customerTotals && Object.keys(customerTotals).length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={4}>
+                    <Card sx={{ p: 3, bgcolor: '#e3f2fd', color: '#1565c0', boxShadow: 'none', border: '1px solid #bbdefb', borderRadius: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Total Amount</Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>₹{Number(customerTotals.total_amount || 0).toFixed(2)}</Typography>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Card sx={{ p: 3, bgcolor: '#e8f5e9', color: '#2e7d32', boxShadow: 'none', border: '1px solid #c8e6c9', borderRadius: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Paid Amount</Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>₹{Number(customerTotals.paid_amount || 0).toFixed(2)}</Typography>
+                    </Card>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Card sx={{ p: 3, bgcolor: '#ffebee', color: '#c62828', boxShadow: 'none', border: '1px solid #ffcdd2', borderRadius: 2 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Due Amount</Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 700 }}>₹{Number(customerTotals.due_amount || 0).toFixed(2)}</Typography>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </Box>
+            )}
+                      </Card>
+
+          <Card sx={{ p: 5, mt: 3 }}>
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              {/* Left Side: Back Button and Title */}
+              <Grid item xs={12} md={4}>
+                <GoBack label="Customer" isBack={false} />
+              </Grid>
+
+              {/* Right Side: Filters */}
+              <Grid item xs={12} md={8} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+               
+                <Grid item xs={12} sm="auto">
+                  <RHFFilterAutocomplete
+                    options={[{ label: 'All', value: '' }, { label: 'Cashbook', value: 'cashbook' }, { label: 'Quickbill', value: 'quickbill' }]}
+                    labelKey="label"
+                    value={selectedType ? { label: selectedType.charAt(0).toUpperCase() + selectedType.slice(1), value: selectedType } : { label: 'All', value: '' }}
+                    onChange={(newValue) => setSelectedType(newValue?.value || '')}
+                    label="Type"
+                    placeholder="Select Type"
+                    minWidth={150}
+                  />
+                </Grid>
+                <Grid item xs={12} sm="auto">
+                  <TextField
+                    label="Start Date"
+                    type="date"
+                    size="small"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    sx={{ minWidth: 160 }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => setStartDate('')}
+                            edge="end"
+                            aria-label="clear start date"
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm="auto">
+                  <TextField
+                    label="End Date"
+                    type="date"
+                    size="small"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{ min: startDate }}
+                    sx={{ minWidth: 160 }}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => setEndDate('')}
+                            edge="end"
+                            aria-label="clear end date"
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm="auto">
+                  <Button
+                    variant="outlined"
+                    onClick={() => {
+                      setStartDate('')
+                      setEndDate('')
+                      setSelectedType('')
+                    }}
+                  >
+                    Reset
+                  </Button>
+                </Grid>
+                 <Grid item xs={12} sm="auto">
+                  <CustomerReportAdapter
+                    searchQuery={searchQuery}
+                    rowsPerPage={pageSize}
+                    startDate={startDate}
+                    endDate={endDate}
+                    selectedType={selectedType}
+                    customerId={id as string}
+                  />
+                </Grid>
+                  {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
                           Add Brand
                         </Button> */}
-                        {/* {checkPermission('add_brand') && ( */}
-                        {/* <Butto onClick={() => setOpenAdd(true)} variant='contained'>
+                  {/* {checkPermission('add_brand') && ( */}
+                  {/* <Butto onClick={() => setOpenAdd(true)} variant='contained'>
                           Add Customer <AddCircleOutlineIcon sx={{ ml: 1 }} />
                         </Button> */}
-          
-                        {/* )} */}
-          
-                      </Grid>
-                    </Box>
-          
-                  </Box>
-                  {/* <Grid container spacing={2}>
-          
-                    <Grid item xs={12} md={8}></Grid>
-                    <Grid item xs={12} md={2} >
-                      <RHFAutoComplete
-                        control={control}
-                        name="category_id"
-                        apiUrl="/api/v1/admin/categories/getAllCategories"
-                        extraParams={{ is_active: 1 }}
-                        placeholder="Select Category"
-                        labelinput="Select Category"
-                        labelKey="name"
-                        valueKey="id"
-                        required={false}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={2} >
-                      <RHFAutoComplete
-                        control={control}
-                        name="shop_id"
-                        apiUrl="/api/v1/admin/getAllShops"
-                        placeholder="Select Shop"
-                        labelinput="Select Shop"
-                        labelKey="name"
-                        valueKey="id"
-                        required={false}
-                      />
-                    </Grid>
-                  </Grid> */}
-                  <CommonDatagrid
-                    totalRows={totalRows}
-                    pageSize={pageSize}
-                    currentPage={page}
-                    handleChangePage={handlePageChange}
-                    handleChangeRowsPerPage={handlePageSizeChange}
-                    columns={columns}
-                    rows={rows}
-                    checkboxSelection={false}
-                    loading={loading}
-                  />
-                </Card>
+
+                  {/* )} */}
+
+              </Grid>
+
+            </Grid>
+            <CommonDatagrid
+              totalRows={totalRows}
+              pageSize={pageSize}
+              currentPage={page}
+              handleChangePage={handlePageChange}
+              handleChangeRowsPerPage={handlePageSizeChange}
+              columns={columns}
+              rows={rows}
+              checkboxSelection={false}
+              loading={loading}
+            />
+          </Card>
         </Grid>
       </Grid>
     </>
