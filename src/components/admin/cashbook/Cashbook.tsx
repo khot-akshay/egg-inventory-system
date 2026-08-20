@@ -315,14 +315,19 @@ const Cashbook = () => {
       </div>
     },
     {
-      field: 'balence',
+      field: 'balance',
       headerName: 'Balance',
       flex: 1,
       minWidth: 120,
       sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.balence || 'NA'}
-      </div>
+      renderCell: (params: GridCellParams) => {
+        const balanceVal = params.row?.balance ?? params.row?.balence;
+        return (
+          <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+            {balanceVal !== undefined && balanceVal !== null ? `₹ ${balanceVal}` : 'NA'}
+          </div>
+        );
+      }
     },
     
    
