@@ -16,6 +16,7 @@ import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import RHFFilterAutocomplete from 'src/hook-forms/RHFFilterAutocomplete';
 
 
 
@@ -47,6 +48,12 @@ const Stockhistory = () => {
   const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
+  const [users, setUsers] = useState<any[]>([])
+  const [selectedUser, setSelectedUser] = useState<any | null>(null)
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [shops, setShops] = useState<any[]>([])
+  const [selectedShop, setSelectedShop] = useState<any | null>(null)
+  const [shopsLoading, setShopsLoading] = useState(false)
   const router = useRouter()
   const { control, watch } = useForm({
     defaultValues: {
@@ -55,7 +62,8 @@ const Stockhistory = () => {
     }
   })
   const selectedCategoryId = watch('category_id') as number | null
-  const selectedShopId = watch('shop_id') as number | null
+  const selectedShopId = selectedShop?.id as number | null | undefined
+  const selectedUserId = selectedUser?.id as number | null | undefined
 
 
 
@@ -71,6 +79,7 @@ const Stockhistory = () => {
       if (searchQuery) params.append('global_search', searchQuery)
       if (selectedCategoryId) params.append('category_id', String(selectedCategoryId))
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
+      if (selectedUserId) params.append('user_id', String(selectedUserId))
 
       const response = await axiosInstance.get(
         `/api/v1/admin/getStockMovements?${params.toString()}`
@@ -96,12 +105,44 @@ const Stockhistory = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(0)
-  }, [selectedCategoryId, selectedShopId, searchQuery])
+  }, [selectedCategoryId, selectedShopId, searchQuery, selectedUserId, selectedShop])
 
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, selectedUserId, selectedShop])
+
+  // Fetch users
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setUsersLoading(true)
+      try {
+        const response = await axiosInstance.get('/api/v1/admin/getAllUsers')
+        setUsers(response.data.data?.users ?? [])
+      } catch (e) {
+        console.error('Failed to fetch users:', e)
+      } finally {
+        setUsersLoading(false)
+      }
+    }
+    fetchUsers()
+  }, [])
+
+  // Fetch shops
+  useEffect(() => {
+    const fetchShops = async () => {
+      setShopsLoading(true)
+      try {
+        const response = await axiosInstance.get('/api/v1/admin/getAllShops')
+        setShops(response.data.data?.shops ?? [])
+      } catch (e) {
+        console.error('Failed to fetch shops:', e)
+      } finally {
+        setShopsLoading(false)
+      }
+    }
+    fetchShops()
+  }, [])
 
 
 
@@ -277,29 +318,39 @@ const Stockhistory = () => {
               <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
 
             </Grid>
-          <Grid item xs={12} md={2} >
+          {/* <Grid item xs={12} md={2} >
             <RHFAutoComplete
               control={control}
               name="category_id"
               apiUrl="/api/v1/admin/categories/getAllCategories"
-              extraParams={{ is_active: 1 }}
+              // extraParams={{ is_active: 1 }}
               placeholder="Select Category"
               labelinput="Select Category"
               labelKey="name"
               valueKey="id"
               required={false}
             />
-          </Grid>
-          <Grid item xs={12} md={2} >
-            <RHFAutoComplete
-              control={control}
-              name="shop_id"
-              apiUrl="/api/v1/admin/getAllShops"
+          </Grid> */}
+          <Grid item xs={12} sm="auto">
+              <RHFFilterAutocomplete
+                options={users}
+                value={selectedUser}
+                onChange={(newValue) => setSelectedUser(newValue)}
+                loading={usersLoading}
+                label="Creator Name"
+                placeholder="Select Creator"
+                minWidth={200}
+              />
+            </Grid>
+          <Grid item xs={12} sm="auto">
+            <RHFFilterAutocomplete
+              options={shops}
+              value={selectedShop}
+              onChange={(newValue) => setSelectedShop(newValue)}
+              loading={shopsLoading}
+              label="Shop Name"
               placeholder="Select Shop"
-              labelinput="Select Shop"
-              labelKey="name"
-              valueKey="id"
-              required={false}
+              minWidth={200}
             />
           </Grid>
         </Grid>

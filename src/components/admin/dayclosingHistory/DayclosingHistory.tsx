@@ -45,7 +45,7 @@ const DayclosingHistory = () => {
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(6)
+  const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(0)
   const [openAdd, setOpenAdd] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
@@ -128,24 +128,31 @@ const DayclosingHistory = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
 
       const response = await axiosInstance.get(
-        `/api/v1/admin/getOpeningAndClosingDaypreview?${params.toString()}`
+        `/api/v1/admin/getOpeningAndClosingDaypreview?${params.toString()}&type=all`
       )
 
-      const previewData = response.data.data ?? {}
-      const categories = Array.isArray(previewData.categories) ? previewData.categories : []
-      const mappedRows = categories.length
-        ? [
-          {
-            id: previewData.shop_id ?? 1,
-            shop_id: previewData.shop_id,
-            session_date: previewData.session_date,
-            categories,
-            payments: previewData.payments ?? {},
-            sale_amount: Number(previewData.sale_amount ?? 0),
-            due_amount: Number(previewData.due_amount ?? 0)
-          }
-        ]
-        : []
+      const dataArray = Array.isArray(response.data?.data) ? response.data.data : []
+      const mappedRows = dataArray.map((item: any, index: number) => ({
+        id: item.session?.id ?? item.shop_id ?? index + 1,
+        shop_id: item.shop_id,
+        session_date: item.session_date,
+        session_id: item.session?.id,
+        session_status: item.session?.status,
+        opened_at: item.session?.opened_at,
+        closed_at: item.session?.closed_at,
+        opening_cash: Number(item.session?.opening_cash ?? 0),
+        closing_cash: Number(item.session?.closing_cash ?? 0),
+        created_by: item.session?.created_by?.name,
+        closed_by: item.session?.closed_by?.name,
+        stocks: Array.isArray(item.session?.stocks) ? item.session.stocks : [],
+        categories: Array.isArray(item.categories) ? item.categories : [],
+        payments: item.payments ?? {},
+        expense_total: Number(item.expense_total ?? 0),
+        existing_cash: Number(item.existing_cash ?? 0),
+        sale_amount: Number(item.sale_amount ?? 0),
+        due_amount: Number(item.due_amount ?? 0),
+        pending: Array.isArray(item.pending) ? item.pending : []
+      }))
 
       setRows(mappedRows)
       setTotalRows(mappedRows.length)
@@ -468,20 +475,41 @@ const DayclosingHistory = () => {
       }
     },
     {
+      field: 'opening_count ',
+      headerName: 'opening Stock',
+      flex: 1.5,
+      minWidth: 220,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const stocks = params.row?.stocks || []
+        if (!stocks.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
+
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {stocks.map((stock: any) => (
+              <div key={stock.id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                 {Number(stock.opening_egg_count ?? 0)}
+              </div>
+            ))}
+          </Box>
+        )
+      }
+    },
+    {
       field: 'productsqq',
       headerName: 'Closing Stock',
       flex: 1.5,
       minWidth: 220,
       sortable: false,
       renderCell: (params: GridCellParams) => {
-        const categories = params.row?.categories || []
-        if (!categories.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
+        const stocks = params.row?.stocks || []
+        if (!stocks.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
 
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-            {categories.map((category: any) => (
-              <div key={category.category_id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                 {Number(category.remaining_count ?? 0)}
+            {stocks.map((stock: any) => (
+              <div key={stock.id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                 {Number(stock.closing_egg_count ?? 0)}
               </div>
             ))}
           </Box>
@@ -490,21 +518,30 @@ const DayclosingHistory = () => {
     },
     {
       field: 'sale',
-      headerName: 'Sales Amount',
+      headerName: 'total Amount',
       flex: 1.5,
       minWidth: 220,
       sortable: false,
       renderCell: (params: GridCellParams) => {
-        const categories = params.row?.categories || []
-        if (!categories.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
-
+        const payments = params.row?.payments || {}
+        
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-            {categories.map((category: any) => (
-              <div key={category.category_id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                 {Number(category.sale_amount ?? 0)}
-              </div>
-            ))}
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+               Cash: ₹{Number(payments.cash ?? 0).toFixed(2)}
+            </div>
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+               Online: ₹{Number(payments.online ?? 0).toFixed(2)}
+            </div>
+            {/* <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+               Bank: ₹{Number(payments.bank ?? 0).toFixed(2)}
+            </div>
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+               UPI: ₹{Number(payments.upi ?? 0).toFixed(2)}
+            </div>
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem', fontWeight: 'bold' }}>
+               Total: ₹{Number(payments.total ?? 0).toFixed(2)}
+            </div> */}
           </Box>
         )
       }
@@ -547,13 +584,13 @@ const DayclosingHistory = () => {
     // },
     {
       field: 'total_bill',
-      headerName: 'Cash in counter',
+      headerName: 'Opening cash',
       flex: 1,
       minWidth: 130,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          ₹{Number(params.row?.existing_cash ?? 0).toFixed(2)}
+          ₹{Number(params.row?.opening_cash ?? 0).toFixed(2)}
         </div>
       )
     },
