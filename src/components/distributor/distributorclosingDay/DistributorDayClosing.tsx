@@ -341,9 +341,13 @@ const EggMobileCard = ({
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1.25, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Difference
+            Status
           </Typography>
-          <DiffBadge diff={diff} />
+          {row.closingSystem === 0 ? (
+            <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+          ) : (
+            <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -400,6 +404,12 @@ const DistributorDayClosing = () => {
   const [stockLoading, setStockLoading] = useState(false)
   const [eggRows, setEggRows] = useState<EggRow[]>(FALLBACK_CATEGORIES)
 
+  // Payment summary from dashboard API
+  const [paymentSummary, setPaymentSummary] = useState<Record<string, number> | null>(null)
+
+  // Active purchase ID (resolved from query param or API)
+  const [activePurchaseId, setActivePurchaseId] = useState<number | null>(null)
+
   // Payments verification controlled state
   const [payments, setPayments] = useState({
     cash: 0,
@@ -435,21 +445,28 @@ const DistributorDayClosing = () => {
       const categories = catResponse.data?.data?.categories || catResponse.data?.categories || []
 
       // 2. Determine active purchase ID
-      let activePurchaseId = router.query.egg_vendor_purchase_id
-      if (!activePurchaseId) {
-        const params = { pageNo: '1', limit: '1', shop_id: String(shopId) }
-        const purchaseListResponse = await axiosInstance.get('/api/v1/shop/getAllEggVendorPurchases', { params })
-        const purchases = purchaseListResponse.data?.data?.purchases || []
-        if (purchases.length > 0) {
-          activePurchaseId = purchases[0].id
+      let activePurchaseIdResolved: string | number | string[] | undefined = eggVendorPurchaseId
+      if (!activePurchaseIdResolved) {
+        const purchaseListResponse = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor?active=1')
+        const purchaseData = purchaseListResponse.data?.data
+        // Response structure: { data: { active: [{ id: 4, ... }], ... } }
+        const firstActivePurchase = purchaseData?.active?.[0]
+        if (firstActivePurchase?.id) {
+          activePurchaseIdResolved = firstActivePurchase.id
         }
       }
 
       // 3. Fetch dashboard data if we have an ID
       let dashboardData = null
-      if (activePurchaseId) {
-        const dashResponse = await axiosInstance.get(`/api/v1/shop/getEggVendorPurchaseDashboard?egg_vendor_purchase_id=${activePurchaseId}`)
+      if (activePurchaseIdResolved) {
+        const numericId = Number(activePurchaseIdResolved)
+        setActivePurchaseId(numericId)
+        const dashResponse = await axiosInstance.get(`/api/v1/shop/getEggVendorPurchaseDashboard?egg_vendor_purchase_id=${numericId}`)
         dashboardData = dashResponse.data?.data
+        // Store payment_summary for payment verification cards
+        if (dashboardData?.payment_summary) {
+          setPaymentSummary(dashboardData.payment_summary)
+        }
       }
 
       // 4. Map categories to EggRows
@@ -493,7 +510,7 @@ const DistributorDayClosing = () => {
     } finally {
       setStockLoading(false)
     }
-  }, [shopId])
+  }, [shopId, eggVendorPurchaseId])
 
   useEffect(() => {
     fetchInventoryAndCategories()
@@ -516,20 +533,21 @@ const DistributorDayClosing = () => {
     }
   }, [eggRows])
 
-  const paymentAmounts = stockData?.totals?.payment_amounts ?? {}
-  const cashSales = Number(paymentAmounts['cash'] ?? 0)
-  const onlineSales = Number(paymentAmounts['upi'] ?? 0)
-  const creditSales = Number(paymentAmounts['credit'] ?? 0)
-  const totalSales = Number(stockData?.totals?.total_amount ?? 0)
-  const totalExpense = Number(stockData?.totals?.expense_total ?? 0)
-  const existingCash = Number(stockData?.totals?.existing_cash ?? 0)
-  const dueAmount = Number(stockData?.totals?.due_amount ?? 0)
+  // ── Payment values from dashboard API payment_summary ───────────────────────
+  // payment_summary: { cash, upi, card, online, credit, mixed, other, total, expense_amount, cash_in_hand }
+  const cashSales = Number(paymentSummary?.cash ?? 0)
+  const onlineSales = Number((paymentSummary?.upi ?? 0) + (paymentSummary?.online ?? 0) + (paymentSummary?.card ?? 0))
+  const creditSales = Number(paymentSummary?.credit ?? 0)
+  const totalSales = Number(paymentSummary?.total ?? 0)
+  const totalExpense = Number(paymentSummary?.expense_amount ?? 0)
+  const existingCash = Number(paymentSummary?.cash_in_hand ?? 0)
+  const dueAmount = Number(paymentSummary?.credit ?? 0)
   const damagedCount = Number(stockData?.totals?.damaged_count ?? 0)
 
   const expectedCash = cashSales - totalExpense + existingCash
-  const cashDiff = Number(closingCash || 0) - expectedCash
+  const cashDiff = Number(closingCash || 0) - cashSales
   const onlineDiff = (Number(payments.upi || 0) + Number(payments.online || 0) + Number(payments.card || 0)) - onlineSales
-  const creditDiff = Number(payments.credit || 0) - dueAmount
+  const creditDiff = Number(payments.credit || 0) - creditSales
 
   const cashColorKey = cashDiff === 0 ? 'success' : cashDiff > 0 ? 'warning' : 'error'
   const onlineColorKey = onlineDiff === 0 ? 'success' : onlineDiff > 0 ? 'warning' : 'error'
@@ -543,9 +561,36 @@ const DistributorDayClosing = () => {
 
   const handleSaveDraft = () => toast.success('Draft saved successfully!')
 
+  const handleVehicleCloseRoute = async (vehiclePayload: {
+    egg_vendor_purchase_id: number
+    route_date: string
+    return_eggs: number
+    physical_counts: Array<{ category_id: number; physical_count: number }>
+    payments: { cash: number; upi: number; credit: number }
+  }) => {
+    try {
+      const response = await axiosInstance.post('/api/v1/shop/vehicleCloseRoute', vehiclePayload)
+      if (response.data?.success) {
+        toast.success(response.data?.message || 'Vehicle route closed successfully!')
+        return response.data
+      } else {
+        toast.error(response.data?.message || 'Failed to close vehicle route')
+        return null
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Something went wrong during vehicle route closing')
+      return null
+    }
+  }
+
   const handleSubmit = async () => {
     if (!confirmed) {
       toast.error('Please confirm before submitting.')
+      return
+    }
+
+    if (!activePurchaseId) {
+      toast.error('Cannot submit: No active purchase found.')
       return
     }
 
@@ -556,45 +601,31 @@ const DistributorDayClosing = () => {
 
     setStockLoading(true)
     try {
-      const payload = {
-        session_date: sessionDate,
-        closing_cash: Number(closingCash || 0),
-        categories: eggRows.map(item => ({
+      const vehiclePayload = {
+        egg_vendor_purchase_id: activePurchaseId,
+        route_date: sessionDate,
+        return_eggs: eggRows.reduce((s, r) => s + (r.closingSystem || 0), 0),
+        physical_counts: eggRows.map(item => ({
           category_id: item.id,
           physical_count: Number(item.physicalCount)
         })),
         payments: {
-          cash: Number(payments.cash),
-          upi: Number(payments.upi),
-          online: Number(payments.online),
-          card: Number(payments.card),
-          credit: Number(payments.credit)
+          cash: Number(closingCash || 0),
+          upi: Number(payments.upi || 0),
+          credit: Number(payments.credit || 0)
         }
       }
 
-      const response = await axiosInstance.post('/api/v1/shop/closingDay', payload)
-      if (response.data?.success) {
-        toast.success(response.data?.message || 'Day Closing submitted successfully!')
-
+      const result = await handleVehicleCloseRoute(vehiclePayload)
+      if (result) {
         // Reset form states
         setClosingCash('')
-        setPayments({
-          cash: 0,
-          upi: 0,
-          online: 0,
-          card: 0,
-          credit: 0
-        })
+        setPayments({ cash: 0, upi: 0, online: 0, card: 0, credit: 0 })
         setConfirmed(false)
         setRemarks('')
-
-        // Refetch category data/stocks
+        // Refetch data
         await fetchInventoryAndCategories()
-      } else {
-        toast.error(response.data?.message || 'Failed to submit Day Closing')
       }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Something went wrong during submission')
     } finally {
       setStockLoading(false)
     }
@@ -726,8 +757,8 @@ const DistributorDayClosing = () => {
                             { name: 'Category', width: '30%', align: 'left' },
                             // { name: 'Opening Stock', width: '10%', align: 'left' },
                             { name: 'Purchase Stock', width: '10%', align: 'left' },
-                            { name: 'Shop Stock 1', width: '10%', align: 'left' },
-                            { name: 'Shop Stock 2', width: '10%', align: 'left' },
+                            // { name: 'Shop Stock 1', width: '10%', align: 'left' },
+                            // { name: 'Shop Stock 2', width: '10%', align: 'left' },
                             { name: 'Sale Stock', width: '10%', align: 'left' },
                             { name: 'Sell Amount', width: '10%', align: 'left' },
                             { name: 'Vehicle Stock', width: '10%', align: 'left' },
@@ -801,8 +832,8 @@ const DistributorDayClosing = () => {
                               </TableCell>
                               {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.openingStock.toLocaleString()}</Typography></TableCell> */}
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.purchaseToday.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock1.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock2.toLocaleString()}</Typography></TableCell>
+                              {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock1.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock2.toLocaleString()}</Typography></TableCell> */}
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.saleStock.toLocaleString()}</Typography></TableCell>
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{fmt(row.sellAmount)}</Typography></TableCell>
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}>
@@ -812,7 +843,11 @@ const DistributorDayClosing = () => {
                               </TableCell>
 
                               <TableCell width="15%" align="center" sx={{ py: 1, px: 2 }}>
-                                <DiffBadge diff={diff} />
+                                {row.closingSystem === 0 ? (
+                                  <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                                ) : (
+                                  <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                                )}
                               </TableCell>
                             </TableRow>
                           )
@@ -827,8 +862,8 @@ const DistributorDayClosing = () => {
                           </TableCell>
                           {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.opening.toLocaleString()}</Typography></TableCell> */}
                           <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.purchase.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock1.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock2.toLocaleString()}</Typography></TableCell>
+                          {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock1.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock2.toLocaleString()}</Typography></TableCell> */}
                           <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.saleStock.toLocaleString()}</Typography></TableCell>
                           <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{fmt(totals.sellAmount)}</Typography></TableCell>
                           <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>{totals.system.toLocaleString()}</Typography></TableCell>
@@ -900,7 +935,7 @@ const DistributorDayClosing = () => {
               <Divider sx={{ my: 2 }} />
               <Stack spacing={0.5} mb={2}>
                 <VerifyRow label='Online / UPI Sales' value={fmt(onlineSales)} />
-                <VerifyRow label='Online Refunds' value={fmt(0)} />
+                {/* <VerifyRow label='Online Refunds' value={fmt(0)} /> */}
                 <VerifyRow label='Expected Online Amt' value={fmt(onlineSales)} />
               </Stack>
 
@@ -908,7 +943,7 @@ const DistributorDayClosing = () => {
                 UPI Received
               </Typography>
               <TextField
-                type='number'
+                type='number' 
                 size='small'
                 fullWidth
                 placeholder='Enter received UPI amount'
@@ -940,8 +975,8 @@ const DistributorDayClosing = () => {
               <Divider sx={{ my: 2 }} />
               <Stack spacing={0.5} mb={2}>
                 <VerifyRow label='Credit Sales' value={fmt(creditSales)} />
-                <VerifyRow label='Receipts Against Credit' value={fmt(0)} />
-                <VerifyRow label='Pending Credit (Due)' value={fmt(dueAmount)} />
+                {/* <VerifyRow label='Receipts Against Credit' value={fmt(0)} />
+                <VerifyRow label='Pending Credit (Due)' value={fmt(dueAmount)} /> */}
               </Stack>
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 Credit Received

@@ -40,9 +40,14 @@ const DistributorQuickBill = () => {
     try {
       const params: Record<string, any> = {
         pageNo: page,
-        limit: pageSize,
-        egg_vendor_purchase: true
+        limit: pageSize
       }
+      if (user?.role?.toLowerCase() === 'distributor' && user?.id) {
+        params['created_by'] = user.id
+      } else if (currentShopId) {
+        params['shop_id'] = currentShopId
+      }
+      
       if (searchQuery) params['global_search'] = searchQuery
 
       const response = await axiosInstance.get('/api/v1/shop/getAllQuickbills', { params })

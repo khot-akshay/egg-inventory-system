@@ -21,6 +21,9 @@ import SearchInput from 'src/components/common/SearchInput';
 import toast from 'react-hot-toast';
 import { useAuth } from 'src/hooks/useAuth';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
+import RHFFilterAutocomplete from 'src/hook-forms/RHFFilterAutocomplete';
+import ClearIcon from '@mui/icons-material/Clear';
+import VendorReportAdapter from './VendorReportAdapter';
 
 
 
@@ -72,13 +75,17 @@ const VendorPurchaseHistory = () => {
   const [rows, setRows] = useState<PurchaseRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(6)
+  const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(0)
   const [openAdd, setOpenAdd] = useState(false)
   const [openDelete, setOpenDelete] = useState(false)
   const [selectedItem, setSelectedItem] = useState<PurchaseRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [vendorTotals, setVendorTotals] = useState<any>({});
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const { user } = useAuth();
   const currentStaffShopId = user?.shop_id || user?.shop?.id;
@@ -95,7 +102,7 @@ const VendorPurchaseHistory = () => {
 
 
 
-  
+
   const fetchGame = async () => {
     setLoading(true);
     try {
@@ -103,9 +110,10 @@ const VendorPurchaseHistory = () => {
       params.pageNo = String(page);
       params.limit = String(pageSize);
       if (searchQuery) params.global_search = searchQuery;
-    //   if (selectedCategoryId) params.category_id = String(selectedCategoryId);
-    //   const shopId = selectedShopId ?? currentStaffShopId;
-    //   if (shopId) params.shop_id = String(shopId);
+      if (selectedCategoryId) params.category_id = String(selectedCategoryId);
+      if (startDate) params.from = startDate;
+      if (endDate) params.to = endDate;
+      if (selectedType) params.type = selectedType;
 
       const { id } = router.query;
       if (id) {
@@ -114,10 +122,18 @@ const VendorPurchaseHistory = () => {
 
       const response = await axiosInstance.get('/api/v1/admin/getVendorPurchaseHistory', { params });
 
-      setRows(response.data.data?.egg_vendor_purchase ?? []);
-      setTotalRows(response.data.data?.count ?? 0);
+      const fetchedRows = response.data.data?.records ?? response.data.data?.egg_vendor_purchase ?? response.data.data?.data ?? response.data?.records ?? [];
+      const uniqueRows = fetchedRows.map((row: any, index: number) => ({
+        ...row,
+        _original_id: row.id,
+        id: row.uuid || `${row.id || 'no-id'}-${index}`
+      }));
+
+      setRows(uniqueRows);
+      setTotalRows(response.data.data?.total_count ?? response.data.data?.count ?? response.data?.count ?? fetchedRows.length);
+      setVendorTotals(response.data.data?.vendor_totals ?? response.data?.vendor_totals ?? {});
     } catch (e) {
-      } finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -134,13 +150,13 @@ const VendorPurchaseHistory = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(0)
-  }, [selectedCategoryId, selectedShopId, searchQuery])
+  }, [selectedCategoryId, selectedShopId, searchQuery, startDate, endDate, selectedType])
 
 // Fetch data on filters/pagination change
 useEffect(() => {
   if (!router.isReady) return;
   fetchGame();
-}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, router.isReady, router.query.id]);
+}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, startDate, endDate, selectedType, router.isReady, router.query.id]);
 
 // Listen for new purchase events
   useEffect(() => {
@@ -153,12 +169,6 @@ useEffect(() => {
       window.removeEventListener('purchaseAdded', handlePurchaseAdded);
     };
   }, [fetchGame]);
-
-
-
-
-
-
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage)
@@ -195,7 +205,6 @@ useEffect(() => {
       headerName: 'Sr. No.',
       flex: 0.5,
       minWidth: 80,
-
       sortable: false,
       renderCell: index => {
         const rowIndex = index.api.getRowIndex(index.row.id)
@@ -203,40 +212,44 @@ useEffect(() => {
       },
       hideable: false
     },
-
+    {
+      field: 'notes',
+      headerName: 'note',
+      flex: 1,
+      minWidth: 140,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const text = params.row?.direction === 'out'
+          ? (params.row?.description || 'NA')
+          : (params.row?.notes || params.row?.purchase_no || 'NA');
+        return (
+          <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+            {text}
+          </div>
+        );
+      }
+    },
     // {
-    //   field: 'purchase_no',
-    //   headerName: 'Purchase No.',
+    //   field: 'vendor_name',
+    //   headerName: 'Vendor',
     //   flex: 1,
-    //   minWidth: 180,
+    //   minWidth: 140,
     //   sortable: false,
     //   renderCell: (params: GridCellParams) => (
     //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //       {params.row?.purchase_no || 'NA'}
+    //       {params.row?.vendor?.name || 'NA'}
     //     </div>
     //   )
     // },
     {
-      field: 'vendor_name',
-      headerName: 'Vendor',
-      flex: 1,
-      minWidth: 140,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.vendor?.name || 'NA'}
-        </div>
-      )
-    },
-    {
       field: 'vehicle',
       headerName: 'Vehicle',
-      flex: 1,
-      minWidth: 140,
+      flex: 0.8,
+      minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.vehicle?.registration_number || 'NA'}
+          {params.row?.vehicle?.registration_number || params.row?.vehicle?.name || 'NA'}
         </div>
       )
     },
@@ -252,52 +265,105 @@ useEffect(() => {
         </div>
       )
     },
- 
     {
       field: 'category_egg_counts',
-      headerName: 'Product (Eggs)',
-      flex: 1,
+      headerName: 'Product & Quantity',
+      flex: 1.5,
       minWidth: 300,
       sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <Box sx={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row.items?.map((item: any) => (
-            <div key={item.id}>{`${item.category?.name || 'NA'}: ${item.total_eggs || 0}`}</div>
-          )) || 'NA'}
-        </Box>
-      ),
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={item.id || idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                {item.category?.name || 'Unknown'} : {Number(item.total_eggs || item.quantity || 0)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
     },
-       {
-      field: 'total_eggs',
-      headerName: 'Total Eggs',
+    {
+      field: 'price_per_egg',
+      headerName: 'Product Rate',
       flex: 1,
-      minWidth: 120,
+      minWidth: 160,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={item.id || idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                ₹{Number(item.price_per_egg || item.unit_cost || 0).toFixed(2)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'line_amount',
+      headerName: 'Product Price',
+      flex: 1,
+      minWidth: 160,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const items = params.row?.items || [];
+        if (!items.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>0</div>;
+        return (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
+            {items.map((item: any, idx: number) => (
+              <div key={item.id || idx} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+                ₹{Number(item.line_amount || item.line_total || 0).toFixed(2)}
+              </div>
+            ))}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'paid_amount',
+      headerName: 'Paid',
+      flex: 1,
+      minWidth: 100,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const paid = params.row?.direction === 'out' ? params.row?.amount : (params.row?.amount || 0);
+        return (
+          <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+            ₹{Number(paid || 0).toFixed(2)}
+          </div>
+        );
+      }
+    },
+    // {
+    //   field: 'due_amount',
+    //   headerName: 'Due Amount',
+    //   flex: 1,
+    //   minWidth: 110,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, color: Number(params.row?.due_amount || 0) > 0 ? '#d32f2f' : 'inherit' }}>
+    //       ₹{Number(params.row?.due_amount || 0).toFixed(2)}
+    //     </div>
+    //   )
+    // },
+    {
+      field: 'total_amount',
+      headerName: 'Total Bill',
+      flex: 1,
+      minWidth: 110,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.total_eggs ?? 0}
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontWeight: 600 }}>
+          ₹{Number(params.row?.total_amount || 0).toFixed(2)}
         </div>
       )
     },
-   
-   
-
-    // {
-    //   field: 'status',
-    //   headerName: 'Status',
-    //   minWidth: 150,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => {
-    //     const isActive = params.row.is_active === true || params.row.is_active === 1 || params.row.is_active === '1';
-    //     return (
-    //       <Stack direction='row' alignItems='center' spacing={5}>
-    //         <p>{isActive ? 'Active' : 'Inactive'}</p>
-    //         <Switch checked={isActive} onChange={(event) => handleSwitchChange(event, params.row)} />
-    //       </Stack>
-    //     );
-    //   },
-    //   flex: 1,
-    // },
     {
       field: 'created_at',
       headerName: 'Created Date',
@@ -305,7 +371,7 @@ useEffect(() => {
       minWidth: 150,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <DateFormateComponent date={params.row?.created_at ?? ''} />
+        <DateFormateComponent date={params.row?.created_at ?? params.row?.purchase_date ?? ''} />
       )
     },
     // {
@@ -350,100 +416,128 @@ useEffect(() => {
 
   return (
     <>
+      {vendorTotals && Object.keys(vendorTotals).length > 0 && (
+        <Card sx={{ p: 5, mb: 3 }}>
+          <Box sx={{ mb: 0 }}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ p: 3, bgcolor: '#e3f2fd', color: '#1565c0', boxShadow: 'none', border: '1px solid #bbdefb', borderRadius: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Total Amount</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>₹{Number(vendorTotals.total_amount || 0).toFixed(2)}</Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ p: 3, bgcolor: '#e8f5e9', color: '#2e7d32', boxShadow: 'none', border: '1px solid #c8e6c9', borderRadius: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Paid Amount</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>₹{Number(vendorTotals.paid_amount || 0).toFixed(2)}</Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <Card sx={{ p: 3, bgcolor: '#ffebee', color: '#c62828', boxShadow: 'none', border: '1px solid #ffcdd2', borderRadius: 2 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>Due Amount</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700 }}>₹{Number(vendorTotals.due_amount || 0).toFixed(2)}</Typography>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        </Card>
+      )}
 
       <Card sx={{ p: 3 }}>
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
-          <Grid item xs={12} md={6} >
+          <Grid item xs={12} md={3} >
             <GoBack label="Egg Vendor Purchases" isBack={false} />
           </Grid>
-          <Grid item xs={12} md={3}>
-            <SearchInput handleSearch={handleSearch} placeHolder="Search purchase no, vendor..." />
+          <Grid item xs={12} md={9} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center' }}>
+            {/* <Grid item xs={12} sm="auto">
+              <SearchInput handleSearch={handleSearch} placeHolder="Search purchase no, vendor..." />
+            </Grid> */}
+            <Grid item xs={12} sm="auto">
+              <RHFFilterAutocomplete
+                options={[{ label: 'All', value: '' }, { label: 'Cashbook', value: 'cashbook' }, { label: 'Purchase', value: 'purchase' }]}
+                labelKey="label"
+                value={selectedType ? { label: selectedType.charAt(0).toUpperCase() + selectedType.slice(1), value: selectedType } : { label: 'All', value: '' }}
+                onChange={(newValue) => setSelectedType(newValue?.value || '')}
+                label="Type"
+                placeholder="Select Type"
+                minWidth={150}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <TextField
+                label="Start Date"
+                type="date"
+                size="small"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 160 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setStartDate('')}
+                        edge="end"
+                        aria-label="clear start date"
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <TextField
+                label="End Date"
+                type="date"
+                size="small"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: startDate }}
+                sx={{ minWidth: 160 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setEndDate('')}
+                        edge="end"
+                        aria-label="clear end date"
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setStartDate('')
+                  setEndDate('')
+                  setSelectedType('')
+                }}
+              >
+                Reset
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <VendorReportAdapter
+                searchQuery={searchQuery}
+                rowsPerPage={pageSize}
+                startDate={startDate}
+                endDate={endDate}
+                selectedType={selectedType}
+                vendorId={router.query.id as string}
+                selectedCategoryId={selectedCategoryId}
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={4} md={1} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {/* List View */}
-            <IconButton
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "6px",
-                border: viewMode === "list" ? "none" : "1px solid #D1D5DB",
-                bgcolor: viewMode === "list" ? theme.palette.primary.main : "transparent",
-                color: viewMode === "list" ? "common.white" : undefined,
-                transition: "all 0.25s ease",
-                "&:hover": {
-                  bgcolor: theme.palette.primary.main,
-                  color: "common.white",
-                  border: "none",
-                },
-              }}
-              onClick={() => {
-                setViewMode("list");
-                setPage(0);
-              }}
-            >
-              <Icon icon="material-symbols:list" width={20} />
-            </IconButton>
-
-            {/* Grid View */}
-            <IconButton
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "6px",
-                border: viewMode === "grid" ? "none" : "1px solid #D1D5DB",
-                bgcolor: viewMode === "grid" ? theme.palette.primary.main : "transparent",
-                color: viewMode === "grid" ? "common.white" : undefined,
-                transition: "all 0.25s ease",
-                "&:hover": {
-                  bgcolor: theme.palette.primary.main,
-                  color: "common.white",
-                  border: "none",
-                },
-              }}
-              onClick={() => {
-                setViewMode("grid");
-                setPage(0);
-              }}
-            >
-              <Icon icon="material-symbols:apps" width={20} />
-            </IconButton>
-
-            {/* Download Button */}
-            <CommonExport
-              data={rows}
-              fileName="EggVendorPurchases"
-              columns={columns}
-              transform={(row, index) => [
-                index + 1,
-                `"${row.purchase_no || 'NA'}"`,
-                `"${row.vendor?.name || 'NA'}"`,
-                row.vehicle?.registration_number || 'NA',
-                row.total_eggs ?? 0,
-                row.price_per_egg || '0.00',
-                row.total_amount || '0.00',
-                row.due_amount || '0.00',
-                row.status || 'NA',
-                row.purchase_date ? new Date(row.purchase_date).toLocaleDateString() : 'NA'
-              ]}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={3}>
-            <RHFAutoComplete
-              control={control}
-              name="category_id"
-              apiUrl="/api/v1/admin/categories/getAllCategories"
-              extraParams={{ is_active: 1 }}
-              placeholder="Select Category"
-              labelinput=""
-              labelKey="name"
-              valueKey="id"
-              required={false}
-              handlebtnclick={() => {}}
-            />
-          </Grid>
-
-
         </Grid>
         {viewMode === 'list' ? (
           <CommonDatagrid

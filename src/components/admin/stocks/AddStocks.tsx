@@ -18,6 +18,7 @@ import moment from 'moment'
 
 const schema = yup.object().shape({
   shop_id: yup.mixed().required('Shop is required'),
+  egg_vendor_purchase_id: yup.mixed().required('Vehicle Details is required'),
   driver_id: yup.mixed().nullable(),
   purchase_date: yup.string().nullable(),
   notes: yup.string().nullable(),
@@ -59,6 +60,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
     resolver: yupResolver(schema),
     defaultValues: {
       shop_id: null,
+      egg_vendor_purchase_id: null,
       driver_id: null,
       purchase_date: new Date().toISOString().split('T')[0],
       notes: '',
@@ -130,6 +132,25 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
     fetchDefaultCategories()
   }, [selectedItem])
 
+  // Fetch vehicle data and set first item as default
+  const fetchVehicleData = async () => {
+    try {
+      const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor', {
+        params: { active: 1 }
+      })
+      const active = response.data?.data?.active || []
+      if (active.length > 0) {
+        setValue('egg_vendor_purchase_id', active[0])
+      }
+    } catch (error) {
+      console.error('Failed to fetch vehicle data', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchVehicleData()
+  }, [setValue])
+
   const handleQuantityChange = (index: number, value: string) => {
     const newPrices = [...prices]
     newPrices[index].quantity = value === "" ? "" : Number(value)
@@ -181,6 +202,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
         toast.success(response.data.message || 'Stock added successfully')
         reset({
           shop_id: null,
+          egg_vendor_purchase_id: null,
           driver_id: null,
           purchase_date: new Date().toISOString().split('T')[0],
           notes: '',
@@ -193,6 +215,7 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
         const clearedPrices = prices.map(p => ({ ...p, quantity: "" }))
         setPrices(clearedPrices)
         setIsNewCustomer(false)
+        fetchVehicleData() // Re-fetch and set default vehicle
         if (fetchData) {
           await fetchData()
         }
@@ -231,19 +254,19 @@ const AddStocksForm = ({ handleClose, fetchData, selectedItem }: AddStocksFormPr
             />
           </Grid>
           <Grid item xs={12}>
-            <RHFAutoComplete
-              control={control}
-              name="egg_vendor_purchase_id"
-              placeholder="Vehicle Details"
-              labelinput="Vehicle Details"
-              apiUrl="/api/v1/shop/getAllEggVendorPurchases"
-              extraParams={{ start_date: selectedPurchaseDate, end_date: selectedPurchaseDate }}
-              labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
-              valueKey="id"
-              required={!isNewCustomer}
-              disabled={isNewCustomer}
-            />
-          </Grid>
+              <RHFAutoComplete
+                control={control}
+                name="egg_vendor_purchase_id"
+                placeholder="Vehicle Details"
+                labelinput="Vehicle Details"
+                apiUrl="/api/v1/shop/getCurrentPurchaseEggDataForDistributor"
+                extraParams={{ active:1}}
+                labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
+                valueKey="id"
+                required={!isNewCustomer}
+                disabled={isNewCustomer}
+              />
+            </Grid>
           {prices.length > 0 && (
             <Grid item xs={12}>
               {/* <Divider sx={{ my: 1 }} /> */}

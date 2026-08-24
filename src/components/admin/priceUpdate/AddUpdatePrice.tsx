@@ -16,6 +16,9 @@ const schema = yup.object().shape({
   name: yup.string().required('Product Name is required.').trim(),
   egg_price_min: yup.number().required('Min Price is required.').min(0, 'Min Price must be positive'),
   egg_price_max: yup.number().required('Max Price is required.').min(yup.ref('egg_price_min'), 'Max Price must be greater than or equal to Min Price'),
+  egg_price_6: yup.number().required('Egg Price (6) is required.').min(0, 'Egg Price (6) must be positive'),
+  egg_price_12: yup.number().required('Egg Price (12) is required.').min(0, 'Egg Price (12) must be positive'),
+  egg_price_30: yup.number().required('Egg Price (30) is required.').min(0, 'Egg Price (30) must be positive'),
 })
 
 interface Props {
@@ -42,6 +45,9 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
       name: '',
       egg_price_min: 0,
       egg_price_max: 0,
+      egg_price_6:0,
+      egg_price_12:0,
+      egg_price_30:0,
       is_active: true
     }
   })
@@ -53,6 +59,9 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
         name: selectedItem.name || '',
         egg_price_min: Number(selectedItem.egg_price_min || 0).toFixed(2),
         egg_price_max: Number(selectedItem.egg_price_max || 0).toFixed(2),
+        egg_price_6:Number(selectedItem.egg_price_6 || 0).toFixed(2),
+        egg_price_12:Number(selectedItem.egg_price_12 || 0).toFixed(2),
+        egg_price_30:Number(selectedItem.egg_price_30 || 0).toFixed(2),
         is_active: selectedItem.isActive === true || selectedItem.is_active == 1 ? true : false,
       })
     } else {
@@ -61,6 +70,9 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
         name: '',
         egg_price_min: '0.00',
         egg_price_max: '0.00',
+        egg_price_6:'0.00',
+        egg_price_12:'0.00',
+        egg_price_30:'0.00',
         is_active: true
       })
     }
@@ -74,6 +86,9 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
         name: data.name,
         egg_price_min: data.egg_price_min,
         egg_price_max: data.egg_price_max,
+        egg_price_6:data.egg_price_6,
+        egg_price_12:data.egg_price_12,
+        egg_price_30:data.egg_price_30,
         is_active: data.is_active ? 1 : 0
       }
 
@@ -140,6 +155,16 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
             <Grid item xs={12} sm={6}>
               <RHFInput control={control} name='egg_price_max' label='Max Egg Price' type='number' placeholder='Max Price' mandatory />
             </Grid>
+            <Grid item xs={12} sm={4}>
+              <RHFInput control={control} name='egg_price_6' label='Egg Price (6)' type='number' placeholder='Price' mandatory />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <RHFInput control={control} name='egg_price_12' label='Egg Price (12)' type='number' placeholder='Price' mandatory />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <RHFInput control={control} name='egg_price_30' label='Egg Price (30)' type='number' placeholder='Price' mandatory />
+            </Grid>
+          
             {/* <Grid item xs={12}>
                <Box sx={{ mt: 1 }}>
                 <FormControlLabel

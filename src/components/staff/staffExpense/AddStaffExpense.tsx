@@ -97,6 +97,9 @@ const AddStaffExpense = ({
     defaultValues
   })
 
+  const isDistributor = user?.roles?.some(
+  (role: any) => role.slug === 'distributor'
+)
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
 
@@ -107,7 +110,7 @@ const AddStaffExpense = ({
         amount: Number(data.amount),
         description: data.description,
         // Include shop_id for non-distributor roles, otherwise include distributor's name
-        ...(user?.role === 'distributor'
+        ...(isDistributor
           ? { distributor_name: user?.name }
           : { shop_id: selectedItem?.shop_id || user?.shop_id || user?.shop?.id })
       }
@@ -159,7 +162,7 @@ const AddStaffExpense = ({
     } else {
       reset({
         ...defaultValues,
-        shop_name: user?.role === 'distributor' ? user?.name : user?.shop?.name || ''
+        shop_name: isDistributor ? user?.name : user?.shop?.name || ''
       })
         // Autofill today's date for new expense entries in ISO format for date picker
         const todayISO = new Date().toISOString().split('T')[0];
@@ -172,6 +175,8 @@ const AddStaffExpense = ({
     reset(defaultValues)
     handleClose()
   }
+
+  
 
   return (
     <Dialog
@@ -224,8 +229,8 @@ const AddStaffExpense = ({
               <RHFInput
                 control={control}
                 name='shop_name'
-                label={user?.role === 'distributor' ? 'User Name' : 'Shop Name'}
-                placeholder={user?.role === 'distributor' ? 'User Name' : 'Shop Name'}
+                label={isDistributor ? 'User Name' : 'Shop Name'}
+                placeholder={isDistributor ? 'User Name' : 'Shop Name'}
                 disabled
               />
             </Grid>

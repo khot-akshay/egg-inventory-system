@@ -62,11 +62,14 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
   const [minRate, setMinRate] = useState<number | null>(null)
   const [maxRate, setMaxRate] = useState<number | null>(null)
+  const [currentProductDetails, setCurrentProductDetails] = useState<any>(null)
   const [paymentType, setPaymentType] = useState('cash')
   const [unit, setUnit] = useState('');
   const [unitValue, setUnitValue] = useState(30);
-  const [quantity, setQuantity] = useState<string>('');
+  const [quantity, setQuantity] = useState<number>(0);
   const [damaged, setDamaged] = useState(0);
+  const [isEditingEggPrice, setIsEditingEggPrice] = useState(false);
+  const [eggPriceInputValue, setEggPriceInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
@@ -88,8 +91,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     context: { isNewCustomer, totalCartEggs },
     defaultValues: {
       customer_id: null,
-      category_id: null,
-      rate_per_unit: 150,
+      category_id: { id: 1, name: 'Regular Size Eggs' } as any,
+      rate_per_unit: null,
       purchase_date: new Date().toISOString().split('T')[0],
       customer_name: '',
       phone_number: '',
@@ -103,6 +106,9 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const selectedCustomer = watch('customer_id')
   const selectedPurchaseDate = watch('purchase_date')
 
+  // Computed per-egg price for display
+  const perEggPrice = rate && unit && unit !== 'custom' ? rate / unitValue : rate
+
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id;
   const roleName = user?.roles?.[0]?.name || '';
@@ -111,8 +117,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const resetBillForm = () => {
     reset({
       customer_id: null,
-      category_id: null,
-      rate_per_unit: 150,
+      category_id: { id: 1, name: 'Regular Size Eggs' } as any,
+      rate_per_unit: null,
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
@@ -121,15 +127,18 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
     setUnit('')
     setUnitValue(30)
-    setQuantity('')
+    setQuantity(0)
     setDamaged(0)
     setCart([])
     setPendingAmount(null)
     setIsNewCustomer(false)
     setPaymentType('cash')
+    setIsEditingEggPrice(false)
+    setEggPriceInputValue('')
 
     setMinRate(null)
     setMaxRate(null)
+    setCurrentProductDetails(null)
   }
 
   useEffect(() => {
@@ -143,16 +152,16 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       setValue('rate_per_unit', selectedItem.rate)
       setUnit(selectedItem.unit_type)
       setUnitValue(selectedItem.unit_value)
-      setQuantity(selectedItem.quantity)
+      setQuantity(Number(selectedItem.quantity))
       setDamaged(selectedItem.damaged_eggs)
     }
   }, [selectedItem, setValue])
 
   useEffect(() => {
-    if (!selectedCustomer && paymentType === 'credit') {
+    if (!selectedCustomer && !isNewCustomer && paymentType === 'credit') {
       setPaymentType('cash')
     }
-  }, [selectedCustomer, paymentType])
+  }, [selectedCustomer, isNewCustomer, paymentType])
 
   useEffect(() => {
     const fetchPendingAmount = async () => {
@@ -187,21 +196,44 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     fetchPendingAmount()
   }, [selectedCustomer, isNewCustomer])
 
-  const totalEggs = quantity * unitValue
+  const totalEggs = Number(quantity) * unitValue
   const finalEggs = totalEggs - damaged
 
   const handleUnitChange = (_: any, value: any) => {
     if (!value) return
     setUnit(value)
     let val = 1
-    if (value === 'tray') val = 30
-    if (value === 'dozen') val = 12
-    if (value === 'half_dozen') val = 6
+    let newUnitValue = 1
 
-    // We set quantity directly to the unit value as requested
+    if (value === 'tray') {
+      val = 30
+      newUnitValue = 30
+      // Directly use the fixed tray price from product details
+      const price30 = currentProductDetails?.egg_price_30
+      if (price30 != null) {
+        setValue('rate_per_unit', parseFloat(String(price30)))
+      }
+    } else if (value === 'dozen') {
+      val = 12
+      newUnitValue = 12
+      // Directly use the fixed dozen price from product details
+      const price12 = currentProductDetails?.egg_price_12
+      if (price12 != null) {
+        setValue('rate_per_unit', parseFloat(String(price12)))
+      }
+    } else if (value === 'half_dozen') {
+      val = 6
+      newUnitValue = 6
+      // Directly use the fixed half-dozen price from product details
+      const price6 = currentProductDetails?.egg_price_6
+      if (price6 != null) {
+        setValue('rate_per_unit', parseFloat(String(price6)))
+      }
+    }
+
     setQuantity(val)
-    // Keep unitValue as 1 so that totalEggs (quantity * unitValue) remains correct
-    setUnitValue(1)
+    setUnitValue(newUnitValue)
+    setEggPriceInputValue('')
   }
 
   // Fetch min/max rates when product changes
@@ -219,26 +251,24 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
 
             if (products && products.length > 0) {
               const product = products[0]
+              setCurrentProductDetails(product)
               const min = parseFloat(product.egg_price_min)
               const max = parseFloat(product.egg_price_max)
 
               if (!isNaN(min) && !isNaN(max)) {
                 setMinRate(min)
                 setMaxRate(max)
-                // Set the default rate to the minimum rate if current rate is invalid or default
-                const currentRate = watch('rate_per_unit')
-                if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
-                  setValue('rate_per_unit', min)
-                }
               }
             } else {
               setMinRate(null)
               setMaxRate(null)
+              setCurrentProductDetails(null)
             }
           }
         } catch (error) {
           setMinRate(null)
           setMaxRate(null)
+          setCurrentProductDetails(null)
         }
       }
     };
@@ -246,19 +276,26 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     fetchProductRates()
   }, [selectedCategory, setValue])
 
+  // Update egg price input value when perEggPrice changes from external calculations
+  useEffect(() => {
+    if (!isEditingEggPrice && perEggPrice !== null && perEggPrice !== undefined) {
+      setEggPriceInputValue(perEggPrice.toFixed(2));
+    }
+  }, [perEggPrice, isEditingEggPrice]);
 
   const resetProductFields = () => {
-    setValue('category_id', null)
-    setValue('rate_per_unit', 150)
+    setValue('category_id', { id: 1, name: 'Regular Size Eggs' } as any)
+    setValue('rate_per_unit', null)
 
     setUnit('')
     setUnitValue(30)
 
-    setQuantity('')
+    setQuantity(0)
     setDamaged(0)
 
     setMinRate(null)
     setMaxRate(null)
+    setEggPriceInputValue('')
   }
   const handleAddToCart = () => {
     const product = watch('category_id')
@@ -295,8 +332,8 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       unit_value: unitValue,
       total_eggs: totalEggs,
       damaged_eggs: damaged,
-      rate: rate_per_unit,
-      total: quantity * rate_per_unit
+      rate: perEggPrice || 0,
+      total: quantity * (perEggPrice || 0)
     }
 
     setCart(prev => [...prev, newItem])
@@ -333,16 +370,41 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       // }
       const cashAmount = Number(data.mixed_cash)
       const upiAmount = Number(data.mixed_online)
-      const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
+      const lineTotal = quantity * (perEggPrice || 0);
       // Determine the overall total amount based on cart or single item
       const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
+
+      // Create rounded bill total for backend validation
+      const roundedBillTotal = Math.round(totalAmount);
+
+      // Validate mixed payment amounts
+      if (paymentType === 'mixed') {
+        const totalPaid = cashAmount + upiAmount;
+
+        // Never allow overpayment
+        if (totalPaid > roundedBillTotal) {
+          toast.error('Total payment cannot exceed the bill amount.');
+          setLoading(false);
+          return;
+        }
+
+        // Without customer, full payment is required (skip if creating a new customer)
+        if (!selectedCustomer && !isNewCustomer && totalPaid !== roundedBillTotal) {
+          toast.error('Please pay the full bill amount or select a customer for the remaining credit amount.');
+          setLoading(false);
+          return;
+        }
+
+        // With customer, partial payment is allowed
+      }
+
       // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
       const paidAmount =
         paymentType === 'credit'
           ? 0
           : paymentType === 'mixed'
             ? cashAmount + upiAmount
-            : totalAmount;
+            : roundedBillTotal;
       let payments: { amount: number; payment_type: string }[] = [];
       // Build lines for payload
       let lines: { category_id: any; quantity: number; unit_cost: number; unit_type: string; unit_value: number }[] = [];
@@ -350,17 +412,21 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         lines = cart.map(item => ({
           category_id: item.category_id,
           quantity: item.quantity,
-          unit_cost: item.rate,
+          unit_cost: Number(item.rate.toFixed(2)),
           unit_type: item.unit,
           unit_value: item.unit_value
         }));
       } else if (watch('category_id') && quantity > 0 && watch('rate_per_unit')) {
         const cat = watch('category_id');
         const catId = typeof cat === 'object' && cat.id ? cat.id : cat;
+        // When bundle toggle is active, rate_per_unit is the total bundle price (e.g. 35 for 6 eggs)
+        // Backend expects per-egg cost, so divide by quantity
+        const rateValue = Number(watch('rate_per_unit'));
+        const costPerUnit = ['tray', 'dozen', 'half_dozen'].includes(unit) ? rateValue / unitValue : rateValue;
         lines = [{
           category_id: catId,
           quantity,
-          unit_cost: Number(watch('rate_per_unit')),
+          unit_cost: Number(costPerUnit.toFixed(2)),
           unit_type: unit,
           unit_value: 0
         }];
@@ -398,12 +464,12 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         }];
       } else {
         payments = [{
-          amount: totalAmount,
+          amount: roundedBillTotal,
           payment_type: paymentType
         }];
       }
 
-      if (!quantity || quantity <= 0) {
+      if (cart.length === 0 && (!quantity || quantity <= 0)) {
         toast.error('Quantity is required');
         setLoading(false);
         return;
@@ -433,6 +499,13 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         //   mixed_online: 0
         // })
         resetBillForm();
+
+        // Refetch the customer list so that any newly created customer shows up
+        try {
+          await axiosInstance.get('/api/v1/shop/getAllCustomers');
+        } catch (e) {
+          console.error('Failed to refetch customer list:', e);
+        }
 
         if (fetchData) fetchData()
         if (typeof window !== 'undefined') {
@@ -567,59 +640,6 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
           </Grid>
 
 
-          {(minRate !== null && maxRate !== null) && (
-            <>
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                  Price Range
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={maxRate !== minRate ? 6 : 12}>
-                    <Button
-                      fullWidth
-                      variant={watch('rate_per_unit') === minRate ? "contained" : "outlined"}
-                      onClick={() => setValue('rate_per_unit', minRate)}
-                      sx={{ height: 40 }}
-                    >
-                      {minRate?.toFixed(2)}
-                    </Button>
-                  </Grid>
-                  {maxRate !== minRate && (
-                    <Grid item xs={6}>
-                      <Button
-                        fullWidth
-                        variant={watch('rate_per_unit') === maxRate ? "contained" : "outlined"}
-                        onClick={() => setValue('rate_per_unit', maxRate)}
-                        sx={{ height: 40 }}
-                      >
-                        {maxRate?.toFixed(2)}
-                      </Button>
-                    </Grid>
-                  )}
-                </Grid>
-              </Grid>
-
-              <Grid item xs={6}>
-                <Typography className="input-label">
-                  Price Per Egg
-                </Typography>
-                <TextField
-                  placeholder="Custom Rate"
-                  type="number"
-                  // value={watch('rate_per_unit') || ''}
-                  onChange={(e) => {
-                    const val = parseFloat(e.target.value);
-                    setValue('rate_per_unit', isNaN(val) ? '' : val);
-                  }}
-                  inputProps={{ step: "0.01", min: "0" }}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
-                  }}
-                />
-              </Grid>
-            </>
-          )}
 
           {/* Integrated Unit and Quantity Selection */}
           <Grid item xs={12}>
@@ -653,6 +673,70 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 </ToggleButtonGroup>
               </Grid>
 
+              {(minRate !== null && maxRate !== null) && (
+                <>
+                  {/* <Grid item xs={6}>
+                <Typography className="input-label">
+                  Price Range
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={maxRate !== minRate ? 6 : 12}>
+                    <Button
+                      fullWidth
+                      variant={watch('rate_per_unit') === minRate ? "contained" : "outlined"}
+                      onClick={() => setValue('rate_per_unit', minRate)}
+                      sx={{ height: 40 }}
+                    >
+                      {minRate?.toFixed(2)}
+                    </Button>
+                  </Grid>
+                  {maxRate !== minRate && (
+                    <Grid item xs={6}>
+                      <Button
+                        fullWidth
+                        variant={watch('rate_per_unit') === maxRate ? "contained" : "outlined"}
+                        onClick={() => setValue('rate_per_unit', maxRate)}
+                        sx={{ height: 40 }}
+                      >
+                        {maxRate?.toFixed(2)}
+                      </Button>
+                    </Grid>
+                  )}
+                </Grid>
+              </Grid> */}
+
+                  <Grid item xs={6}>
+                    <Typography className="input-label">
+                      Egg Price {minRate?.toFixed(2)} to  {maxRate?.toFixed(2)}
+                    </Typography>
+                    <TextField
+                      placeholder="Egg Price"
+                      type="number"
+                      value={isEditingEggPrice ? eggPriceInputValue : (perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '')}
+                      onFocus={() => {
+                        setIsEditingEggPrice(true);
+                        setEggPriceInputValue(perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '');
+                      }}
+                      onBlur={() => {
+                        setIsEditingEggPrice(false);
+                        setEggPriceInputValue('');
+                      }}
+                      onChange={(e) => {
+                        setEggPriceInputValue(e.target.value);
+                        const val = parseFloat(e.target.value);
+                        // Convert per-egg price back to bundle price
+                        const bundlePrice = (unit && unit !== 'custom' && val) ? val * unitValue : val;
+                        setValue('rate_per_unit', isNaN(bundlePrice) ? null : bundlePrice);
+                      }}
+                      inputProps={{ step: "0.01", min: "0" }}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
               <Grid item xs={6}>
                 <Typography className="input-label">
                   Quantity
@@ -739,14 +823,14 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                   </Grid>
                 </Grid>
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 1 }}>
                   <Typography variant="subtitle2" sx={{ mr: 1, fontWeight: 'bold' }}>
                     Total Amount:
                   </Typography>
-                  {quantity > 0 && watch('rate_per_unit') && watch('category_id') ? (
+                  {quantity > 0 && perEggPrice && watch('category_id') ? (
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                      ₹{(quantity * Number(watch('rate_per_unit') || 0)).toFixed(2)}
+                      ₹{(quantity * perEggPrice).toFixed(2)}
                     </Typography>
                   ) : (
                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -861,7 +945,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                 { id: 'upi', label: 'Online', icon: <PhonelinkRingIcon /> },
                 { id: 'credit', label: 'Credit', icon: <EventNoteIcon /> },
                 { id: 'mixed', label: 'Mixed', icon: <EventNoteIcon /> }
-              ].filter(type => type.id !== 'credit' || selectedCustomer).map(type => (
+              ].filter(type => type.id !== 'credit' || selectedCustomer || isNewCustomer).map(type => (
                 <Grid item xs={3} key={type.id}>
                   <Button
                     fullWidth

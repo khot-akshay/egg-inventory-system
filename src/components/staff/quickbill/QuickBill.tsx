@@ -1,4 +1,4 @@
-import { Box, Card, Grid } from '@mui/material'
+import { Box, Button, Card, Grid, Tooltip } from '@mui/material'
 import { GridCellParams, GridColDef } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
@@ -7,7 +7,10 @@ import axiosInstance from 'src/services/axios'
 import DeleteDialogPopup from 'src/components/common/DeletePopup/DeleteModalPopup'
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule'
 import AddProducts from './AddQuickBill'
+import EditQuickBill from './EditQuickBill'
 import { useAuth } from 'src/hooks/useAuth'
+import Icon from 'src/@core/components/icon'
+
 
 interface CategoryRow {
   id: number
@@ -48,13 +51,13 @@ const QuickBill = () => {
       const response = await axiosInstance.get(`/api/v1/shop/getAllQuickbills?${params.toString()}`)
       setRows(response.data.data?.quickbills ?? [])
       setTotalRows(response.data.data?.count ?? 0)
-      } catch (e) {
-      } finally {
+    } catch (e) {
+    } finally {
       setLoading(false)
     }
-    
+
   }
-  
+
 
   useEffect(() => {
     setPage(0)
@@ -66,6 +69,11 @@ const QuickBill = () => {
 
   const handlePageChange = (newPage: number) => setPage(newPage)
   const handlePageSizeChange = (newPageSize: number) => setPageSize(newPageSize)
+
+  const handleEditClick = (params: GridCellParams) => {
+    setSelectedItem(params.row as CategoryRow)
+    setOpenEdit(true)
+  }
 
   const columns: GridColDef[] = [
     {
@@ -214,7 +222,35 @@ const QuickBill = () => {
       renderCell: (params: GridCellParams) => (
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
-    }
+    },
+    {
+          field: 'actions',
+          headerName: 'Actions',
+          minWidth: 150,
+          sortable: false,
+          flex: 1,
+          renderCell: (params: GridCellParams) => (
+            <>
+              {/* {checkPermission('update-shop') && ( */}
+                <Tooltip title='Update Prices' placement='bottom'>
+                  <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+                    <Icon icon={'circum:edit'} fontSize={24} />
+                  </Button>
+                </Tooltip>
+              {/* )} */}
+              {/* {checkPermission('delete-shop') && ( */}
+                {/* <Tooltip title='Delete Shop.' placement='bottom'>
+                  <Button
+                    sx={{ color: 'text.secondary', margin: '-10px' }}
+                    onClick={() => handleDeleteOpen(params)}
+                  >
+                    <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
+                  </Button>
+                </Tooltip> */}
+              {/* )} */}
+            </>
+          ),
+        },
   ]
 
   return (
@@ -239,7 +275,14 @@ const QuickBill = () => {
         />
       </Card>
 
-      
+      {openEdit && (
+        <EditQuickBill
+          open={openEdit}
+          handleClose={() => setOpenEdit(false)}
+          fetchData={fetchGame}
+          selectedItem={selectedItem}
+        />
+      )}
     </>
   )
 }

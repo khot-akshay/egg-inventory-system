@@ -5,7 +5,7 @@ import {
   IconButton,
   Card,
   useTheme,
-  Chip
+  Chip,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
@@ -16,6 +16,7 @@ import MobileNumberModule from "src/components/common/Links/MobileNumberModule";
 import EmailModule from "src/components/common/Links/EmailLink";
 import UpdatePrice from "src/components/admin/vendor/UpdatePrice";
 import VendorPurchaseHistory from "src/components/admin/vendor/VendorHistory";
+import DeuAmtPaidVendor from "src/components/admin/vendor/deuAmtPaidvendor";
 
 interface VendorData {
   id: number;
@@ -176,9 +177,14 @@ export default function ViewVendor() {
         </Grid>
       </Grid>
       
-      <Box sx={{ mt: 2 }}>
-        <UpdatePrice vendorId={id as string} />
-      </Box>
+      <Grid container spacing={2} sx={{ mt: 2 }}>
+        <Grid item xs={12} md={6}>
+          <DeuAmtPaidVendor vendorId={id as string} />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <UpdatePrice vendorId={id as string} />
+        </Grid>
+      </Grid>
       <Box sx={{ mt: 2 }}>
 
       <VendorPurchaseHistory/>

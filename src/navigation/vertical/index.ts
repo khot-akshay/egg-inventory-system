@@ -12,8 +12,16 @@ const tempObject: VerticalNavItemsType = [
     // isPermissionNeeded: true,
     // permissionName: "dashboard",
   },
+  // {
+  //   title: "Distributor Dashboard",
+  //   icon: "bx:home-circle",
+  //   path: "/distributorDashboard",
+  //   allowedRoles: ["Administrator"],
+  //   // isPermissionNeeded: true,
+  //   // permissionName: "dashboard",
+  // },
 
-   {
+  {
     title: "Dashboards",
     icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Distributor"],
@@ -28,8 +36,16 @@ const tempObject: VerticalNavItemsType = [
   //   // permissionName: "dashboard",
   // },
 
- 
 
+
+  {
+    title: "Cash Book",
+  icon: "mdi:book-open-page-variant",
+    path: '/cashbook',
+    allowedRoles: ["Administrator"],
+    // isPermissionNeeded: true,
+    // permissionName: "dashboard",
+  },
   {
     title: "Product Price",
     icon: "mdi:credit-card-outline",
@@ -46,6 +62,35 @@ const tempObject: VerticalNavItemsType = [
     isPermissionNeeded: true,
     permissionName: "customer",
   },
+
+  {
+    title: "Purchases",
+    icon: "mdi:cart-arrow-down", // buying items
+    allowedRoles: [ "Distributor"],
+    path: "/purchase",
+    //  isPermissionNeeded: true,
+    // permissionName: "purchase",
+  },
+  
+  {
+    title: "Transfer to Shop",
+    icon: "mdi:warehouse", // inventory / storage
+    allowedRoles: ["Distributor"],
+    path: "/stocks",
+    isPermissionNeeded: true,
+    permissionName: "stock",
+  },
+   {
+    title: "Distributor Quick Bill",
+    icon: "mdi:clipboard-text-outline",
+    allowedRoles: ["Distributor"],
+    path: "/distributorQuickBill",
+    // isPermissionNeeded: true,
+    // permissionName: "quick_bill", // aligned with backend permission
+
+  },
+
+  
   // {
   //   title: "Products",
   //   icon: "mdi:clipboard-text-outline",
@@ -64,87 +109,65 @@ const tempObject: VerticalNavItemsType = [
     permissionName: "quick_bill", // aligned with backend permission
 
   },
-   {
-    title: "Distributor Quick Bill",
-    icon: "mdi:clipboard-text-outline",
-    allowedRoles: ["Distributor"],
-    path: "/distributorQuickBill",
-    // isPermissionNeeded: true,
-    // permissionName: "quick_bill", // aligned with backend permission
-
-  },
-{
-  title: "Day Opening",
-  icon: "mdi:calendar-start",
-  allowedRoles: ["Staff"],
-  path: "/openingDay",
-},
-{
-  title: "Day Closing",
-  icon: "mdi:calendar-end",
-  allowedRoles: ["Staff"],
-  path: "/dayclosing",
-},
-
-{
-  title: " Vehicle Closing",
-  icon: "mdi:calendar-end",
-  allowedRoles: ["Distributor"],
-  path: "/distributorVehicleclosing",
-},
-
+ 
   {
-    title: "Transfer to Shop",
-    icon: "mdi:warehouse", // inventory / storage
+    title: "Day Opening",
+    icon: "mdi:calendar-start",
+    allowedRoles: ["Staff"],
+    path: "/openingDay",
+  },
+  {
+    title: "Day Closing",
+    icon: "mdi:calendar-end",
+    allowedRoles: ["Staff"],
+    path: "/dayclosing",
+  },
+
+
+
+ 
+    {
+    title: " Vehicle Closing",
+    icon: "mdi:calendar-end",
     allowedRoles: ["Distributor"],
-    path: "/stocks",
-     isPermissionNeeded: true,
-    permissionName: "stock",
+    path: "/distributorVehicleclosing",
   },
  
   {
-    title: "Purchases",
-    icon: "mdi:cart-arrow-down", // buying items
-    allowedRoles: [ "Staff","Distributor"],
-    path: "/purchase",
-    //  isPermissionNeeded: true,
-    // permissionName: "purchase",
+    title: "Vendors",
+    icon: "mdi:store-outline",
+    allowedRoles: ["Administrator", "Distributor"],
+    path: "/vendor",
+    isPermissionNeeded: true,
+    permissionName: "vendor",
   },
- {
-  title: "Vendors",
-  icon: "mdi:store-outline",
-  allowedRoles: ["Administrator","Distributor"],
-  path: "/vendor",
-  isPermissionNeeded: true,
- permissionName: "vendor",
-},
-{
-  title: "Distributors",
-  icon: "mdi:truck-fast-outline",
-  allowedRoles: ["Administrator"],
-  path: "/distributor",
-},
+  {
+    title: "Distributors",
+    icon: "mdi:truck-fast-outline",
+    allowedRoles: ["Administrator"],
+    path: "/distributor",
+  },
   {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
     allowedRoles: ["Administrator"],
     path: "/expense",
   },
-{
-  title: "Day Closing History",
-  icon: "mdi:calendar-end",
-  allowedRoles: ["Administrator"],
-  path: "/dayclosingHistory",
-},
+  {
+    title: "Day Closing History",
+    icon: "mdi:calendar-end",
+    allowedRoles: ["Administrator"],
+    path: "/dayclosingHistory",
+  },
 
- {
+  {
     title: "Stock History",
     icon: "mdi:warehouse", // inventory / storage
     allowedRoles: ["Administrator"],
     path: "/stockhistory",
   },
 
-  { 
+  {
     title: "Quick Bill History",
     icon: "mdi:file-document-outline", // invoices
     allowedRoles: ["Administrator"],
@@ -157,10 +180,10 @@ const tempObject: VerticalNavItemsType = [
   //   path: "/commission",
   // },
 
-   {
+  {
     title: "Expenses",
     icon: "mdi:cash-minus", // money going out
-    allowedRoles: ["Staff","Distributor"],
+    allowedRoles: ["Staff", "Distributor"],
     path: "/staffExpense",
     isPermissionNeeded: true,
     permissionName: "expense",
@@ -198,13 +221,13 @@ const tempObject: VerticalNavItemsType = [
   //   path: "/customer",
 
   // },
-  {
-    title: 'Reports',
-    icon: 'mdi:information-outline',
-    allowedRoles: ["Administrator", "Staff", "Distributor"],
-    path: '/query',
+  // {
+  //   title: 'Reports',
+  //   icon: 'mdi:information-outline',
+  //   allowedRoles: ["Administrator", "Staff", "Distributor"],
+  //   path: '/query',
 
-  },
+  // },
 
   //  {
 
@@ -217,22 +240,22 @@ const tempObject: VerticalNavItemsType = [
 
 
   //     },
-   {
+  {
     title: 'Settings',
     icon: 'icon-park-outline:data-file',
     allowedRoles: ["Administrator"],
     path: '/superAdmin/all-careTaker',
 
     children: [
-       {
-    title: "Users",
-    icon: "bx:group",
-    path: '/user',
-    allowedRoles: ["Administrator"],
-    // isPermissionNeeded: true,
-    // permissionName: "dashboard",
-  },
-     
+      {
+        title: "Users",
+        icon: "bx:group",
+        path: '/user',
+        allowedRoles: ["Administrator"],
+        // isPermissionNeeded: true,
+        // permissionName: "dashboard",
+      },
+
       {
 
         title: 'Roles & Permissions',
@@ -253,62 +276,62 @@ const tempObject: VerticalNavItemsType = [
 
 
       },
-      
+
       {
-    title: 'Metadata',
-    icon: 'icon-park-outline:data-file',
-    allowedRoles: ["Administrator"],
-    path: '/superAdmin/all-careTaker',
+        title: 'Metadata',
+        icon: 'icon-park-outline:data-file',
+        allowedRoles: ["Administrator"],
+        path: '/superAdmin/all-careTaker',
 
-    children: [
-       {
+        children: [
+          {
 
-        title: 'Categories',
-        path: '/metadata/categories',
-        icon: 'carbon:name-space',
-      //   // permissionName: 'view_brand',
-      //   // isPermissionNeeded: true,
+            title: 'Categories',
+            path: '/metadata/categories',
+            icon: 'carbon:name-space',
+            //   // permissionName: 'view_brand',
+            //   // isPermissionNeeded: true,
 
 
 
+          },
+          // {
+
+          //   title: 'Products',
+          //   path: '/metadata/products',
+          //   icon: 'carbon:name-space',
+          //   // permissionName: 'view_brand',
+          //   // isPermissionNeeded: true,
+
+
+
+          // },
+          {
+
+            title: 'Shop',
+            path: '/metadata/shop',
+            icon: 'mdi:medal-outline',
+            // permissionName: 'view_truck_model',
+            // isPermissionNeeded: true,
+
+
+          },
+          {
+            title: "Vehicles",
+            icon: "mdi:car-outline",
+            allowedRoles: ["Administrator"],
+            path: "/vehicles",
+            isPermissionNeeded: true,
+            permissionName: "vehicle",
+          },
+
+
+        ]
       },
-      // {
-
-      //   title: 'Products',
-      //   path: '/metadata/products',
-      //   icon: 'carbon:name-space',
-      //   // permissionName: 'view_brand',
-      //   // isPermissionNeeded: true,
-
-
-
-      // },
-      {
-
-        title: 'Shop',
-        path: '/metadata/shop',
-        icon: 'mdi:medal-outline',
-        // permissionName: 'view_truck_model',
-        // isPermissionNeeded: true,
-
-
-      },
-      {
-  title: "Vehicles",
-  icon: "mdi:car-outline",
-  allowedRoles: ["Administrator"],
-  path: "/vehicles",
-  isPermissionNeeded: true,
- permissionName: "vehicle",
-},
-   
 
     ]
   },
 
-    ]
-  },
- 
 
   // {
   //   title: 'Activity Logs ',
@@ -333,12 +356,12 @@ const navigation = (): VerticalNavItemsType => {
 
   const hasRole = (roleName: string): boolean => {
     if (user?.is_super_admin) return true;
-    
+
     const targetRole = roleName.toLowerCase();
-    
+
     // Check user.role string (case-insensitive)
-    if (user?.role?.toLowerCase() === targetRole || 
-        (user?.role?.toLowerCase() === 'admin' && targetRole === 'administrator')) {
+    if (user?.role?.toLowerCase() === targetRole ||
+      (user?.role?.toLowerCase() === 'admin' && targetRole === 'administrator')) {
       return true;
     }
 
@@ -347,10 +370,10 @@ const navigation = (): VerticalNavItemsType => {
       return user.roles.some((role: any) => {
         const name = role.name?.toLowerCase();
         const slug = role.slug?.toLowerCase();
-        
-        return name === targetRole || 
-               slug === targetRole || 
-               (name === 'admin' && targetRole === 'administrator');
+
+        return name === targetRole ||
+          slug === targetRole ||
+          (name === 'admin' && targetRole === 'administrator');
       });
     }
 
@@ -371,27 +394,27 @@ const navigation = (): VerticalNavItemsType => {
 
   const filterItems = (items: VerticalNavItemsType): VerticalNavItemsType => {
     return (items
-        ?.filter((item) => {
-          const matchesProject =
-            !item.projectFor ||
-            item.projectFor.includes(themeConfig.projectFor);
+      ?.filter((item) => {
+        const matchesProject =
+          !item.projectFor ||
+          item.projectFor.includes(themeConfig.projectFor);
 
-          const matchesPermission =
-            !item.isPermissionNeeded || hasPermission(item.permissionName);
+        const matchesPermission =
+          !item.isPermissionNeeded || hasPermission(item.permissionName);
 
-          // Role-based filtering
-          const matchesRole = !item.allowedRoles ||
-            item.allowedRoles.some((role: string) => hasRole(role));
+        // Role-based filtering
+        const matchesRole = !item.allowedRoles ||
+          item.allowedRoles.some((role: string) => hasRole(role));
 
-          return matchesProject && matchesPermission && matchesRole;
-        })
-        .map((item) => {
-          if ("children" in item && item.children) {
-            return { ...item, children: filterItems(item.children) };
-          }
+        return matchesProject && matchesPermission && matchesRole;
+      })
+      .map((item) => {
+        if ("children" in item && item.children) {
+          return { ...item, children: filterItems(item.children) };
+        }
 
-          return item;
-        }) ?? []);
+        return item;
+      }) ?? []);
   };
 
   return filterItems(tempObject);

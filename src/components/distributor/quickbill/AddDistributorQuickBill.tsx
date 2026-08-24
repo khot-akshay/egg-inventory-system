@@ -45,7 +45,8 @@ const schema = yup.object().shape({
   }),
   category_id: yup.mixed().nullable(),
   rate_per_unit: yup.number().nullable(),
-  purchase_date: yup.string().nullable()
+  purchase_date: yup.string().nullable(),
+  egg_vendor_purchase_id: yup.mixed().nullable()
 });
 
 interface AddStocksFormProps {
@@ -89,12 +90,13 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     defaultValues: {
       customer_id: null,
       category_id: null,
-      rate_per_unit: 150,
+      rate_per_unit: '',
       purchase_date: new Date().toISOString().split('T')[0],
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
-      mixed_online: null
+      mixed_online: null,
+      egg_vendor_purchase_id: null
     }
   })
 
@@ -109,14 +111,17 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
 
 
   const resetBillForm = () => {
+    const currentPurchaseId = watch('egg_vendor_purchase_id')
+    
     reset({
       customer_id: null,
       category_id: null,
-      rate_per_unit: 150,
+      rate_per_unit: '',
       customer_name: '',
       phone_number: '',
       mixed_cash: null,
-      mixed_online: null
+      mixed_online: null,
+      egg_vendor_purchase_id: currentPurchaseId
     })
 
     setUnit('')
@@ -149,10 +154,27 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   }, [selectedItem, setValue])
 
   useEffect(() => {
-    if (!selectedCustomer && paymentType === 'credit') {
+    const fetchActivePurchase = async () => {
+      try {
+        const response = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor', { 
+          params: { active: 1 } 
+        })
+        const active = response.data?.data?.active || []
+        if (active.length > 0) {
+          setValue('egg_vendor_purchase_id', active[0])
+        }
+      } catch (error) {
+        console.error('Failed to fetch active purchase:', error)
+      }
+    }
+    fetchActivePurchase()
+  }, [setValue])
+
+  useEffect(() => {
+    if (!selectedCustomer && !isNewCustomer && paymentType === 'credit') {
       setPaymentType('cash')
     }
-  }, [selectedCustomer, paymentType])
+  }, [selectedCustomer, isNewCustomer, paymentType])
 
   useEffect(() => {
     const fetchPendingAmount = async () => {
@@ -225,11 +247,6 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
               if (!isNaN(min) && !isNaN(max)) {
                 setMinRate(min)
                 setMaxRate(max)
-                // Set the default rate to the minimum rate if current rate is invalid or default
-                const currentRate = watch('rate_per_unit')
-                if (!currentRate || currentRate > max || currentRate < min || currentRate === 150) {
-                  setValue('rate_per_unit', min)
-                }
               }
             } else {
               setMinRate(null)
@@ -249,7 +266,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
 
   const resetProductFields = () => {
     setValue('category_id', null)
-    setValue('rate_per_unit', 150)
+    setValue('rate_per_unit',null)
 
     setUnit('')
     setUnitValue(30)
@@ -336,13 +353,38 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       const lineTotal = quantity * Number(watch('rate_per_unit') || 0);
       // Determine the overall total amount based on cart or single item
       const totalAmount = cart.length > 0 ? grandTotal : lineTotal;
+
+      // Create rounded bill total for backend validation
+      const roundedBillTotal = Math.round(totalAmount);
+
+      // Validate mixed payment amounts
+      if (paymentType === 'mixed') {
+        const totalPaid = cashAmount + upiAmount;
+
+        // Never allow overpayment
+        if (totalPaid > roundedBillTotal) {
+          toast.error('Total payment cannot exceed the bill amount.');
+          setLoading(false);
+          return;
+        }
+
+        // Without customer, full payment is required
+        if (!selectedCustomer && !isNewCustomer && totalPaid !== roundedBillTotal) {
+          toast.error('Please pay the full bill amount or select a customer for the remaining credit amount.');
+          setLoading(false);
+          return;
+        }
+
+        // With customer, partial payment is allowed
+      }
+
       // const paidAmount = paymentType === 'mixed' ? cashAmount + upiAmount : totalAmount;
       const paidAmount =
         paymentType === 'credit'
           ? 0
           : paymentType === 'mixed'
             ? cashAmount + upiAmount
-            : totalAmount;
+            : roundedBillTotal;
       let payments: { amount: number; payment_type: string }[] = [];
       // Build lines for payload
       let lines: { category_id: any; quantity: number; unit_cost: number; unit_type: string; unit_value: number }[] = [];
@@ -398,15 +440,19 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
         }];
       } else {
         payments = [{
-          amount: totalAmount,
+          amount: roundedBillTotal,
           payment_type: paymentType
         }];
       }
 
-      if (!quantity || quantity <= 0) {
-        toast.error('Quantity is required');
-        setLoading(false);
-        return;
+      // Only validate product entry fields when cart is empty.
+      // If cart has items, these fields were already used to build the cart — skip validation.
+      if (cart.length === 0) {
+        if (!quantity || quantity <= 0) {
+          toast.error('Quantity is required');
+          setLoading(false);
+          return;
+        }
       }
 
       const payload = {
@@ -449,7 +495,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   }
 
   const handleViewUser = () => {
-    router.push('/quickbillList')
+    router.push('/distributorquickbillList')
   }
 
   return (
@@ -457,7 +503,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       <Grid container spacing={2}>
         <Grid item xs={12} md={12}>
           <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
-            🥚 Quick Bill
+            🥚 Distributor Quick Bill
           </Typography>
           {/* <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography> */}
         </Grid>
@@ -492,6 +538,21 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={2}>
           {/* Shop Selection */}
+
+           <Grid item xs={12}>
+              <RHFAutoComplete
+                control={control}
+                name="egg_vendor_purchase_id"
+                placeholder="Vehicle Details"
+                labelinput="Vehicle Details"
+                apiUrl="/api/v1/shop/getCurrentPurchaseEggDataForDistributor"
+                extraParams={{ active:1}}
+                labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
+                valueKey="id"
+                required={!isNewCustomer}
+                disabled={isNewCustomer}
+              />
+            </Grid>
           <Grid item xs={8}>
             <RHFAutoComplete
               control={control}
@@ -540,20 +601,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
           )}
        
 
-            <Grid item xs={12}>
-              <RHFAutoComplete
-                control={control}
-                name="egg_vendor_purchase_id"
-                placeholder="Vehicle Details"
-                labelinput="Vehicle Details"
-                apiUrl="/api/v1/shop/getCurrentPurchaseEggDataForDistributor"
-                extraParams={{ active:1}}
-                labelKey={(opt: any) => `${opt.driver?.name || 'N/A'} - ${opt.vehicle?.registration_number || 'N/A'} Date ${opt.purchase_date ? moment(opt.created_at).format('DD/MM/YYYY hh:mm A') : 'N/A'}`}
-                valueKey="id"
-                required={!isNewCustomer}
-                disabled={isNewCustomer}
-              />
-            </Grid>
+           
           
 
           {/* Product Selection */}
@@ -564,7 +612,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
               placeholder="Select Product"
               labelinput="Product Name"
               apiUrl="/api/v1/admin/getAllCategories"
-              extraParams={{ shop_id: currentStaffShopId || '' }}
+              // extraParams={{ shop_id: currentStaffShopId || '' }}
               dataKey="data.categories"
               labelKey="name"
               valueKey="id"
@@ -575,13 +623,10 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
           </Grid>
 
 
-          <Grid item xs={12}>
-            {(minRate !== null && maxRate !== null) && (
-              <>
-                <Typography className="input-label">
-                  Price per Egg
-                </Typography>
-                <Grid container spacing={1} alignItems="center">
+          {/* <Grid item xs={6} md={12}> */}
+            {/* {(minRate !== null && maxRate !== null) && ( */}
+              {/* <> */}
+              
                   {/* <Grid item xs={3} sm={2}>
                     <Button
                       fullWidth
@@ -604,11 +649,14 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                       </Button>
                     </Grid>
                   )} */}
-                  <Grid item xs={6} sm={4}>
+                  <Grid item xs={6} md={6}>
+                      <Typography className="input-label">
+                  Price per Egg
+                </Typography>
                     <TextField
-                      placeholder="Custom Rate"
+                      placeholder="Price per Egg"
                       type="number"
-                      defaultValue=""
+                      value={watch('rate_per_unit') || ''}
                       onChange={(e) => {
                         const val = parseFloat(e.target.value);
                         setValue('rate_per_unit', isNaN(val) ? null : val);
@@ -620,15 +668,12 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                       }}
                     />
                   </Grid>
-                </Grid>
-              </>
-            )}
-          </Grid>
+              {/* </> */}
+            {/* )} */}
+          {/* </Grid> */}
 
           {/* Integrated Unit and Quantity Selection */}
-          <Grid item xs={12}>
-            <Grid container spacing={2} alignItems="flex-end">
-              <Grid item xs={6}>
+              {/* <Grid item xs={6}>
                 <Typography className="input-label">
                   Unit Type
                 </Typography>
@@ -655,7 +700,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                   <ToggleButton value="dozen">12</ToggleButton>
                   <ToggleButton value="half_dozen">6</ToggleButton>
                 </ToggleButtonGroup>
-              </Grid>
+              </Grid> */}
 
               <Grid item xs={6}>
                 <Typography className="input-label">
@@ -759,8 +804,6 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                   )}
                 </Box>
               </Grid>
-            </Grid>
-          </Grid>
 
           {/* Add to List Button */}
           <Grid item xs={12}>
@@ -865,7 +908,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                 { id: 'upi', label: 'Online', icon: <PhonelinkRingIcon /> },
                 { id: 'credit', label: 'Credit', icon: <EventNoteIcon /> },
                 { id: 'mixed', label: 'Mixed', icon: <EventNoteIcon /> }
-              ].filter(type => type.id !== 'credit' || selectedCustomer).map(type => (
+              ].filter(type => type.id !== 'credit' || selectedCustomer || isNewCustomer).map(type => (
                 <Grid item xs={3} key={type.id}>
                   <Button
                     fullWidth
