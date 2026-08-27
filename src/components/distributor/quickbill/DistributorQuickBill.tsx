@@ -1,4 +1,4 @@
-import { Box, Card, Grid } from '@mui/material'
+import { Box, Card, Grid, Tooltip, Button } from '@mui/material'
 import { GridCellParams, GridColDef } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import CommonDatagrid from 'src/components/common/DatagridData.tsx/CommonDatagrid'
@@ -6,8 +6,10 @@ import GoBack from 'src/components/common/goBack/GoBackButton'
 import axiosInstance from 'src/services/axios'
 import DeleteDialogPopup from 'src/components/common/DeletePopup/DeleteModalPopup'
 import DateFormateComponent from 'src/components/common/dateFormat/DateFromatModule'
-import AddProducts from './AddDistributorQuickBill'
+import AddDistributorQuickBill from './AddDistributorQuickBill'
+import EditDistributorQuickBill from './EditDistributorQuickBill'
 import { useAuth } from 'src/hooks/useAuth'
+import Icon from 'src/@core/components/icon'
 
 interface CategoryRow {
   id: number
@@ -71,6 +73,11 @@ const DistributorQuickBill = () => {
 
   const handlePageChange = (newPage: number) => setPage(newPage)
   const handlePageSizeChange = (newPageSize: number) => setPageSize(newPageSize)
+
+  const handleEditClick = (params: GridCellParams) => {
+    setSelectedItem(params.row as CategoryRow)
+    setOpenEdit(true)
+  }
 
   const columns: GridColDef[] = [
     {
@@ -219,6 +226,22 @@ const DistributorQuickBill = () => {
       renderCell: (params: GridCellParams) => (
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      minWidth: 150,
+      sortable: false,
+      flex: 1,
+      renderCell: (params: GridCellParams) => (
+        <>
+          <Tooltip title='Update Bill' placement='bottom'>
+            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+              <Icon icon={'circum:edit'} fontSize={24} />
+            </Button>
+          </Tooltip>
+        </>
+      ),
     }
   ]
 
@@ -244,7 +267,14 @@ const DistributorQuickBill = () => {
         />
       </Card>
 
-
+      {openEdit && (
+        <EditDistributorQuickBill
+          open={openEdit}
+          handleClose={() => setOpenEdit(false)}
+          fetchData={fetchGame}
+          selectedItem={selectedItem}
+        />
+      )}
     </>
   )
 }

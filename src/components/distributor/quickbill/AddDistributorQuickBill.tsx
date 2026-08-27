@@ -8,6 +8,9 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
+import EditIcon from '@mui/icons-material/Edit'
+import SaveIcon from '@mui/icons-material/Save'
+import CancelIcon from '@mui/icons-material/Cancel'
 import React, { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -26,27 +29,40 @@ import moment from 'moment'
 
 const schema = yup.object().shape({
   customer_id: yup.mixed().test('shop-required', 'Customer is required for 100+ eggs', function (value) {
-    const { isNewCustomer = false, totalCartEggs = 0 } = this.options.context || {};
+    const { isNewCustomer = false, totalCartEggs = 0, isEditMode = false } = this.options.context || {};
+    if (isEditMode) return true; // Skip validation in edit mode
     if (totalCartEggs < 100) return true;
     if (!isNewCustomer && !value) return false;
     return true;
   }),
   customer_name: yup.string().test('name-required', 'Name is required for 100+ eggs', function (value) {
-    const { isNewCustomer = false, totalCartEggs = 0 } = this.options.context || {};
+    const { isNewCustomer = false, totalCartEggs = 0, isEditMode = false } = this.options.context || {};
+    if (isEditMode) return true; // Skip validation in edit mode
     if (totalCartEggs < 100) return true;
     if (isNewCustomer && !value) return false;
     return true;
   }),
   phone_number: yup.string().test('phone-required', 'Phone is required for 100+ eggs', function (value) {
-    const { isNewCustomer, totalCartEggs } = this.options.context as any || {};
+    const { isNewCustomer, totalCartEggs, isEditMode = false } = this.options.context as any || {};
+    if (isEditMode) return true; // Skip validation in edit mode
     if (totalCartEggs < 100) return true;
     if (isNewCustomer && !value) return false;
     return true;
   }),
   category_id: yup.mixed().nullable(),
-  rate_per_unit: yup.number().nullable(),
+  rate_per_unit: yup.mixed().nullable().transform((value, originalValue) => {
+    if (originalValue === '' || originalValue === null || originalValue === undefined) {
+      return null;
+    }
+    const num = Number(originalValue);
+    return isNaN(num) ? null : num;
+  }),
   purchase_date: yup.string().nullable(),
-  egg_vendor_purchase_id: yup.mixed().nullable()
+  egg_vendor_purchase_id: yup.mixed().test('vendor-required', 'Vehicle is required', function (value) {
+    const { isEditMode = false } = this.options.context || {};
+    if (isEditMode) return true; // Skip validation in edit mode
+    return value !== null && value !== undefined;
+  })
 });
 
 interface AddStocksFormProps {
@@ -60,6 +76,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
+  const isEditMode = !!selectedItem?.id
 
   const [minRate, setMinRate] = useState<number | null>(null)
   const [maxRate, setMaxRate] = useState<number | null>(null)
@@ -72,6 +89,8 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [editingCartItem, setEditingCartItem] = useState<number | null>(null);
+  const [editCartItemData, setEditCartItemData] = useState<any>(null);
   const router = useRouter()
 
 
@@ -83,10 +102,11 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     setValue,
     watch,
     reset,
-    formState: { errors }
+    trigger,
+    formState: { errors, isValid }
   } = useForm({
     resolver: yupResolver(schema),
-    context: { isNewCustomer, totalCartEggs },
+    context: { isNewCustomer, totalCartEggs, isEditMode },
     defaultValues: {
       customer_id: null,
       category_id: null,
@@ -132,26 +152,51 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     setPendingAmount(null)
     setIsNewCustomer(false)
     setPaymentType('cash')
+    setEditingCartItem(null)
+    setEditCartItemData(null)
 
     setMinRate(null)
     setMaxRate(null)
   }
 
   useEffect(() => {
-    if (selectedItem) {
-      if (selectedItem.shop_id) {
-        setValue('customer_id', { id: selectedItem.shop_id, name: selectedItem.shop?.name || 'Shop' })
+    if (selectedItem && isEditMode) {
+      // Populate form for editing existing quick bill
+      if (selectedItem.customer) {
+        setValue('customer_id', { id: selectedItem.customer.id, name: selectedItem.customer.name })
       }
-      if (selectedItem.product_id) {
-        setValue('category_id', { id: selectedItem.product_id, name: selectedItem.product?.name || 'Product' })
+      
+      // If there are items in the bill, populate the cart
+      if (selectedItem.items && selectedItem.items.length > 0) {
+        const cartItems = selectedItem.items.map((item: any) => ({
+          category_id: item.category_id,
+          product_name: item.category?.name || 'Product',
+          quantity: Number(item.quantity) || 0,
+          unit: item.unit_type || '',
+          unit_value: Number(item.unit_value) || 1,
+          total_eggs: Number(item.quantity) * (Number(item.unit_value) || 1),
+          damaged_eggs: 0,
+          rate: Number(item.unit_cost) || 0,
+          total: Number(item.line_total) || 0
+        }))
+        setCart(cartItems)
       }
-      setValue('rate_per_unit', selectedItem.rate)
-      setUnit(selectedItem.unit_type)
-      setUnitValue(selectedItem.unit_value)
-      setQuantity(selectedItem.quantity)
-      setDamaged(selectedItem.damaged_eggs)
+      
+      // Set payment type based on existing payments
+      if (selectedItem.meta?.payments && selectedItem.meta.payments.length > 0) {
+        const payments = selectedItem.meta.payments
+        if (payments.length === 1) {
+          setPaymentType(payments[0].payment_type)
+        } else {
+          setPaymentType('mixed')
+          const cashPayment = payments.find((p: any) => p.payment_type === 'cash')
+          const upiPayment = payments.find((p: any) => p.payment_type === 'upi')
+          if (cashPayment) setValue('mixed_cash', cashPayment.amount)
+          if (upiPayment) setValue('mixed_online', upiPayment.amount)
+        }
+      }
     }
-  }, [selectedItem, setValue])
+  }, [selectedItem, isEditMode, setValue])
 
   useEffect(() => {
     const fetchActivePurchase = async () => {
@@ -307,13 +352,13 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     const newItem = {
       category_id: categoryId,
       product_name: productName,
-      quantity,
+      quantity: Number(quantity),
       unit,
-      unit_value: unitValue,
-      total_eggs: totalEggs,
-      damaged_eggs: damaged,
-      rate: rate_per_unit,
-      total: quantity * rate_per_unit
+      unit_value: Number(unitValue),
+      total_eggs: Number(totalEggs),
+      damaged_eggs: Number(damaged),
+      rate: Number(rate_per_unit) || 0,
+      total: Number(quantity) * Number(rate_per_unit)
     }
 
     setCart(prev => [...prev, newItem])
@@ -329,10 +374,54 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
     setCart(newCart)
   }
 
-  const grandTotal = cart.reduce((sum, item) => sum + item.total, 0)
+  const handleEditCartItem = (index: number) => {
+    setEditingCartItem(index)
+    setEditCartItemData({ ...cart[index] })
+  }
+
+  const handleSaveCartItem = () => {
+    if (editingCartItem !== null && editCartItemData) {
+      const newCart = [...cart]
+      newCart[editingCartItem] = {
+        ...editCartItemData,
+        total: Number(editCartItemData.quantity) * Number(editCartItemData.rate)
+      }
+      setCart(newCart)
+      setEditingCartItem(null)
+      setEditCartItemData(null)
+    }
+  }
+
+  const handleCancelEditCartItem = () => {
+    setEditingCartItem(null)
+    setEditCartItemData(null)
+  }
+
+  const grandTotal = cart.reduce((sum, item) => sum + Number(item.total), 0)
 
   const onSubmit = async (data: any) => {
+    console.log('Form submitted', data);
+    console.log('Cart:', cart);
+    console.log('Is edit mode:', isEditMode);
+    console.log('Selected item:', selectedItem);
+    console.log('Form errors:', errors);
+    console.log('Form valid:', isValid);
+    
     setLoading(true)
+    
+    // In edit mode or when cart has items, bypass individual field validation
+    if (isEditMode || cart.length > 0) {
+      console.log('Bypassing validation - edit mode or cart has items');
+    } else {
+      // Check validation for new bills without cart
+      const isValidForm = await trigger();
+      if (!isValidForm) {
+        console.log('Form validation failed');
+        setLoading(false);
+        return;
+      }
+    }
+    
     try {
       const extractId = (value: any): number | null => {
         if (value === null || value === undefined) return null
@@ -391,10 +480,10 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       if (cart.length > 0) {
         lines = cart.map(item => ({
           category_id: item.category_id,
-          quantity: item.quantity,
-          unit_cost: item.rate,
+          quantity: Number(item.quantity),
+          unit_cost: Number(item.rate).toFixed(2),
           unit_type: item.unit,
-          unit_value: item.unit_value
+          unit_value: Number(item.unit_value)
         }));
       } else if (watch('category_id') && quantity > 0 && watch('rate_per_unit')) {
         const cat = watch('category_id');
@@ -466,7 +555,16 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
         payments
       }
 
-      const response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
+      console.log('Payload:', payload);
+
+      let response
+      if (isEditMode && selectedItem?.id) {
+        // Update existing bill
+        response = await axiosInstance.post(`/api/v1/shop/updatePurchaseEgg?purchase_id=${selectedItem.id}`, payload)
+      } else {
+        // Create new bill
+        response = await axiosInstance.post('/api/v1/shop/purchaseEgg', payload)
+      }
 
       if (response.data.success) {
         toast.success(response.data.message || 'Bill confirmed successfully')
@@ -488,6 +586,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
         if (handleClose) handleClose()
       }
     } catch (error: any) {
+      console.error('Error:', error);
       toast.error(error?.response?.data?.message || 'Something went wrong')
     } finally {
       setLoading(false)
@@ -503,7 +602,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
       <Grid container spacing={2}>
         <Grid item xs={12} md={12}>
           <Typography variant={isMobile ? "subtitle1" : "h6"} sx={{ fontWeight: 'bold', mb: 2 }}>
-            🥚 Distributor Quick Bill
+            🥚 {isEditMode ? 'Edit Distributor Quick Bill' : 'Distributor Quick Bill'}
           </Typography>
           {/* <Typography variant="subtitle2" sx={{ mb: 1 }}>{roleName}</Typography> */}
         </Grid>
@@ -535,7 +634,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
 
 
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit, (errors) => console.log('Form validation errors:', errors))}>
         <Grid container spacing={2}>
           {/* Shop Selection */}
 
@@ -563,19 +662,21 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
               labelKey="name"
               valueKey="id"
               required={!isNewCustomer}
-              disabled={isNewCustomer}
+              disabled={isNewCustomer || isEditMode}
             />
           </Grid>
-          <Grid item xs={4}>
-            <Button
-              variant='contained'
-              onClick={() => setIsNewCustomer(!isNewCustomer)}
-              fullWidth
-              sx={{ mt: 6 }}
-            >
-              {isNewCustomer ? 'Cancel' : '+ New'}
-            </Button>
-          </Grid>
+          {!isEditMode && (
+            <Grid item xs={4}>
+              <Button
+                variant='contained'
+                onClick={() => setIsNewCustomer(!isNewCustomer)}
+                fullWidth
+                sx={{ mt: 6 }}
+              >
+                {isNewCustomer ? 'Cancel' : '+ New'}
+              </Button>
+            </Grid>
+          )}
 
           {isNewCustomer && (
             <>
@@ -835,20 +936,68 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                         <TableCell align="center" sx={{ fontWeight: 'bold' }}>Qty</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 'bold' }}>Rate</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 'bold' }}>Total</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 'bold' }}></TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {cart.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell sx={{ fontSize: '0.8rem' }}>{item.product_name}</TableCell>
-                          <TableCell align="center" sx={{ fontSize: '0.8rem' }}>{item.quantity}</TableCell>
-                          <TableCell align="right" sx={{ fontSize: '0.8rem' }}>₹{item.rate.toFixed(2)}</TableCell>
-                          <TableCell align="right" sx={{ fontSize: '0.8rem', fontWeight: 'bold' }}>₹{item.total.toFixed(2)}</TableCell>
+                          <TableCell align="center" sx={{ fontSize: '0.8rem' }}>
+                            {editingCartItem === index ? (
+                              <TextField
+                                type="number"
+                                value={editCartItemData?.quantity || ''}
+                                onChange={(e) => setEditCartItemData({ ...editCartItemData, quantity: Number(e.target.value) })}
+                                size="small"
+                                sx={{ width: '60px' }}
+                                inputProps={{ min: 1 }}
+                              />
+                            ) : (
+                              item.quantity
+                            )}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.8rem' }}>
+                            {editingCartItem === index ? (
+                              <TextField
+                                type="number"
+                                value={editCartItemData?.rate || ''}
+                                onChange={(e) => setEditCartItemData({ ...editCartItemData, rate: Number(e.target.value) })}
+                                size="small"
+                                sx={{ width: '70px' }}
+                                inputProps={{ step: "0.01", min: 0 }}
+                              />
+                            ) : (
+                              `₹${Number(item.rate).toFixed(2)}`
+                            )}
+                          </TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.8rem', fontWeight: 'bold' }}>
+                            {editingCartItem === index ? (
+                              `₹${(Number(editCartItemData?.quantity) * Number(editCartItemData?.rate)).toFixed(2)}`
+                            ) : (
+                              `₹${Number(item.total).toFixed(2)}`
+                            )}
+                          </TableCell>
                           <TableCell align="center">
-                            <IconButton size="small" color="error" onClick={() => removeFromCart(index)}>
-                              <DeleteIcon fontSize="inherit" />
-                            </IconButton>
+                            {editingCartItem === index ? (
+                              <>
+                                <IconButton size="small" color="success" onClick={handleSaveCartItem}>
+                                  <SaveIcon fontSize="inherit" />
+                                </IconButton>
+                                <IconButton size="small" color="error" onClick={handleCancelEditCartItem}>
+                                  <CancelIcon fontSize="inherit" />
+                                </IconButton>
+                              </>
+                            ) : (
+                              <>
+                                <IconButton size="small" color="primary" onClick={() => handleEditCartItem(index)}>
+                                  <EditIcon fontSize="inherit" />
+                                </IconButton>
+                                <IconButton size="small" color="error" onClick={() => removeFromCart(index)}>
+                                  <DeleteIcon fontSize="inherit" />
+                                </IconButton>
+                              </>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -890,7 +1039,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                     Total Amount
                   </Typography>
                   <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                    ₹{grandTotal.toFixed(2)}
+                    ₹{Number(grandTotal).toFixed(2)}
                   </Typography>
                 </Box>
               </Grid>
@@ -960,8 +1109,12 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
               variant="contained"
               type="submit"
               disabled={loading}
+              sx={{ 
+                pointerEvents: loading ? 'none' : 'auto',
+                opacity: loading ? 0.7 : 1
+              }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Confirm Bill'}
+              {loading ? <CircularProgress size={24} color="inherit" /> : (isEditMode ? 'Update Bill' : 'Confirm Bill')}
             </Button>
           </Grid>
         </Grid>

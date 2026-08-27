@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogTitle, IconButton, Typography } from '@mui
 import React from 'react'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import toast, { Toaster } from 'react-hot-toast'
-import AddQuickBillForm from './AddQuickBill'
+import AddDistributorQuickBill from './AddDistributorQuickBill'
 
 interface Props {
   open: boolean
@@ -11,7 +11,7 @@ interface Props {
   selectedItem?: any
 }
 
-const EditQuickBill = ({ open, handleClose, fetchData, selectedItem }: Props) => {
+const EditDistributorQuickBill = ({ open, handleClose, fetchData, selectedItem }: Props) => {
   return (
     <Dialog
       open={open}
@@ -31,7 +31,7 @@ const EditQuickBill = ({ open, handleClose, fetchData, selectedItem }: Props) =>
         }}
       >
         <Typography sx={{ fontSize: '25px', fontWeight: 'bold', flexGrow: 1, paddingLeft: '10px' }}>
-          Edit Quick Bill
+          Edit Distributor Quick Bill
         </Typography>
         <IconButton onClick={handleClose}>
           <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
@@ -39,7 +39,7 @@ const EditQuickBill = ({ open, handleClose, fetchData, selectedItem }: Props) =>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 0 }}>
         <Toaster position="top-right" reverseOrder={false} />
-        <AddQuickBillForm
+        <AddDistributorQuickBill
           handleClose={handleClose}
           fetchData={fetchData}
           selectedItem={selectedItem}
@@ -49,4 +49,4 @@ const EditQuickBill = ({ open, handleClose, fetchData, selectedItem }: Props) =>
   )
 }
 
-export default EditQuickBill
+export default EditDistributorQuickBill
