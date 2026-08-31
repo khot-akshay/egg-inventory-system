@@ -142,30 +142,7 @@ const Vendor = () => {
         </Typography>
       )
     },
-    {
-      field: 'phone',
-      headerName: 'Mobile Number',
-      flex: 1,
-      minWidth: 120,
-      sortable: false,
-      renderCell: (params: GridCellParams) => params.row?.phone || 'NA'
-    },
-    {
-      field: 'email',
-      headerName: 'Email ID',
-      flex: 1.5,
-      minWidth: 200,
-      sortable: false,
-      renderCell: (params: GridCellParams) => params.row?.email || 'NA'
-    },
-    {
-      field: 'gstin',
-      headerName: 'GST Number',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => params.row?.gstin || 'NA'
-    },
+    
     {
       field: 'payable_balance',
       headerName: 'Payable Amount',
@@ -209,11 +186,11 @@ const Vendor = () => {
               <Icon icon={'circum:edit'} />
             </IconButton>
           </Tooltip>
-          <Tooltip title='Delete Vendor'>
+          {/* <Tooltip title='Delete Vendor'>
             <IconButton size="small" onClick={() => handleDeleteOpen(params)}>
               <Icon icon={'ic:outline-delete'} color='#FC4E4E' />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
         </Box>
       ),
     },
@@ -265,6 +242,11 @@ const Vendor = () => {
           rows={rows}
           checkboxSelection={false}
           loading={loading}
+          onCellClick={(params) => {
+            if (params.field !== 'actions') {
+              handleViewVendor(params.row.id)
+            }
+          }}
         />
       </Card>
 

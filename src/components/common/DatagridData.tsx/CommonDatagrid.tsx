@@ -15,6 +15,7 @@ interface Props {
   checkboxSelection: boolean;
   loading: boolean;
   handleRowSelectionChange?: (selection: any, ids: any) => void;
+  onCellClick?: (params: any) => void;
 }
 function CommonDatagrid({
   totalRows,
@@ -27,6 +28,7 @@ function CommonDatagrid({
   checkboxSelection,
   loading,
   handleRowSelectionChange,
+  onCellClick,
 }: Props) {
   return (
     <>
@@ -51,6 +53,7 @@ function CommonDatagrid({
           rowsPerPageOptions={[5, 10, 25, 50]}
           onSelectionModelChange={handleRowSelectionChange}
           onPageSizeChange={(sizePage) => handleChangeRowsPerPage(sizePage)}
+          onCellClick={onCellClick}
           getRowHeight={() => "auto"}
           components={{
             NoRowsOverlay: () => <CustomRowOverLay />,

@@ -192,17 +192,17 @@ const Expense = () => {
       </div>
     },
  
-    // {
-    //   field: 'name',
-    //   headerName: 'Product Name',
-    //   flex: 1,
-    //   minWidth: 200,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) =>
-    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //       {params.row?.name || 'NA'}
-    //     </div>
-    // },
+    {
+      field: 'name.product',
+      headerName: 'created by',
+      flex: 1,
+      minWidth: 200,
+      sortable: false,
+      renderCell: (params: GridCellParams) =>
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          {params.row?.user.name || 'NA'}
+        </div>
+    },
     {
       field: 'categories.name',
       headerName: 'Expense Category',

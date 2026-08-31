@@ -31,16 +31,23 @@ const schema = yup.object().shape({
     .min(3, 'Category must be at least 3 characters')
     .max(255, 'Category must not exceed 255 characters')
     .matches(/^[A-Za-z\s]+$/, 'Category can contain only letters and spaces'),
-    amount: yup
-      .number()
-      .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : value))
-      .nullable()
-      .required('Amount is required')
-      .min(1, 'Amount must be greater than 0'),
+  amount: yup
+    .number()
+    .transform((value, originalValue) => (String(originalValue).trim() === '' ? null : value))
+    .nullable()
+    .required('Amount is required')
+    .min(1, 'Amount must be greater than 0'),
 
   description: yup.string().nullable(),
 
-  shop_id: yup.mixed().required('Shop is required')
+  shop_id: yup
+    .mixed()
+    .nullable()
+    .transform((value) => {
+      if (value === null || value === undefined || value === '') return null
+      if (typeof value === 'object' && value !== null) return value.id
+      return value
+    })
 })
 
 interface FormData {
@@ -106,10 +113,12 @@ const AddExpense = ({
         amount: Number(data.amount),
         description: data.description,
         shop_id:
-          typeof data.shop_id === 'object'
+          data.shop_id && typeof data.shop_id === 'object'
             ? data.shop_id.id
             : data.shop_id
       }
+
+      console.log('Expense payload:', payload)
 
       let url = ''
 
@@ -119,7 +128,11 @@ const AddExpense = ({
         url = '/api/v1/admin/createExpense'
       }
 
+      console.log('Expense URL:', url)
+
       const response = await axiosInstance.post(url, payload)
+
+      console.log('Expense response:', response.data)
 
       if (response.data.success) {
         toast.success(response.data.message)
@@ -127,12 +140,14 @@ const AddExpense = ({
         fetchData()
       }
     } catch (e: any) {
-      toast.error(
-        e?.response?.data?.message ??
-          (selectedItem
-            ? 'Failed to update expense'
-            : 'Failed to add expense')
-      )
+      console.error('Expense error:', e)
+      console.error('Error response:', e?.response?.data)
+      
+      const errorMessage = e?.response?.data?.message || 
+                          e?.response?.data?.data?.message ||
+                          (selectedItem ? 'Failed to update expense' : 'Failed to add expense')
+      
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -226,7 +241,7 @@ const AddExpense = ({
                 apiUrl='/api/v1/admin/getAllShops'
                 labelKey='name'
                 valueKey='id'
-                required
+                required={false}
               />
             </Grid>
 
@@ -258,6 +273,7 @@ const AddExpense = ({
                 label='Amount'
                 placeholder='Amount'
                 min={0}
+                mandatory
               />
             </Grid>
 
@@ -269,6 +285,7 @@ const AddExpense = ({
                 placeholder='Description'
                 multiline
                 rows={3}
+                required={false}
               />
             </Grid>
           </Grid>

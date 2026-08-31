@@ -216,26 +216,26 @@ const Customer = () => {
     //       {params.row?.name || 'NA'}
     //     </div>
     // },
-    {
-      field: 'categories.name',
-      headerName: 'Mobile Number',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.phone || 'NA'}
-      </div>
-    },
-    {
-      field: 'description.name',
-      headerName: 'Email ID',
-      flex: 1,
-      minWidth: 200,
-      sortable: false,
-      renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.email || params.row?.email|| 'NA'}
-      </div>
-    },
+    // {
+    //   field: 'categories.name',
+    //   headerName: 'Mobile Number',
+    //   flex: 1,
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //     {params.row?.phone || 'NA'}
+    //   </div>
+    // },
+    // {
+    //   field: 'description.name',
+    //   headerName: 'Email ID',
+    //   flex: 1,
+    //   minWidth: 200,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //     {params.row?.email || params.row?.email|| 'NA'}
+    //   </div>
+    // },
   
     {
       field: 'min_stock_level',
@@ -421,6 +421,11 @@ const Customer = () => {
           rows={rows}
           checkboxSelection={false}
           loading={loading}
+          onCellClick={(params) => {
+            if (params.field !== 'actions' && params.field !== 'paid') {
+              handleViewUser(params.row.id)
+            }
+          }}
         />
       </Card>
       {openAdd && <AddExpense open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}

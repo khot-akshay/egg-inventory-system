@@ -928,7 +928,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                 <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
                   Added Products
                 </Typography>
-                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, overflowX: 'auto' }}>
                   <Table size="small">
                     <TableHead sx={{ bgcolor: hexToRGBA(theme.palette.success.main, 0.12) }}>
                       <TableRow>
@@ -950,7 +950,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                                 value={editCartItemData?.quantity || ''}
                                 onChange={(e) => setEditCartItemData({ ...editCartItemData, quantity: Number(e.target.value) })}
                                 size="small"
-                                sx={{ width: '60px' }}
+                                sx={{ width: '100px' }}
                                 inputProps={{ min: 1 }}
                               />
                             ) : (
@@ -964,7 +964,7 @@ const AddDistributorQuickBill = ({ handleClose, fetchData, selectedItem }: AddSt
                                 value={editCartItemData?.rate || ''}
                                 onChange={(e) => setEditCartItemData({ ...editCartItemData, rate: Number(e.target.value) })}
                                 size="small"
-                                sx={{ width: '70px' }}
+                                sx={{ width: '100px' }}
                                 inputProps={{ step: "0.01", min: 0 }}
                               />
                             ) : (

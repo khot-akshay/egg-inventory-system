@@ -364,6 +364,11 @@ const Stockhistory = () => {
           rows={rows}
           checkboxSelection={false}
           loading={loading}
+          onCellClick={(params) => {
+            if (params.field !== 'actions') {
+              handleViewUser(params.row.id)
+            }
+          }}
         />
       </Card>
       {/* {openAdd && <AddProducts open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchGame} />}

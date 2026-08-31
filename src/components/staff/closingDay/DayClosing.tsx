@@ -836,12 +836,12 @@ const DayClosing = () => {
                       <TableHead>
                         <TableRow>
                           {[
-                            { name: 'Category', width: '30%', align: 'left' },
-                            { name: 'Opening Stock', width: '10%', align: 'left' },
-                            { name: 'Purchase Stock', width: '10%', align: 'left' },
-                            { name: 'Sale Stock', width: '10%', align: 'left' },
-                            { name: 'Expected Stock', width: '10%', align: 'left' },
-                            { name: 'Physical Count', width: '15%', align: 'center' },
+                            { name: 'Category', width: '40%', align: 'left' },
+                            // { name: 'Opening Stock', width: '10%', align: 'left' },
+                            // { name: 'Purchase Stock', width: '10%', align: 'left' },
+                            { name: 'Sale Stock', width: '20%', align: 'left' },
+                            // { name: 'Expected Stock', width: '10%', align: 'left' },
+                            { name: 'Physical Count', width: '25%', align: 'center' },
                             { name: 'Difference', width: '15%', align: 'center' }
                           ].map(col => (
                             <TableCell
@@ -909,14 +909,14 @@ const DayClosing = () => {
                                   </Typography>
                                 </Stack>
                               </TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.openingStock.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.purchaseToday.toLocaleString()}</Typography></TableCell>
+                              {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.openingStock.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.purchaseToday.toLocaleString()}</Typography></TableCell> */}
                               <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.soldToday.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}>
+                              {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}>
                                 <Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>
                                   {row.closingSystem.toLocaleString()}
                                 </Typography>
-                              </TableCell>
+                              </TableCell> */}
                               <TableCell width="15%" align="center" sx={{ py: 0.75, px: 2 }}>
                                 <TextField
                                   type='number'
@@ -954,12 +954,12 @@ const DayClosing = () => {
                               TOTAL
                             </Typography>
                           </TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.opening.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.purchase.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.sold.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>{totals.system.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.physical.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><DiffBadge diff={totals.diff} /></TableCell>
+                          {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.opening.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.purchase.toLocaleString()}</Typography></TableCell> */}
+                          <TableCell width="20%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.sold.toLocaleString()}</Typography></TableCell>
+                          {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>{totals.system.toLocaleString()}</Typography></TableCell> */}
+                          <TableCell width="25%" align="center" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.physical.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="25%" align="center" sx={{ py: 1.5, px: 2 }}><DiffBadge diff={totals.diff} /></TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>

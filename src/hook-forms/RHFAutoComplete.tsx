@@ -30,12 +30,36 @@ const RHFAutoComplete = ({
   options: staticOptions = [],
   dataKey = '',
   returnObject = false,
+  filterFunction,
   ...rest
+}: {
+  control: any;
+  name: any;
+  apiUrl?: any;
+  labelKey?: any;
+  valueKey?: any;
+  placeholder: any;
+  labelinput: any;
+  required: any;
+  pageParamName?: any;
+  limitParamName?: any;
+  queryParamName?: any;
+  pageSize?: any;
+  addbtn?: any;
+  button_label?: any;
+  handlebtnclick?: any;
+  extraParams?: any;
+  multiple?: any;
+  options?: any[];
+  dataKey?: any;
+  returnObject?: any;
+  filterFunction?: (item: any) => boolean;
+  [key: string]: any;
 }) => {
   // Helper to get nested values like "category.name"
-  const getNestedValue = (obj, path) => {
+  const getNestedValue = (obj: any, path: any) => {
     if (!obj || !path) return obj;
-    return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj);
+    return path.split('.').reduce((acc: any, part: any) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj);
   };
 
   const { field, fieldState } = useController({
@@ -52,7 +76,12 @@ const RHFAutoComplete = ({
   }
   const searchCache = apiCache.get(cacheKey);
 
-  const [options, setOptions] = useState(staticOptions);
+  const [options, setOptions] = useState(() => {
+    if (filterFunction && staticOptions.length > 0) {
+      return staticOptions.filter(filterFunction);
+    }
+    return staticOptions;
+  });
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebounce(search, 500);
   const [page, setPage] = useState(0);
@@ -60,8 +89,8 @@ const RHFAutoComplete = ({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const listboxRef = useRef(null);
-  const abortControllerRef = useRef(null);
+  const listboxRef = useRef<any>(null);
+  const abortControllerRef = useRef<any>(null);
   const fetchedRef = useRef(false); // ensures initial fetch runs only once per component open.
 
   // ---------- Fetch logic with cache ----------
@@ -72,8 +101,9 @@ const RHFAutoComplete = ({
       // Check cache first.
       const cachedEntry = searchCache.get(searchText);
       if (cachedEntry && cachedEntry.fetchedPages.has(pageNo)) {
-        // Use cached data.
-        setOptions(cachedEntry.options);
+        // Use cached data and apply filter if provided.
+        const cachedOptions = filterFunction ? cachedEntry.options.filter(filterFunction) : cachedEntry.options;
+        setOptions(cachedOptions);
         setHasMore(cachedEntry.hasMore);
         return;
       }
@@ -83,7 +113,7 @@ const RHFAutoComplete = ({
         abortControllerRef.current.abort();
       }
       const controller = new AbortController();
-      abortControllerRef.current = controller;
+      abortControllerRef.current = controller as any;
 
       setLoading(true);
       try {
@@ -114,22 +144,25 @@ const RHFAutoComplete = ({
           }
         }
 
-        // Update cache.
+        // Apply filter function if provided before caching
+        const filteredData = filterFunction ? data.filter(filterFunction) : data;
+
+        // Update cache with filtered data.
         const entry = cachedEntry || { options: [], fetchedPages: new Set(), hasMore: true };
         if (pageNo === 0) {
-          entry.options = data;
+          entry.options = filteredData;
         } else {
-          entry.options = [...entry.options, ...data];
+          entry.options = [...entry.options, ...filteredData];
         }
         entry.fetchedPages.add(pageNo);
-        entry.hasMore = data.length === pageSize;
+        entry.hasMore = filteredData.length === pageSize;
         searchCache.set(searchText, entry);
 
         // Update component state.
         setOptions(entry.options);
         setHasMore(entry.hasMore);
-      } catch (err) {
-        if (!axiosInstance.isCancel?.(err)) {
+      } catch (err: any) {
+        if (err?.code !== 'ERR_CANCELED') {
           console.error(err);
         }
       } finally {
@@ -137,7 +170,7 @@ const RHFAutoComplete = ({
       }
     },
     // Dependencies are stable thanks to useMemo for cacheKey and JSON.stringify for extraParams.
-    [apiUrl, pageSize, queryParamName, pageParamName, limitParamName, dataKey, searchCache]
+    [apiUrl, pageSize, queryParamName, pageParamName, limitParamName, dataKey, searchCache, filterFunction]
   );
 
   // ---------- Effects ----------
@@ -148,7 +181,7 @@ const RHFAutoComplete = ({
       setPage(0);
       fetchOptions(debouncedSearch, 0);
     }
-  }, [open, debouncedSearch, fetchOptions]);
+  }, [open, debouncedSearch, fetchOptions, filterFunction]);
 
   // Effect for pagination when page number changes.
   useEffect(() => {
@@ -188,7 +221,7 @@ const RHFAutoComplete = ({
   }, [field.value, options, multiple, valueKey]);
 
   // Scroll handler for infinite scroll.
-  const handleScroll = event => {
+  const handleScroll = (event: any) => {
     const { scrollTop, scrollHeight, clientHeight } = event.target;
     if (scrollTop + clientHeight >= scrollHeight - 10 && hasMore && !loading) {
       setPage(p => p + 1);
@@ -210,14 +243,14 @@ const RHFAutoComplete = ({
         value={selectedValue}
         options={options}
         loading={loading}
-        filterOptions={x => x}
-        isOptionEqualToValue={(o, v) => getNestedValue(o, valueKey) === getNestedValue(v, valueKey)}
-        getOptionLabel={o => (typeof labelKey === 'function' ? labelKey(o) : getNestedValue(o, labelKey) || '')}
+        filterOptions={(x: any) => x}
+        isOptionEqualToValue={(o: any, v: any) => getNestedValue(o, valueKey) === getNestedValue(v, valueKey)}
+        getOptionLabel={(o: any) => (typeof labelKey === 'function' ? labelKey(o) : getNestedValue(o, labelKey) || '')}
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
-        onChange={(_, val) => {
+        onChange={(_, val: any) => {
           if (multiple) {
-            field.onChange(val ? val.map(v => (returnObject ? v : getNestedValue(v, valueKey))) : []);
+            field.onChange(val ? val.map((v: any) => (returnObject ? v : getNestedValue(v, valueKey))) : []);
           } else {
             field.onChange(val ? (returnObject ? val : getNestedValue(val, valueKey)) : null);
           }
@@ -227,16 +260,16 @@ const RHFAutoComplete = ({
           if (reason === 'clear') setSearch('');
         }}
         ListboxProps={{
-          ref: listboxRef,
+          ref: listboxRef as any,
           onScroll: handleScroll,
           style: { maxHeight: 250, overflowY: 'auto' },
-        }}
-        PaperComponent={props => (
+        } as any}
+        PaperComponent={(props: any) => (
           <Paper {...props}>
             {props.children}
             {addbtn && (
               <Box sx={{ borderTop: '1px solid #E5E7EB', p: 1 }}>
-                <Button onMouseDown={e => e.preventDefault()} onClick={handlebtnclick} sx={{ textTransform: 'none' }}>
+                <Button onMouseDown={(e: any) => e.preventDefault()} onClick={handlebtnclick} sx={{ textTransform: 'none' }}>
                   <ControlPointIcon sx={{ mr: 1 }} />
                   {button_label || 'Add New'}
                 </Button>
@@ -244,7 +277,7 @@ const RHFAutoComplete = ({
             )}
           </Paper>
         )}
-        renderInput={params => (
+        renderInput={(params: any) => (
           <TextField
             {...params}
             placeholder={placeholder}

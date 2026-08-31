@@ -146,7 +146,7 @@ const DayclosingHistory = () => {
         closed_by: item.session?.closed_by?.name,
         stocks: Array.isArray(item.session?.stocks) ? item.session.stocks : [],
         categories: Array.isArray(item.categories) ? item.categories : [],
-        payments: item.payments ?? {},
+        payments: item.session?.closing_payments ?? item.session?.system_snapshot?.payments ?? {},
         expense_total: Number(item.expense_total ?? 0),
         existing_cash: Number(item.existing_cash ?? 0),
         sale_amount: Number(item.sale_amount ?? 0),
@@ -399,40 +399,7 @@ const DayclosingHistory = () => {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
-    // {
-    //   field: 'actions',
-    //   headerName: 'Actions',
-    //   minWidth: 150,
-    //   sortable: false,
-    //   flex: 1,
-    //   renderCell: (params: GridCellParams) => (
-    //     <>
-    //       {/* {checkPermission('update_brand') && ( */}
-    //       <Button
-    //         sx={{ color: 'text.secondary', margin: '-10px' }}
-    //         onClick={() => handleViewUser(params.row.id)}>
-    //         <Icon icon={'ph:eye'} fontSize={24} />
-    //       </Button>
-    //       <Tooltip title='Update Product.' placement='bottom'>
-    //         <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-    //           <Icon icon={'circum:edit'} fontSize={24} />
-    //         </Button>
-    //       </Tooltip>
-    //       {/* )} */}
-    //       {/* {checkPermission('delete_brand') && (  */}
-
-    //       <Tooltip title='Delete Product.' placement='bottom'>
-    //         <Button
-    //           sx={{ color: 'text.secondary', margin: '-10px' }}
-    //           onClick={() => handleDeleteOpen(params)}
-    //         >
-    //           <Icon icon={'ic:outline-delete'} fontSize={24} sx={{ color: 'error.main' }} />
-    //         </Button>
-    //       </Tooltip>
-    //       {/* )} */}
-    //     </>
-    //   ),
-    // },
+   
   ]
   const handleSearch = (query: string) => {
     setPage(0)
@@ -531,57 +498,18 @@ const DayclosingHistory = () => {
                Cash: ₹{Number(payments.cash ?? 0).toFixed(2)}
             </div>
             <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-               Online: ₹{Number(payments.online ?? 0).toFixed(2)}
-            </div>
-            {/* <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-               Bank: ₹{Number(payments.bank ?? 0).toFixed(2)}
-            </div>
-            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
                UPI: ₹{Number(payments.upi ?? 0).toFixed(2)}
             </div>
-            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem', fontWeight: 'bold' }}>
-               Total: ₹{Number(payments.total ?? 0).toFixed(2)}
-            </div> */}
+            <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
+               Credit: ₹{Number(payments.credit ?? 0).toFixed(2)}
+            </div>
           </Box>
         )
       }
     },
    
    
-    // {
-    //   field: 'total_due',
-    //   headerName: 'Total Due',
-    //   flex: 1,
-    //   minWidth: 130,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => (
-    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-    //       ₹{Number(params.row?.due_amount ?? 0).toFixed(2)}
-    //     </div>
-    //   )
-    // },
-    // {
-    //   field: 'payment',
-    //   headerName: 'Payment',
-    //   flex: 1,
-    //   minWidth: 150,
-    //   sortable: false,
-    //   renderCell: (params: GridCellParams) => {
-    //     const payments = params.row?.payments || {}
-    //     const paymentRows = Object.entries(payments).filter(([, amount]) => Number(amount) > 0)
-    //     if (!paymentRows.length) return <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>NA</div>
-
-    //     return (
-    //       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
-    //         {paymentRows.map(([type, amount]) => (
-    //           <div key={type} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize', fontSize: '0.85rem' }}>
-    //             {type} : ₹{Number(amount).toFixed(2)}
-    //           </div>
-    //         ))}
-    //       </Box>
-    //     )
-    //   }
-    // },
+   
     {
       field: 'total_bill',
       headerName: 'Opening cash',
@@ -616,86 +544,7 @@ const DayclosingHistory = () => {
           <Grid item xs={12} md={6} >
             <GoBack label="Day Closing History" isBack={false} />
           </Grid>
-              {/* <Grid item xs={12} md={3}>
-                <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
-              </Grid>
-               <Grid item xs={4} md={1} sx={{display:'flex', gap:1, alignItems:'center'}}>
-                  <IconButton
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "6px",
-                      border: viewMode === "list" ? "none" : "1px solid #D1D5DB",
-                      bgcolor: viewMode === "list" ? theme.palette.primary.main : "transparent",
-                      color: viewMode === "list" ? "common.white" : undefined,
-                      transition: "all 0.25s ease",
-                      "&:hover": {
-                        bgcolor: theme.palette.primary.main,
-                        color: "common.white",
-                        border: "none",
-                      },
-                    }}
-                    onClick={() => {
-                      setViewMode("list");
-                      setPage(0);
-                    }}
-                  >
-                    <Icon icon="material-symbols:list" width={20} />
-                  </IconButton>
 
-                  <IconButton
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "6px",
-                      border: viewMode === "grid" ? "none" : "1px solid #D1D5DB",
-                      bgcolor: viewMode === "grid" ? theme.palette.primary.main : "transparent",
-                      color: viewMode === "grid" ? "common.white" : undefined,
-                      transition: "all 0.25s ease",
-                      "&:hover": {
-                        bgcolor: theme.palette.primary.main,
-                        color: "common.white",
-                        border: "none",
-                      },
-                    }}
-                    onClick={() => {
-                      setViewMode("grid");
-                      setPage(0);
-                    }}
-                  >
-                    <Icon icon="material-symbols:apps" width={20} />
-                  </IconButton>
-
-                  <CommonExport
-                    data={rows}
-                    fileName="QuickBills"
-                    columns={columns}
-                    transform={(row, index) => [
-                      index + 1,
-                      `"${row.customer?.name || 'NA'}"`,
-                      `"${row.items?.[0]?.product?.name || 'NA'}"`,
-                      row.items?.[0]?.quantity || '0',
-                      row.items?.[0]?.unit_cost || '0',
-                      row.total || '0',
-                      row.status || 'NA',
-                      row.created_at ? new Date(row.created_at).toLocaleDateString() : 'NA'
-                    ]}
-                  />
-              </Grid>
-              
-              <Grid item xs={12} md={3}>
-                <RHFAutoComplete
-                  control={control}
-                  name="category_id"
-                  apiUrl="/api/v1/admin/categories/getAllCategories"
-                  extraParams={{ is_active: 1 }}
-                  placeholder="Select Category"
-                  labelinput=""
-                  labelKey="name"
-                  valueKey="id"
-                  required={false}
-                />
-              </Grid> */}
             </Grid>
             
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -707,7 +556,7 @@ const DayclosingHistory = () => {
             variant="scrollable"
             scrollButtons="auto"
           >
-            <Tab label="All Shops" value="all" />
+            {/* <Tab label="All Shops" value="all" /> */}
             {shops.map(shop => (
               <Tab key={shop.id} label={shop.name} value={shop.id} />
             ))}
