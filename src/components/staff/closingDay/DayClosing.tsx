@@ -413,13 +413,9 @@ const DayClosing = () => {
   const [eggRows, setEggRows] = useState<EggRow[]>(FALLBACK_CATEGORIES)
   const [categories, setCategories] = useState<any[]>([])
 
-  // Payments verification controlled state
+  // Payments verification controlled state (only cash is user input, others use expected values)
   const [payments, setPayments] = useState({
-    cash: 0,
-    upi: 0,
-    online: 0,
-    card: 0,
-    credit: 0
+    cash: 0
   })
 
   // Closing cash state
@@ -504,6 +500,8 @@ const DayClosing = () => {
     fetchInventoryAndCategories()
   }, [fetchInventoryAndCategories])
 
+
+
   // Category stock transfer API function
   const handleCategoryTransfer = async (data: any) => {
     setTransferLoading(true)
@@ -560,12 +558,16 @@ const DayClosing = () => {
   // Expected cash is just the Cash in Counter
   const expectedCash = existingCash
   const cashDiff = Number(closingCash || 0) - expectedCash
-  const onlineDiff = (Number(payments.upi || 0) + Number(payments.online || 0) + Number(payments.card || 0)) - onlineSales
-  const creditDiff = Number(payments.credit || 0) - dueAmount
+  const onlineDiff = 0 // Using expected value, so difference is always 0
+  const creditDiff = 0 // Using expected value, so difference is always 0
+
+  // Use expected values for payments
+  const expectedUPI = onlineSales
+  const expectedCredit = dueAmount
 
   const cashColorKey = cashDiff === 0 ? 'success' : cashDiff > 0 ? 'warning' : 'error'
-  const onlineColorKey = onlineDiff === 0 ? 'success' : onlineDiff > 0 ? 'warning' : 'error'
-  const creditColorKey = creditDiff === 0 ? 'success' : creditDiff > 0 ? 'warning' : 'error'
+  const onlineColorKey = 'success' // Always matched since using expected value
+  const creditColorKey = 'success' // Always matched since using expected value
 
   const fmt = (n: number) => `₹ ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
@@ -590,6 +592,7 @@ const DayClosing = () => {
     try {
       const payload = {
         session_date: sessionDate,
+        total_cash: existingCash,
         closing_cash: Number(closingCash || 0),
         categories: eggRows.map(item => ({
           category_id: item.id,
@@ -597,10 +600,8 @@ const DayClosing = () => {
         })),
         payments: {
           cash: Number(closingCash || 0),
-          upi: Number(payments.upi),
-          online: Number(payments.online),
-          card: Number(payments.card),
-          credit: Number(payments.credit)
+          upi: expectedUPI,
+          credit: expectedCredit
         }
       }
 
@@ -610,13 +611,10 @@ const DayClosing = () => {
 
         // Reset form states
         setClosingCash('')
-        setPayments({
-          cash: 0,
-          upi: 0,
-          online: 0,
-          card: 0,
-          credit: 0
-        })
+        setPayments(prev => ({
+          ...prev,
+          cash: 0
+        }))
         setConfirmed(false)
         setRemarks('')
 
@@ -1102,35 +1100,22 @@ const DayClosing = () => {
               <Stack spacing={0.5} mb={2}>
                 <VerifyRow label='Online / UPI Sales' value={fmt(onlineSales)} />
                 <VerifyRow label='Online Refunds' value={fmt(0)} />
-                <VerifyRow label='Expected Online Amt' value={fmt(onlineSales)} />
+                <VerifyRow label='Expected Online Amt' value={fmt(expectedUPI)} />
               </Stack>
 
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 UPI Received
               </Typography>
-              <TextField
-                type='number'
-                size='small'
-                fullWidth
-                placeholder='Enter received UPI amount'
-                value={payments.upi || ''}
-                onChange={e => setPayments(prev => ({ ...prev, upi: Number(e.target.value) }))}
-                InputProps={{
-                  startAdornment: <InputAdornment position='start'><Typography variant='body1' fontWeight={700}>₹</Typography></InputAdornment>,
-                  inputProps: { min: 0 }
-                }}
-                sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
+              <VerifyRow
+                label='UPI Amount'
+                value={fmt(expectedUPI)}
               />
-
-
-              {(payments.upi > 0 || payments.online > 0 || payments.card > 0) && (
-                <VerifyRow
-                  label='Difference'
-                  value={onlineDiff === 0 ? '✓ Matched' : `${onlineDiff > 0 ? '+' : ''}${fmt(onlineDiff)}`}
-                  highlight
-                  colorKey={onlineColorKey}
-                />
-              )}
+              <VerifyRow
+                label='Status'
+                value='✓ Auto-matched'
+                highlight
+                colorKey={onlineColorKey}
+              />
             </SectionCard>
           </Grid>
 
@@ -1147,27 +1132,16 @@ const DayClosing = () => {
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 Credit Received
               </Typography>
-              <TextField
-                type='number'
-                size='small'
-                fullWidth
-                placeholder='Enter credit payments received'
-                value={payments.credit || ''}
-                onChange={e => setPayments(prev => ({ ...prev, credit: Number(e.target.value) }))}
-                InputProps={{
-                  startAdornment: <InputAdornment position='start'><Typography variant='body1' fontWeight={700}>₹</Typography></InputAdornment>,
-                  inputProps: { min: 0 }
-                }}
-                sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
+              <VerifyRow
+                label='Credit Amount'
+                value={fmt(expectedCredit)}
               />
-              {payments.credit > 0 && (
-                <VerifyRow
-                  label='Difference'
-                  value={creditDiff === 0 ? '✓ Matched' : `${creditDiff > 0 ? '+' : ''}${fmt(creditDiff)}`}
-                  highlight
-                  colorKey={creditColorKey}
-                />
-              )}
+              <VerifyRow
+                label='Status'
+                value='✓ Auto-matched'
+                highlight
+                colorKey={creditColorKey}
+              />
             </SectionCard>
           </Grid>
         </Grid>

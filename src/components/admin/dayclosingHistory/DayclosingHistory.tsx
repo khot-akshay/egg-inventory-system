@@ -507,7 +507,42 @@ const DayclosingHistory = () => {
         )
       }
     },
-   
+ {
+  field: 'saledeffrence',
+  headerName: 'Cash Difference',
+  flex: 1.5,
+  minWidth: 220,
+  sortable: false,
+  renderCell: (params: GridCellParams) => {
+    const row = params.row || {}
+    const payments = row.payments || {}
+
+    const actualCash = Number(row.closing_cash ?? 0)
+    const counterCash = Number(payments.cash ?? 0)
+
+    const cashDifference = actualCash - counterCash
+
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          height: '100%',
+          fontSize: '0.85rem',
+          fontWeight: 600,
+          color:
+            cashDifference < 0
+              ? 'error.main'
+              : cashDifference > 0
+                ? 'success.main'
+                : 'text.primary',
+        }}
+      >
+        ₹{cashDifference.toFixed(2)}
+      </Box>
+    )
+  },
+},
    
    
     {
