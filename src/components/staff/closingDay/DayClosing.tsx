@@ -357,7 +357,11 @@ const EggMobileCard = ({
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
             Difference
           </Typography>
-          <DiffBadge diff={diff} />
+          {row.physicalCount !== '' && Number(row.physicalCount) === row.closingSystem ? (
+            <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100px', textTransform: 'capitalize' }} />
+          ) : (
+            <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100px', textTransform: 'capitalize' }} />
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -678,9 +682,9 @@ const DayClosing = () => {
         {/* Category Stock Transfer Section */}
         <Card sx={{ mb: 3, borderRadius: theme.shape.borderRadius * 0.5 }}>
           <CardContent>
-                                            <SectionTitle icon='mdi:swap-horizontal' title='Waste Stock Transfer' />
+            <SectionTitle icon='mdi:swap-horizontal' title='Waste Stock Transfer' />
 
-          
+
 
             <Grid container spacing={2} marginTop={2}>
               <Grid item xs={12} sm={6} md={3}>
@@ -698,7 +702,7 @@ const DayClosing = () => {
                   required
                   multiple={false}
                   addbtn={false}
-                  handlebtnclick={() => {}}
+                  handlebtnclick={() => { }}
                 />
               </Grid>
 
@@ -717,7 +721,7 @@ const DayClosing = () => {
                   required
                   multiple={false}
                   addbtn={false}
-                  handlebtnclick={() => {}}
+                  handlebtnclick={() => { }}
                 />
               </Grid>
 
@@ -939,7 +943,11 @@ const DayClosing = () => {
                                 />
                               </TableCell>
                               <TableCell width="15%" align="center" sx={{ py: 1, px: 2 }}>
-                                <DiffBadge diff={diff} />
+                                {row.physicalCount !== '' && Number(row.physicalCount) === row.closingSystem ? (
+                                  <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                                ) : (
+                                  <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                                )}
                               </TableCell>
                             </TableRow>
                           )

@@ -152,13 +152,13 @@ const VendorPurchaseHistory = () => {
     setPage(0)
   }, [selectedCategoryId, selectedShopId, searchQuery, startDate, endDate, selectedType])
 
-// Fetch data on filters/pagination change
-useEffect(() => {
-  if (!router.isReady) return;
-  fetchGame();
-}, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, startDate, endDate, selectedType, router.isReady, router.query.id]);
+  // Fetch data on filters/pagination change
+  useEffect(() => {
+    if (!router.isReady) return;
+    fetchGame();
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, startDate, endDate, selectedType, router.isReady, router.query.id]);
 
-// Listen for new purchase events
+  // Listen for new purchase events
   useEffect(() => {
     const handlePurchaseAdded = () => {
       setPage(0);
@@ -184,7 +184,7 @@ useEffect(() => {
   const handleDeleteOpen = (params: GridCellParams) => {
     setSelectedItem(params.row as PurchaseRow)
     setOpenDelete(true)
-    }
+  }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
@@ -361,6 +361,18 @@ useEffect(() => {
       renderCell: (params: GridCellParams) => (
         <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontWeight: 600 }}>
           ₹{Number(params.row?.total_amount || 0).toFixed(2)}
+        </div>
+      )
+    },
+    {
+      field: 'balance_due',
+      headerName: 'Balance',
+      flex: 1,
+      minWidth: 110,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, color: Number(params.row?.due_amount || 0) > 0 ? '#d32f2f' : 'inherit' }}>
+          ₹{Number(params.row?.balance || 0).toFixed(2)}
         </div>
       )
     },
@@ -607,7 +619,7 @@ useEffect(() => {
                         <Typography variant="body2" color="text.secondary">
                           Total Eggs: {item.total_eggs ?? 0}
                         </Typography>
-                        
+
                         {/* Items Breakdown */}
                         {item.items && item.items.length > 0 && (
                           <Box sx={{ mt: 1.5 }}>
@@ -626,7 +638,7 @@ useEffect(() => {
                             ))}
                           </Box>
                         )}
-                        
+
                         <Typography variant="h6" color="primary.main" sx={{ fontWeight: 700, mt: 1 }}>
                           ₹{item.total_amount || '0.00'}
                         </Typography>
@@ -670,7 +682,7 @@ useEffect(() => {
           </Grid>
         )}
       </Card>
-      
+
     </>
   )
 }

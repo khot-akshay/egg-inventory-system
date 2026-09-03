@@ -278,7 +278,18 @@ export default function ViewCustomer() {
       )
     },
 
-
+    {
+      field: 'balance_due',
+      headerName: 'Balance',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+          ₹{params.row?.balance || '0'}
+        </div>
+      )
+    },
 
     {
       field: 'created_at',
@@ -290,7 +301,7 @@ export default function ViewCustomer() {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
-   
+
   ]
 
   return (
@@ -470,7 +481,7 @@ export default function ViewCustomer() {
                 </Grid>
               </Box>
             )}
-                      </Card>
+          </Card>
 
           <Card sx={{ p: 5, mt: 3 }}>
             <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -481,7 +492,7 @@ export default function ViewCustomer() {
 
               {/* Right Side: Filters */}
               <Grid item xs={12} md={8} sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-               
+
                 <Grid item xs={12} sm="auto">
                   <RHFFilterAutocomplete
                     options={[{ label: 'All', value: '' }, { label: 'Cashbook', value: 'cashbook' }, { label: 'Quickbill', value: 'quickbill' }]}
@@ -556,7 +567,7 @@ export default function ViewCustomer() {
                     Reset
                   </Button>
                 </Grid>
-                 <Grid item xs={12} sm="auto">
+                <Grid item xs={12} sm="auto">
                   <CustomerReportAdapter
                     searchQuery={searchQuery}
                     rowsPerPage={pageSize}
@@ -566,15 +577,15 @@ export default function ViewCustomer() {
                     customerId={id as string}
                   />
                 </Grid>
-                  {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
+                {/* <Button onClick={() => setOpenAdd(true)} variant="contained" startIcon={<AddCircleOutlineIcon />}>
                           Add Brand
                         </Button> */}
-                  {/* {checkPermission('add_brand') && ( */}
-                  {/* <Butto onClick={() => setOpenAdd(true)} variant='contained'>
+                {/* {checkPermission('add_brand') && ( */}
+                {/* <Butto onClick={() => setOpenAdd(true)} variant='contained'>
                           Add Customer <AddCircleOutlineIcon sx={{ ml: 1 }} />
                         </Button> */}
 
-                  {/* )} */}
+                {/* )} */}
 
               </Grid>
 

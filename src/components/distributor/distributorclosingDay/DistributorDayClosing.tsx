@@ -81,7 +81,7 @@ interface EggRow {
   saleStock: number
   sellAmount: number
   closingSystem: number
-  physicalCount: number
+  physicalCount: number | string
 }
 
 interface DamagedEgg {
@@ -261,10 +261,10 @@ const EggMobileCard = ({
   onPhysicalChange
 }: {
   row: EggRow
-  onPhysicalChange: (id: number, val: number) => void
+  onPhysicalChange: (id: number, val: number | string) => void
 }) => {
   const theme = useTheme()
-  const diff = row.physicalCount - row.closingSystem
+  const diff = (Number(row.physicalCount) || 0) - row.closingSystem
 
   return (
     <Card
@@ -324,7 +324,7 @@ const EggMobileCard = ({
           ))}
         </Grid>
 
-        {/* <Box mb={1.5}>
+        <Box mb={1.5}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
             Physical Count
           </Typography>
@@ -333,21 +333,17 @@ const EggMobileCard = ({
             size='medium'
             fullWidth
             value={row.physicalCount}
-            onChange={e => onPhysicalChange(row.id, Number(e.target.value))}
+            onChange={e => onPhysicalChange(row.id, e.target.value === '' ? '' : Number(e.target.value))}
             InputProps={{ inputProps: { min: 0, style: { fontWeight: 700, fontSize: '1.05rem' } } }}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
           />
-        </Box> */}
+        </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1.25, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Status
+            Difference
           </Typography>
-          {row.closingSystem === 0 ? (
-            <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
-          ) : (
-            <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
-          )}
+          <DiffBadge diff={diff} />
         </Box>
       </CardContent>
     </Card>
@@ -528,8 +524,8 @@ const DistributorDayClosing = () => {
       saleStock: eggRows.reduce((s, r) => s + (r.saleStock || 0), 0),
       sellAmount: eggRows.reduce((s, r) => s + (r.sellAmount || 0), 0),
       system: eggRows.reduce((s, r) => s + (r.closingSystem || 0), 0),
-      physical: eggRows.reduce((s, r) => s + (r.physicalCount || 0), 0),
-      diff: eggRows.reduce((s, r) => s + ((r.physicalCount || 0) - (r.closingSystem || 0)), 0)
+      physical: eggRows.reduce((s, r) => s + (Number(r.physicalCount) || 0), 0),
+      diff: eggRows.reduce((s, r) => s + ((Number(r.physicalCount) || 0) - (r.closingSystem || 0)), 0)
     }
   }, [eggRows])
 
@@ -555,7 +551,7 @@ const DistributorDayClosing = () => {
 
   const fmt = (n: number) => `₹ ${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
-  const handlePhysicalChange = (id: number, val: number) => {
+  const handlePhysicalChange = (id: number, val: number | string) => {
     setEggRows(prev => prev.map(r => r.id === id ? { ...r, physicalCount: val } : r))
   }
 
@@ -788,7 +784,7 @@ const DistributorDayClosing = () => {
                       </TableHead>
                       <TableBody>
                         {eggRows.map((row, idx) => {
-                          const diff = row.physicalCount - row.closingSystem
+                          const diff = (Number(row.physicalCount) || 0) - row.closingSystem
                           return (
                             <TableRow
                               key={row.id}
@@ -935,36 +931,23 @@ const DistributorDayClosing = () => {
               <Divider sx={{ my: 2 }} />
               <Stack spacing={0.5} mb={2}>
                 <VerifyRow label='Online / UPI Sales' value={fmt(onlineSales)} />
-                {/* <VerifyRow label='Online Refunds' value={fmt(0)} /> */}
+                <VerifyRow label='Online Refunds' value={fmt(0)} />
                 <VerifyRow label='Expected Online Amt' value={fmt(onlineSales)} />
               </Stack>
 
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 UPI Received
               </Typography>
-              <TextField
-                type='number' 
-                size='small'
-                fullWidth
-                placeholder='Enter received UPI amount'
-                value={payments.upi || ''}
-                onChange={e => setPayments(prev => ({ ...prev, upi: Number(e.target.value) }))}
-                InputProps={{
-                  startAdornment: <InputAdornment position='start'><Typography variant='body1' fontWeight={700}>₹</Typography></InputAdornment>,
-                  inputProps: { min: 0 }
-                }}
-                sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
+              <VerifyRow
+                label='UPI Amount'
+                value={fmt(onlineSales)}
               />
-
-
-              {(payments.upi > 0 || payments.online > 0 || payments.card > 0) && (
-                <VerifyRow
-                  label='Difference'
-                  value={onlineDiff === 0 ? '✓ Matched' : `${onlineDiff > 0 ? '+' : ''}${fmt(onlineDiff)}`}
-                  highlight
-                  colorKey={onlineColorKey}
-                />
-              )}
+              <VerifyRow
+                label='Status'
+                value='✓ Auto-matched'
+                highlight
+                colorKey={onlineColorKey}
+              />
             </SectionCard>
           </Grid>
 
@@ -981,30 +964,20 @@ const DistributorDayClosing = () => {
               <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }} display='block' mb={0.75}>
                 Credit Received
               </Typography>
-              <TextField
-                type='number'
-                size='small'
-                fullWidth
-                placeholder='Enter credit payments received'
-                value={payments.credit || ''}
-                onChange={e => setPayments(prev => ({ ...prev, credit: Number(e.target.value) }))}
-                InputProps={{
-                  startAdornment: <InputAdornment position='start'><Typography variant='body1' fontWeight={700}>₹</Typography></InputAdornment>,
-                  inputProps: { min: 0 }
-                }}
-                sx={{ mb: 1.5, '& .MuiOutlinedInput-root': { borderRadius: theme.shape.borderRadius * 0.33 } }}
+              <VerifyRow
+                label='Credit Amount'
+                value={fmt(dueAmount)}
               />
-              {payments.credit > 0 && (
-                <VerifyRow
-                  label='Difference'
-                  value={creditDiff === 0 ? '✓ Matched' : `${creditDiff > 0 ? '+' : ''}${fmt(creditDiff)}`}
-                  highlight
-                  colorKey={creditColorKey}
-                />
-              )}
+              <VerifyRow
+                label='Status'
+                value='✓ Auto-matched'
+                highlight
+                colorKey={creditColorKey}
+              />
             </SectionCard>
           </Grid>
         </Grid>
+
 
 
 

@@ -78,7 +78,7 @@ const DayclosingHistory = () => {
         setShops([])
       }
     } catch (e) {
-      }
+    }
   }
 
   useEffect(() => {
@@ -142,6 +142,7 @@ const DayclosingHistory = () => {
         closed_at: item.session?.closed_at,
         opening_cash: Number(item.session?.opening_cash ?? 0),
         closing_cash: Number(item.session?.closing_cash ?? 0),
+        total_cash: Number(item.session?.total_cash ?? 0),
         created_by: item.session?.created_by?.name,
         closed_by: item.session?.closed_by?.name,
         stocks: Array.isArray(item.session?.stocks) ? item.session.stocks : [],
@@ -157,7 +158,7 @@ const DayclosingHistory = () => {
       setRows(mappedRows)
       setTotalRows(mappedRows.length)
     } catch (e) {
-      } finally {
+    } finally {
       setLoading(false)
     }
   }
@@ -201,7 +202,7 @@ const DayclosingHistory = () => {
   const handleDeleteOpen = (params: GridCellParams) => {
     setSelectedItem(params.row as CategoryRow)
     setOpenDelete(true)
-    }
+  }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
@@ -303,7 +304,7 @@ const DayclosingHistory = () => {
         );
       }
     },
-     {
+    {
       field: 'total_due',
       headerName: 'Total Due',
       flex: 1,
@@ -349,10 +350,10 @@ const DayclosingHistory = () => {
               // >
               //   {p.payment_type} : ₹{p.amount}
               // </Typography>
-                      <div key={i} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 , textTransform: 'capitalize',}}>
+              <div key={i} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, textTransform: 'capitalize', }}>
                 {p.payment_type} : ₹{p.amount}
 
-</div>
+              </div>
             ))}
           </Box>
         );
@@ -370,8 +371,8 @@ const DayclosingHistory = () => {
         </div>
       )
     },
-   
-   
+
+
 
     // {
     //   field: 'status',
@@ -399,7 +400,7 @@ const DayclosingHistory = () => {
         <DateFormateComponent date={params.row?.created_at ?? ''} />
       )
     },
-   
+
   ]
   const handleSearch = (query: string) => {
     setPage(0)
@@ -419,7 +420,7 @@ const DayclosingHistory = () => {
       },
       hideable: false
     },
-   
+
     {
       field: 'products',
       headerName: 'Product Name',
@@ -434,7 +435,7 @@ const DayclosingHistory = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             {categories.map((category: any) => (
               <div key={category.category_id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                {category.category_name || 'Unknown'} 
+                {category.category_name || 'Unknown'}
               </div>
             ))}
           </Box>
@@ -455,7 +456,7 @@ const DayclosingHistory = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             {stocks.map((stock: any) => (
               <div key={stock.id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                 {Number(stock.opening_egg_count ?? 0)}
+                {Number(stock.opening_egg_count ?? 0)}
               </div>
             ))}
           </Box>
@@ -476,7 +477,7 @@ const DayclosingHistory = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             {stocks.map((stock: any) => (
               <div key={stock.id} style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-                 {Number(stock.closing_egg_count ?? 0)}
+                {Number(stock.closing_egg_count ?? 0)}
               </div>
             ))}
           </Box>
@@ -491,60 +492,60 @@ const DayclosingHistory = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const payments = params.row?.payments || {}
-        
+
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, py: 1 }}>
             <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-               Cash: ₹{Number(payments.cash ?? 0).toFixed(2)}
+              Cash: ₹{Number(payments.cash ?? 0).toFixed(2)}
             </div>
             <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-               UPI: ₹{Number(payments.upi ?? 0).toFixed(2)}
+              UPI: ₹{Number(payments.upi ?? 0).toFixed(2)}
             </div>
             <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5, fontSize: '0.85rem' }}>
-               Credit: ₹{Number(payments.credit ?? 0).toFixed(2)}
+              Credit: ₹{Number(payments.credit ?? 0).toFixed(2)}
             </div>
           </Box>
         )
       }
     },
- {
-  field: 'saledeffrence',
-  headerName: 'Cash Difference',
-  flex: 1.5,
-  minWidth: 220,
-  sortable: false,
-  renderCell: (params: GridCellParams) => {
-    const row = params.row || {}
-    const payments = row.payments || {}
+    {
+      field: 'saledeffrence',
+      headerName: 'Cash Difference',
+      flex: 1.5,
+      minWidth: 220,
+      sortable: false,
+      renderCell: (params: GridCellParams) => {
+        const row = params.row || {}
+        const payments = row.payments || {}
 
-    const actualCash = Number(row.closing_cash ?? 0)
-    const counterCash = Number(payments.cash ?? 0)
+        const actualCash = Number(row.closing_cash ?? 0)
+        const totalCash = Number(row.total_cash ?? 0)
 
-    const cashDifference = actualCash - counterCash
+        const cashDifference = actualCash - totalCash
 
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          height: '100%',
-          fontSize: '0.85rem',
-          fontWeight: 600,
-          color:
-            cashDifference < 0
-              ? 'error.main'
-              : cashDifference > 0
-                ? 'success.main'
-                : 'text.primary',
-        }}
-      >
-        ₹{cashDifference.toFixed(2)}
-      </Box>
-    )
-  },
-},
-   
-   
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              color:
+                cashDifference < 0
+                  ? 'error.main'
+                  : cashDifference > 0
+                    ? 'success.main'
+                    : 'text.primary',
+            }}
+          >
+            ₹{cashDifference.toFixed(2)}
+          </Box>
+        )
+      },
+    },
+
+
     {
       field: 'total_bill',
       headerName: 'Opening cash',
@@ -580,11 +581,11 @@ const DayclosingHistory = () => {
             <GoBack label="Day Closing History" isBack={false} />
           </Grid>
 
-            </Grid>
-            
+        </Grid>
+
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs 
-            value={selectedShopId || 'all'} 
+          <Tabs
+            value={selectedShopId || 'all'}
             onChange={(e, newValue) => {
               setValue('shop_id', newValue === 'all' ? null : newValue)
             }}
@@ -675,7 +676,7 @@ const DayclosingHistory = () => {
                       </Box>
 
                       <Box sx={{ mt: 'auto', pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                         <Typography variant="caption" sx={{ textTransform: 'capitalize', px: 1, py: 0.5, borderRadius: 1, bgcolor: theme.palette.action.hover }}>
+                        <Typography variant="caption" sx={{ textTransform: 'capitalize', px: 1, py: 0.5, borderRadius: 1, bgcolor: theme.palette.action.hover }}>
                           {item.status || 'NA'}
                         </Typography>
                         <Typography variant="caption" color="text.disabled">
@@ -693,27 +694,27 @@ const DayclosingHistory = () => {
                 </Box>
               </Grid>
             )}
-            
+
             {totalRows > pageSize && (
-               <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2">
-                      Page {page + 1} of {Math.ceil(totalRows / pageSize)}
-                    </Typography>
-                    <IconButton disabled={page === 0} onClick={() => setPage(page - 1)}>
-                      <Icon icon="mdi:chevron-left" />
-                    </IconButton>
-                    <IconButton disabled={(page + 1) * pageSize >= totalRows} onClick={() => setPage(page + 1)}>
-                      <Icon icon="mdi:chevron-right" />
-                    </IconButton>
-                  </Box>
-               </Grid>
+              <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body2">
+                    Page {page + 1} of {Math.ceil(totalRows / pageSize)}
+                  </Typography>
+                  <IconButton disabled={page === 0} onClick={() => setPage(page - 1)}>
+                    <Icon icon="mdi:chevron-left" />
+                  </IconButton>
+                  <IconButton disabled={(page + 1) * pageSize >= totalRows} onClick={() => setPage(page + 1)}>
+                    <Icon icon="mdi:chevron-right" />
+                  </IconButton>
+                </Box>
+              </Grid>
             )}
           </Grid>
         )}
       </Card>
-      
-     
+
+
     </>
   )
 }

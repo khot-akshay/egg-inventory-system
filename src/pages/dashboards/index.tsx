@@ -1,4 +1,4 @@
-import { Box, Grid, Tab, Tabs, TextField, Button, Typography, Divider } from '@mui/material'
+import { Box, Grid, Tab, Tabs, TextField, Button, Typography, Divider, Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
 import axiosInstance from 'src/services/axios'
@@ -25,6 +25,9 @@ function Dashboard() {
   const [productSalesData, setProductSalesData] = useState<{ name: string; quantity: number }[]>([])
   const [paymentData, setPaymentData] = useState<{ name: string; value: number }[]>([])
   const [chartsLoading, setChartsLoading] = useState(false)
+
+  const [productRates, setProductRates] = useState<any[]>([])
+  const [ratesLoading, setRatesLoading] = useState(false)
 
   const fetchShops = async () => {
     try {
@@ -134,17 +137,43 @@ function Dashboard() {
     }
   }, [activeTab, startDate, endDate, mainTab])
 
+  const fetchProductRates = async () => {
+    if (activeTab === 'all') return;
+    setRatesLoading(true)
+    try {
+      const baseUrl = (user?.role === 'admin' || user?.role === 'Administrator') ? '/api/v1/admin' : '/api/v1/shop'
+      const response = await axiosInstance.get(`${baseUrl}/getShopEggPrices?shop_id=${activeTab}`)
+      if (response.data?.success) {
+        setProductRates(response.data.data?.products || response.data.products || [])
+      } else {
+        setProductRates([])
+      }
+    } catch (error) {
+      setProductRates([])
+    } finally {
+      setRatesLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (mainTab === 'shop' && activeTab !== 'all') {
+      fetchProductRates()
+    } else {
+      setProductRates([])
+    }
+  }, [activeTab, mainTab])
+
   return (
     <Box>
       {/* ── Main Parent Tabs ── */}
-      <Box sx={{  mb: 4 }}>
+      <Box sx={{ mb: 4 }}>
         <Tabs
           value={mainTab}
           onChange={(_, newValue) => setMainTab(newValue)}
           aria-label="dashboard parent tabs"
         >
           <Tab label="Shop" value="shop" />
-                {(user?.role === 'admin' || user?.role === 'Administrator') && (
+          {(user?.role === 'admin' || user?.role === 'Administrator') && (
             <Tab label="Distributor" value="distributor" />
           )}
         </Tabs>
@@ -165,12 +194,12 @@ function Dashboard() {
                   <Tab label="All Shops" value="all" />
                 )}
                 {Array.isArray(shops) && shops
-                  .filter(shop => 
+                  .filter(shop =>
                     (!user?.shop_id || user?.role === 'admin' || user?.role === 'Administrator') ? true : shop.id === user?.shop_id
                   )
                   .map((shop: any) => (
                     <Tab key={shop.id} label={shop.name} value={shop.id} />
-                ))}
+                  ))}
               </Tabs>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -332,6 +361,57 @@ function Dashboard() {
               </>
             )}
           </Grid>
+          {/* Shop Category Rates Table */}
+          {activeTab !== 'all' && (
+            <Box sx={{ mt: 5 }}>
+              <Typography variant='h6' fontWeight={700} sx={{ mb: 3 }}>
+                Category Prices
+              </Typography>
+              <Card>
+                <TableContainer sx={{ overflowX: 'auto' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ position: 'sticky', left: 0, zIndex: 3, bgcolor: 'background.paper', fontWeight: 700 }}>Category</TableCell>
+                        <TableCell>Min Price</TableCell>
+                        <TableCell>Max Price</TableCell>
+                        <TableCell>6 Pieces</TableCell>
+                        <TableCell>12 Pieces</TableCell>
+                        <TableCell>30 Pieces</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {ratesLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={6} align="center" sx={{ py: 3 }}>Loading...</TableCell>
+                        </TableRow>
+                      ) : productRates.length > 0 ? (
+                        productRates.map((product) => {
+                          const shopProduct = product.products?.[0] || {};
+                          const min = shopProduct.egg_price_min || product.egg_price_min || 0;
+                          const max = shopProduct.egg_price_max || product.egg_price_max || 0;
+                          return (
+                            <TableRow key={product.id}>
+                              <TableCell sx={{ position: 'sticky', left: 0, zIndex: 1, bgcolor: 'background.paper' }}><b>{product.name}</b></TableCell>
+                              <TableCell>₹{Number(min).toFixed(2)}</TableCell>
+                              <TableCell>₹{Number(max).toFixed(2)}</TableCell>
+                              <TableCell>₹{Number(product.egg_price_6 || 0).toFixed(2)}</TableCell>
+                              <TableCell>₹{Number(product.egg_price_12 || 0).toFixed(2)}</TableCell>
+                              <TableCell>₹{Number(product.egg_price_30 || 0).toFixed(2)}</TableCell>
+                            </TableRow>
+                          )
+                        })
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} align="center" sx={{ py: 3 }}>No category rates available for this shop.</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+            </Box>
+          )}
 
           {/* ── Charts & Analytics Section ── */}
           <Box sx={{ mt: 5, mb: 2 }}>
@@ -354,10 +434,12 @@ function Dashboard() {
                 <PaymentDistributionChart data={paymentData} loading={chartsLoading} />
               </Grid>
             </Grid>
+
+
           </Box>
         </Box>
       )}
-                {/* {(user?.role === 'admin' || user?.role === 'Administrator') && ( */}
+      {/* {(user?.role === 'admin' || user?.role === 'Administrator') && ( */}
 
       {mainTab === 'distributor' && (user?.role === 'Administrator' || user?.role === 'admin') && (
         <Box>

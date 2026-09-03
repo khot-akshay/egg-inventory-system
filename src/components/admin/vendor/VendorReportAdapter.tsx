@@ -144,7 +144,7 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     {
       key: 'note',
       label: 'Note',
-      width: '12%',
+      width: '10%',
       format: (_, row) =>
         row.direction === 'out'
           ? row.description || 'NA'
@@ -153,20 +153,20 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     {
       key: 'vehicle',
       label: 'Vehicle',
-      width: '10%',
+      width: '9%',
       format: (_, row) =>
         row.vehicle?.registration_number || row.vehicle?.name || 'NA',
     },
     {
       key: 'driverName',
       label: 'Driver Name',
-      width: '10%',
+      width: '9%',
       format: (_, row) => row.driver?.name || 'NA',
     },
     {
       key: 'productQuantity',
       label: 'Product & Quantity',
-      width: '16%',
+      width: '14%',
       format: (_, row) => {
         const items = row.items || [];
         if (!items.length) return 'NA';
@@ -185,7 +185,7 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     {
       key: 'productRate',
       label: 'Product Rate',
-      width: '10%',
+      width: '9%',
       format: (_, row) => {
         const items = row.items || [];
         if (!items.length) return '0';
@@ -203,7 +203,7 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     {
       key: 'productPrice',
       label: 'Product Price',
-      width: '10%',
+      width: '9%',
       format: (_, row) => {
         const items = row.items || [];
         if (!items.length) return '0';
@@ -221,7 +221,7 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     {
       key: 'paid',
       label: 'Paid',
-      width: '9%',
+      width: '8%',
       format: (_, row) => {
         const paid =
           row.direction === 'out' ? row.amount : row.amount || 0;
@@ -231,8 +231,14 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     {
       key: 'totalBill',
       label: 'Total Bill',
-      width: '9%',
+      width: '8%',
       format: (_, row) => `₹${Number(row.total_amount || 0).toFixed(2)}`,
+    },
+    {
+      key: 'balance_due',
+      label: 'Balance',
+      width: '10%',
+      format: (_, row) => `₹${Number(row.balance || 0).toFixed(2)}`,
     },
     {
       key: 'createdAt',
@@ -249,8 +255,8 @@ const VendorReportAdapter: React.FC<VendorReportAdapterProps> = ({
     pdfData.length > 0 && pdfData[0].shop?.name
       ? pdfData[0].shop.name
       : pdfData[0]?.vendor?.name
-      ? pdfData[0].vendor.name
-      : '-';
+        ? pdfData[0].vendor.name
+        : '-';
 
   let durationStr = '';
   if (startDate && endDate) {

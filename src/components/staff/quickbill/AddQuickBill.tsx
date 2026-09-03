@@ -74,6 +74,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   const [damaged, setDamaged] = useState(0);
   const [isEditingEggPrice, setIsEditingEggPrice] = useState(false);
   const [eggPriceInputValue, setEggPriceInputValue] = useState('');
+  const [eggPriceError, setEggPriceError] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [isNewCustomer, setIsNewCustomer] = useState(false);
   const [cart, setCart] = useState<any[]>([]);
@@ -115,6 +116,15 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
   // Computed per-egg price for display
   const perEggPrice = rate && unit && unit !== 'custom' ? rate / unitValue : rate
 
+  // Automatically clear error if unit/quantity changes fix the price to be back within range
+  useEffect(() => {
+    if (minRate !== null && maxRate !== null && perEggPrice !== null && perEggPrice !== undefined) {
+      if (perEggPrice >= minRate && perEggPrice <= maxRate) {
+        setEggPriceError('');
+      }
+    }
+  }, [perEggPrice, minRate, maxRate]);
+
   const { user } = useAuth()
   const currentStaffShopId = user?.shop_id || user?.shop?.id;
   const roleName = user?.roles?.[0]?.name || '';
@@ -155,7 +165,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
       if (selectedItem.customer) {
         setValue('customer_id', { id: selectedItem.customer.id, name: selectedItem.customer.name })
       }
-      
+
       // If there are items in the bill, populate the cart
       if (selectedItem.items && selectedItem.items.length > 0) {
         const cartItems = selectedItem.items.map((item: any) => ({
@@ -171,7 +181,7 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
         }))
         setCart(cartItems)
       }
-      
+
       // Set payment type based on existing payments
       if (selectedItem.meta?.payments && selectedItem.meta.payments.length > 0) {
         const payments = selectedItem.meta.payments
@@ -339,6 +349,12 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
     if (!quantity || quantity <= 0) {
       toast.error('Quantity is required');
       return;
+    }
+    if (minRate !== null && maxRate !== null && perEggPrice !== null && perEggPrice !== undefined) {
+      if (perEggPrice < minRate || perEggPrice > maxRate) {
+        toast.error(`Egg price must be between ₹${minRate.toFixed(2)} and ₹${maxRate.toFixed(2)}`);
+        return;
+      }
     }
     //  if (!unit) {
     //     toast.error('Please select a unit')
@@ -780,25 +796,58 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                       onFocus={() => {
                         setIsEditingEggPrice(true);
                         setEggPriceInputValue(perEggPrice !== null && perEggPrice !== undefined ? perEggPrice.toFixed(2) : '');
+                        setEggPriceError(''); // clear stale error from previous session
                       }}
-                      onBlur={() => {
+                      onBlur={(e) => {
                         setIsEditingEggPrice(false);
+                        const val = parseFloat(e.target.value);
+                        // Re-validate on blur so error only stays if truly out of range
+                        if (!isNaN(val) && minRate !== null && maxRate !== null) {
+                          if (val < minRate || val > maxRate) {
+                            setEggPriceError(`Price must be between ₹${minRate.toFixed(2)} and ₹${maxRate.toFixed(2)}`);
+                          } else {
+                            setEggPriceError('');
+                          }
+                        } else {
+                          setEggPriceError('');
+                        }
                         setEggPriceInputValue('');
                       }}
                       onChange={(e) => {
                         setEggPriceInputValue(e.target.value);
                         const val = parseFloat(e.target.value);
+                        // Validate against min/max range
+                        if (!isNaN(val) && minRate !== null && maxRate !== null) {
+                          if (val < minRate || val > maxRate) {
+                            setEggPriceError(`Price must be between ₹${minRate.toFixed(2)} and ₹${maxRate.toFixed(2)}`);
+                          } else {
+                            setEggPriceError('');
+                          }
+                        } else {
+                          setEggPriceError('');
+                        }
                         // Convert per-egg price back to bundle price
                         const bundlePrice = (unit && unit !== 'custom' && val) ? val * unitValue : val;
                         setValue('rate_per_unit', isNaN(bundlePrice) ? null : bundlePrice);
                       }}
                       inputProps={{ step: "0.01", min: "0" }}
                       fullWidth
+                      error={!!eggPriceError}
                       sx={{
                         '& .MuiOutlinedInput-root': { height: 40, borderRadius: 1 }
                       }}
                     />
                   </Grid>
+                  {eggPriceError && (
+                    <>
+                      <Grid item xs={6}> </Grid>
+                      <Grid item xs={6}>
+                        <Typography sx={{ color: 'error.main', fontSize: '0.72rem', mt: 0.5 }}>
+                          {eggPriceError}
+                        </Typography>
+                      </Grid>
+                    </>
+                  )}
                 </>
               )}
               <Grid item xs={6}>
@@ -845,6 +894,13 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                           setQuantity(val);
                           // Clear unit selection if manual value doesn't match presets
                           if (val !== 30 && val !== 12 && val !== 6) {
+                            // When switching to custom unit, normalize rate_per_unit to
+                            // per-egg price so the display stays correct (perEggPrice = rate for custom)
+                            if (unit && unit !== 'custom') {
+                              const currentRate = watch('rate_per_unit');
+                              const perEgg = currentRate ? currentRate / unitValue : currentRate;
+                              setValue('rate_per_unit', perEgg);
+                            }
                             setUnit('custom');
                           } else if (val === 30) setUnit('tray');
                           else if (val === 12) setUnit('dozen');

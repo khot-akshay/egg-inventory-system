@@ -26,9 +26,10 @@ interface Props {
   handleClose: () => void
   fetchData: any
   selectedItem?: any
+  activeShopId?: string | number
 }
 
-const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) => {
+const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShopId }: Props) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const {
@@ -38,16 +39,16 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
     reset,
     watch,
     formState: { errors }
-  } = useForm({ 
+  } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
       sku: '',
       name: '',
       egg_price_min: 0,
       egg_price_max: 0,
-      egg_price_6:0,
-      egg_price_12:0,
-      egg_price_30:0,
+      egg_price_6: 0,
+      egg_price_12: 0,
+      egg_price_30: 0,
       is_active: true
     }
   })
@@ -57,22 +58,22 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
       reset({
         sku: selectedItem.sku || '',
         name: selectedItem.name || '',
-        egg_price_min: Number(selectedItem.egg_price_min || 0).toFixed(2),
-        egg_price_max: Number(selectedItem.egg_price_max || 0).toFixed(2),
-        egg_price_6:Number(selectedItem.egg_price_6 || 0).toFixed(2),
-        egg_price_12:Number(selectedItem.egg_price_12 || 0).toFixed(2),
-        egg_price_30:Number(selectedItem.egg_price_30 || 0).toFixed(2),
+        egg_price_min: Number(selectedItem.egg_price_min || 0),
+        egg_price_max: Number(selectedItem.egg_price_max || 0),
+        egg_price_6: Number(selectedItem.egg_price_6 || 0),
+        egg_price_12: Number(selectedItem.egg_price_12 || 0),
+        egg_price_30: Number(selectedItem.egg_price_30 || 0),
         is_active: selectedItem.isActive === true || selectedItem.is_active == 1 ? true : false,
       })
     } else {
       reset({
         sku: '',
         name: '',
-        egg_price_min: '0.00',
-        egg_price_max: '0.00',
-        egg_price_6:'0.00',
-        egg_price_12:'0.00',
-        egg_price_30:'0.00',
+        egg_price_min: 0,
+        egg_price_max: 0,
+        egg_price_6: 0,
+        egg_price_12: 0,
+        egg_price_30: 0,
         is_active: true
       })
     }
@@ -82,19 +83,32 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
     setIsLoading(true)
 
     try {
-      let payload = {
+      let payload: any = {
         name: data.name,
         egg_price_min: data.egg_price_min,
         egg_price_max: data.egg_price_max,
-        egg_price_6:data.egg_price_6,
-        egg_price_12:data.egg_price_12,
-        egg_price_30:data.egg_price_30,
+        egg_price_6: data.egg_price_6,
+        egg_price_12: data.egg_price_12,
+        egg_price_30: data.egg_price_30,
         is_active: data.is_active ? 1 : 0
       }
 
-      let url = selectedItem 
-        ? `/api/v1/admin/updateShopEggPrices?id=${selectedItem.id}` 
+      let url = selectedItem
+        ? `/api/v1/admin/updateShopEggPrices?id=${selectedItem.id}`
         : `/api/v1/admin/createProduct`
+
+      if (selectedItem && activeShopId === 'all') {
+        payload = {
+          id: selectedItem.category_id || selectedItem.id,
+          egg_price_min: data.egg_price_min,
+          egg_price_max: data.egg_price_max,
+          egg_price_unit: "piece",
+          egg_price_6: data.egg_price_6,
+          egg_price_12: data.egg_price_12,
+          egg_price_30: data.egg_price_30
+        }
+        url = `/api/v1/admin/bulkUpdateShopEggPrices`
+      }
 
       const response = await axiosInstance.post(url, payload)
       if (response.data.success || response.status === 200 || response.status === 201) {
@@ -131,13 +145,13 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
           backgroundColor: '#3A4E7C0F'
         }}
       >
-        <Typography sx={{ fontSize: '25px', fontWeight: 'bold', flexGrow: 1,paddingLeft: '10px' }}>
+        <Typography sx={{ fontSize: '25px', fontWeight: 'bold', flexGrow: 1, paddingLeft: '10px' }}>
           {selectedItem ? 'Update' : 'Add'} Egg Prices
         </Typography>
-         <IconButton onClick={handleClose}>
+        <IconButton onClick={handleClose}>
           <HighlightOffIcon sx={{ color: '#f52d2de0' }} fontSize="large" />
         </IconButton>
-         
+
       </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent dividers>
@@ -150,21 +164,21 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
               <RHFInput control={control} name='name' label='Product Name' placeholder='Product Name' mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='egg_price_min' label='Min Egg Price' type='number' placeholder='Min Price' mandatory />
+              <RHFInput control={control} name='egg_price_min' label='Min Egg Price' placeholder='Min Price' mandatory />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <RHFInput control={control} name='egg_price_max' label='Max Egg Price' type='number' placeholder='Max Price' mandatory />
+              <RHFInput control={control} name='egg_price_max' label='Max Egg Price' placeholder='Max Price' mandatory />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <RHFInput control={control} name='egg_price_6' label='Egg Price (6)' type='number' placeholder='Price' mandatory />
+              <RHFInput control={control} name='egg_price_6' label='Egg Price (6)' placeholder='Price' mandatory />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <RHFInput control={control} name='egg_price_12' label='Egg Price (12)' type='number' placeholder='Price' mandatory />
+              <RHFInput control={control} name='egg_price_12' label='Egg Price (12)' placeholder='Price' mandatory />
             </Grid>
             <Grid item xs={12} sm={4}>
-              <RHFInput control={control} name='egg_price_30' label='Egg Price (30)' type='number' placeholder='Price' mandatory />
+              <RHFInput control={control} name='egg_price_30' label='Egg Price (30)' placeholder='Price' mandatory />
             </Grid>
-          
+
             {/* <Grid item xs={12}>
                <Box sx={{ mt: 1 }}>
                 <FormControlLabel
@@ -181,13 +195,13 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem }: Props) =
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-            <Button
+          <Button
             variant='outlined'
             onClick={handleClose}
           >
             Cancel
           </Button>
-          <SubmitButton label={selectedItem ? 'Update Prices' : 'Add Prices'} isLoading={isLoading} isWidth={false} />
+          <SubmitButton label={selectedItem ? 'Update Prices' : 'Add Prices'} isLoading={isLoading} isWidth={false} onSubmit={() => { }} />
         </DialogActions>
       </form>
     </Dialog>

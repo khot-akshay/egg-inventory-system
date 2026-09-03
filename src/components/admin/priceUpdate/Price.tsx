@@ -29,22 +29,26 @@ const Price = () => {
       const response = await axiosInstance.get('/api/v1/admin/getAllShops')
       let data = response.data.data?.data || response.data.data
       if (Array.isArray(data)) {
-        setShops(data)
-        if (data.length > 0) {
-          setActiveShopId(data[0].id)
+        const shopsWithAll = [{ id: 'all', name: 'All' }, ...data]
+        setShops(shopsWithAll)
+        if (shopsWithAll.length > 0) {
+          setActiveShopId(shopsWithAll[0].id)
         }
       } else if (data && typeof data === 'object') {
         const possibleArray = Object.values(data).find(Array.isArray)
         if (Array.isArray(possibleArray)) {
-          setShops(possibleArray)
-          if (possibleArray.length > 0) {
-            setActiveShopId(possibleArray[0].id)
+          const shopsWithAll = [{ id: 'all', name: 'All' }, ...possibleArray]
+          setShops(shopsWithAll)
+          if (shopsWithAll.length > 0) {
+            setActiveShopId(shopsWithAll[0].id)
           }
         } else {
-          setShops([])
+          setShops([{ id: 'all', name: 'All' }])
+          setActiveShopId('all')
         }
       } else {
-        setShops([])
+        setShops([{ id: 'all', name: 'All' }])
+        setActiveShopId('all')
       }
     } catch (e) {
       setShops([])
@@ -57,13 +61,21 @@ const Price = () => {
     setLoading(true)
     try {
       let url = `/api/v1/admin/getShopEggPrices?pageNo=${page}&limit=${pageSize}&shop_id=${activeShopId}`
+      if (activeShopId === 'all') {
+        url = `/api/v1/admin/getAllCategories?pageNo=${page}&limit=${pageSize}`
+      }
       const response = await axiosInstance.get(url, { signal })
-      let data = response.data.data?.products || response.data.data?.data || response.data.data || []
+
+      let data = response.data.data?.products || response.data.data?.categories || response.data.data?.data || response.data.data || []
+      if (!Array.isArray(data)) {
+        data = []
+      }
+
       setRows(data)
       setTotalRows(response.data.data?.count || data.length || 0)
     } catch (e: any) {
       if (e.name !== 'CanceledError' && e.name !== 'AbortError') {
-        }
+      }
     } finally {
       setLoading(false)
     }
@@ -100,16 +112,16 @@ const Price = () => {
     setOpenDelete(true)
   }
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: GridColDef[]) => {
-      const { checked } = event.target;
-      try {
+    const { checked } = event.target;
+    try {
       await axiosInstance.post(`/api/v1/admin/updateShopEggPrices?id=${params.id}`, { is_active: checked ? 1 : 0 })
-          fetchPrices()
-          toast.success('Status updated successfully.')
-      } catch (e) {
-          toast.error('Failed to set active status')
-      }
+      fetchPrices()
+      toast.success('Status updated successfully.')
+    } catch (e) {
+      toast.error('Failed to set active status')
+    }
   }
-  
+
   const columns: GridColDef[] = [
     {
       field: 'id',
@@ -166,7 +178,7 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-<p>₹{Number(params.row?.egg_price_min || 0).toFixed(2)}</p>      )
+        <p>₹{Number(params.row?.egg_price_min || 0).toFixed(2)}</p>)
     },
     {
       field: 'egg_price_max',
@@ -175,7 +187,7 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-<p>₹{Number(params.row?.egg_price_max || 0).toFixed(2)}</p>      )
+        <p>₹{Number(params.row?.egg_price_max || 0).toFixed(2)}</p>)
     },
     {
       field: 'egg_price_6',
@@ -184,7 +196,7 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-<p>₹{Number(params.row?.egg_price_6 || 0).toFixed(2)}</p>      )
+        <p>₹{Number(params.row?.egg_price_6 || 0).toFixed(2)}</p>)
     },
     {
       field: 'egg_price_12',
@@ -193,7 +205,7 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-<p>₹{Number(params.row?.egg_price_12 || 0).toFixed(2)}</p>      )
+        <p>₹{Number(params.row?.egg_price_12 || 0).toFixed(2)}</p>)
     },
     {
       field: 'egg_price_30',
@@ -202,21 +214,21 @@ const Price = () => {
       minWidth: 120,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-<p>₹{Number(params.row?.egg_price_30 || 0).toFixed(2)}</p>      )
+        <p>₹{Number(params.row?.egg_price_30 || 0).toFixed(2)}</p>)
     },
-  //   {
-  //     field: 'status',
-  //     headerName: 'Status',
-  //     minWidth: 150,
-  //     sortable: false,
-  //     renderCell: (params: GridCellParams) => (
-  //         <Stack direction='row' alignItems='center' spacing={5}>
-  //             <p>{params.row.is_active == '1' || params.row.is_active === true ? 'Active' : 'In-active'}</p>
-  //             <Switch checked={params.row.is_active == '1' || params.row.is_active === true} onChange={(event) => handleSwitchChange(event, params.row)} />
-  //         </Stack>
-  //     ),
-  //     flex: 1,
-  // },
+    //   {
+    //     field: 'status',
+    //     headerName: 'Status',
+    //     minWidth: 150,
+    //     sortable: false,
+    //     renderCell: (params: GridCellParams) => (
+    //         <Stack direction='row' alignItems='center' spacing={5}>
+    //             <p>{params.row.is_active == '1' || params.row.is_active === true ? 'Active' : 'In-active'}</p>
+    //             <Switch checked={params.row.is_active == '1' || params.row.is_active === true} onChange={(event) => handleSwitchChange(event, params.row)} />
+    //         </Stack>
+    //     ),
+    //     flex: 1,
+    // },
 
     {
       field: 'actions',
@@ -227,14 +239,14 @@ const Price = () => {
       renderCell: (params: GridCellParams) => (
         <>
           {/* {checkPermission('update-shop') && ( */}
-            <Tooltip title='Update Prices' placement='bottom'>
-              <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-                <Icon icon={'circum:edit'} fontSize={24} />
-              </Button>
-            </Tooltip>
+          <Tooltip title='Update Prices' placement='bottom'>
+            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+              <Icon icon={'circum:edit'} fontSize={24} />
+            </Button>
+          </Tooltip>
           {/* )} */}
           {/* {checkPermission('delete-shop') && ( */}
-            {/* <Tooltip title='Delete Shop.' placement='bottom'>
+          {/* <Tooltip title='Delete Shop.' placement='bottom'>
               <Button
                 sx={{ color: 'text.secondary', margin: '-10px' }}
                 onClick={() => handleDeleteOpen(params)}
@@ -249,7 +261,7 @@ const Price = () => {
   ]
 
   return (
-    <>   
+    <>
       <Card sx={{ p: 5 }}>
         <Box display={'flex'} justifyContent={'space-between'} alignItems={'center'} sx={{ mb: 4 }}>
           <GoBack label={'Product Price'} isBack={false} />
@@ -278,16 +290,16 @@ const Price = () => {
           loading={loading}
         />
       </Card>
-      {openAdd && <AddShop open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchPrices} />}
+      {openAdd && <AddShop open={openAdd} handleClose={() => setOpenAdd(false)} fetchData={fetchPrices} activeShopId={activeShopId as any} />}
       {openDelete && (
-        <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem.id} 
-        fetchData={fetchPrices} 
-        label={'Are you sure! You want to delete this shop?'} apiUrl={'/api/v1/admin/deleteShop?id='} />
+        <DeleteDialogPopup show={openDelete} handleclose={() => setOpenDelete(false)} selectedItems={selectedItem.id}
+          fetchData={fetchPrices}
+          label={'Are you sure! You want to delete this shop?'} apiUrl={'/api/v1/admin/deleteShop?id='} />
       )}
       {openEdit && (
-        <AddShop open={openEdit} handleClose={() => setOpenEdit(false)} 
-        fetchData={fetchPrices}
-        selectedItem={selectedItem} />
+        <AddShop open={openEdit} handleClose={() => setOpenEdit(false)}
+          fetchData={fetchPrices}
+          selectedItem={selectedItem} activeShopId={activeShopId as any} />
       )}
     </>
   )

@@ -1,4 +1,4 @@
-import { Box, Button, Card, Grid, InputAdornment, Stack, Switch, TextField, Tooltip, Typography } from '@mui/material'
+import { Box, Button, Card, Grid, InputAdornment, Stack, Switch, TextField, Tooltip, Typography, IconButton } from '@mui/material'
 import { GridCellParams, GridColDef, GridSearchIcon } from '@mui/x-data-grid'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -18,6 +18,8 @@ import AddProducts from './AddStaffExpense';
 import { useRouter } from 'next/router';
 import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import AddExpense from './AddStaffExpense'
+import ClearIcon from '@mui/icons-material/Clear';
+import StaffExpenseReportAdapter from './StaffExpenseReportAdapter';
 
 
 
@@ -49,6 +51,8 @@ const StaffExpense = () => {
   const [selectedItem, setSelectedItem] = useState<CategoryRow | null>(null)
   const [openEdit, setOpenEdit] = useState(false)
   const [searchQuery, setQuery] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const router = useRouter()
   const { control, watch } = useForm({
     defaultValues: {
@@ -100,6 +104,8 @@ const StaffExpense = () => {
       if (searchQuery) params.append('global_search', searchQuery)
       if (selectedCategoryId) params.append('category_id', String(selectedCategoryId))
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
+      if (startDate) params.append('from_date', startDate);
+      if (endDate) params.append('to_date', endDate);
 
       const response = await axiosInstance.get(
         `/api/v1/shop/getAllExpenses?${params.toString()}`
@@ -108,7 +114,7 @@ const StaffExpense = () => {
       setRows(response.data.data?.expenses ?? [])
       setTotalRows(response.data.data?.count ?? 0)
     } catch (e) {
-      } finally {
+    } finally {
       setLoading(false)
     }
   }
@@ -125,12 +131,12 @@ const StaffExpense = () => {
   // Reset page when filters change
   useEffect(() => {
     setPage(0)
-  }, [selectedCategoryId, selectedShopId, searchQuery])
+  }, [selectedCategoryId, selectedShopId, searchQuery, startDate, endDate])
 
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery])
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, startDate, endDate])
 
 
 
@@ -152,7 +158,7 @@ const StaffExpense = () => {
   const handleDeleteOpen = (params: GridCellParams) => {
     setSelectedItem(params.row as CategoryRow)
     setOpenDelete(true)
-    }
+  }
 
   const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, params: any) => {
     const { checked } = event.target;
@@ -181,17 +187,17 @@ const StaffExpense = () => {
       },
       hideable: false
     },
-  // {
-  //     field: 'shop.name',
-  //     headerName: 'Shop',
-  //     flex: 1,
-  //     minWidth: 200,
-  //     sortable: false,
-  //     renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-  //       {params.row?.shop?.name || 'NA'}
-  //     </div>
-  //   },
- 
+    // {
+    //     field: 'shop.name',
+    //     headerName: 'Shop',
+    //     flex: 1,
+    //     minWidth: 200,
+    //     sortable: false,
+    //     renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       {params.row?.shop?.name || 'NA'}
+    //     </div>
+    //   },
+
     // {
     //   field: 'name',
     //   headerName: 'Product Name',
@@ -210,10 +216,10 @@ const StaffExpense = () => {
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.category || params.row?.category|| 'NA'}
+        {params.row?.category || params.row?.category || 'NA'}
       </div>
     },
-  
+
     {
       field: 'min_stock_level',
       headerName: 'amount ',
@@ -224,15 +230,15 @@ const StaffExpense = () => {
         {Math.floor(Number(params.row?.amount || 0))}
       </div>
     },
-  
-  {
+
+    {
       field: 'description.name',
       headerName: 'Description',
       flex: 1,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridCellParams) => <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-        {params.row?.description || params.row?.description|| 'NA'}
+        {params.row?.description || params.row?.description || 'NA'}
       </div>
     },
     {
@@ -254,21 +260,21 @@ const StaffExpense = () => {
       flex: 1,
       renderCell: (params: GridCellParams) => (
         <>
-           {checkPermission('expense.view') && (
-          <Button
-            sx={{ color: 'text.secondary', margin: '-10px' }}
-            onClick={() => handleViewUser(params.row.id)}>
-            <Icon icon={'ph:eye'} fontSize={24} />
-          </Button>
-           )}
-              {checkPermission('expense.update') && (
-          <Tooltip title='Update Product.' placement='bottom'>
-            <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
-              <Icon icon={'circum:edit'} fontSize={24} />
+          {checkPermission('expense.view') && (
+            <Button
+              sx={{ color: 'text.secondary', margin: '-10px' }}
+              onClick={() => handleViewUser(params.row.id)}>
+              <Icon icon={'ph:eye'} fontSize={24} />
             </Button>
-          </Tooltip>
-              )}
-            {/* )}
+          )}
+          {checkPermission('expense.update') && (
+            <Tooltip title='Update Product.' placement='bottom'>
+              <Button sx={{ color: 'text.secondary', margin: '-10px' }} onClick={() => handleEditClick(params)}>
+                <Icon icon={'circum:edit'} fontSize={24} />
+              </Button>
+            </Tooltip>
+          )}
+          {/* )}
           {/* )} */}
           {/* {checkPermission('delete_brand') && (  */}
 
@@ -303,29 +309,80 @@ const StaffExpense = () => {
 
           {/* Right Side: Search and Add Button */}
           <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-
-            {/* <Grid item xs={12} sm="auto" sx={{ minWidth: 250 }}>
+            <Grid item xs={12} sm="auto">
               <TextField
-                variant="outlined"
+                label="Start Date"
+                type="date"
                 size="small"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setPage(0);
-                  setSearchQuery(e.target.value);
-                }}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 160 }}
                 InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <GridSearchIcon />
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setStartDate('')}
+                        edge="end"
+                        aria-label="clear start date"
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
                     </InputAdornment>
                   ),
                 }}
               />
-            </Grid> */}
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <TextField
+                label="End Date"
+                type="date"
+                size="small"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: startDate }}
+                sx={{ minWidth: 160 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        onClick={() => setEndDate('')}
+                        edge="end"
+                        aria-label="clear end date"
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setStartDate('')
+                  setEndDate('')
+                }}
+              >
+                Reset
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm="auto">
+              <StaffExpenseReportAdapter
+                searchQuery={searchQuery}
+                rowsPerPage={pageSize}
+                startDate={startDate}
+                endDate={endDate}
+                selectedCategoryId={selectedCategoryId}
+                selectedShopId={selectedShopId}
+              />
+            </Grid>
             <Grid item xs={12} sm="auto">
               <SearchInput handleSearch={handleSearch} placeHolder="Search..." />
-
             </Grid>
 
 
@@ -336,11 +393,11 @@ const StaffExpense = () => {
                 Add Brand
               </Button> */}
               {checkPermission('expense.add') && (
-              <Button onClick={() => setOpenAdd(true)} variant='contained'>
-                Add Expense <AddCircleOutlineIcon sx={{ ml: 1 }} />
-              </Button>
+                <Button onClick={() => setOpenAdd(true)} variant='contained'>
+                  Add Expense <AddCircleOutlineIcon sx={{ ml: 1 }} />
+                </Button>
 
-               )} 
+              )}
 
             </Grid>
           </Box>

@@ -142,11 +142,11 @@ const AddExpense = ({
     } catch (e: any) {
       console.error('Expense error:', e)
       console.error('Error response:', e?.response?.data)
-      
-      const errorMessage = e?.response?.data?.message || 
-                          e?.response?.data?.data?.message ||
-                          (selectedItem ? 'Failed to update expense' : 'Failed to add expense')
-      
+
+      const errorMessage = e?.response?.data?.message ||
+        e?.response?.data?.data?.message ||
+        (selectedItem ? 'Failed to update expense' : 'Failed to add expense')
+
       toast.error(errorMessage)
     } finally {
       setIsLoading(false)
@@ -157,7 +157,9 @@ const AddExpense = ({
     if (selectedItem) {
       setValue(
         'expense_date',
-        selectedItem.expense_date || ''
+        selectedItem.expense_date
+          ? selectedItem.expense_date.split('T')[0].split(' ')[0]
+          : ''
       )
 
       setValue('category', selectedItem.category || '')

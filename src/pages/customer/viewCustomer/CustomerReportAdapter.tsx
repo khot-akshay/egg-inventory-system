@@ -104,11 +104,11 @@ const CustomerReportAdapter: React.FC<CustomerReportAdapterProps> = ({
 
   const columns: ColumnDef[] = [
     { key: 'srNo', label: 'Sr. No.', width: '6%', align: 'center', format: (val, _, i) => val ?? (i + 1) },
-    { key: 'note', label: 'Note', width: '12%', format: (_, row) => row.description || 'NA' },
-    { 
-      key: 'productQuantity', 
-      label: 'Product & Quantity', 
-      width: '18%', 
+    { key: 'note', label: 'Note', width: '10%', format: (_, row) => row.description || 'NA' },
+    {
+      key: 'productQuantity',
+      label: 'Product & Quantity',
+      width: '14%',
       format: (_, row) => {
         const items = row.items || [];
         if (!items.length) return 'NA';
@@ -123,10 +123,10 @@ const CustomerReportAdapter: React.FC<CustomerReportAdapterProps> = ({
         );
       }
     },
-    { 
-      key: 'productRate', 
-      label: 'Product Rate', 
-      width: '10%',
+    {
+      key: 'productRate',
+      label: 'Product Rate',
+      width: '9%',
       format: (_, row) => {
         const items = row.items || [];
         if (!items.length) return '0';
@@ -139,10 +139,10 @@ const CustomerReportAdapter: React.FC<CustomerReportAdapterProps> = ({
         );
       }
     },
-    { 
-      key: 'productPrice', 
-      label: 'Product Price', 
-      width: '10%',
+    {
+      key: 'productPrice',
+      label: 'Product Price',
+      width: '9%',
       format: (_, row) => {
         const items = row.items || [];
         if (!items.length) return '0';
@@ -158,7 +158,7 @@ const CustomerReportAdapter: React.FC<CustomerReportAdapterProps> = ({
     {
       key: 'paid',
       label: 'Paid',
-      width: '12%',
+      width: '11%',
       format: (_, row) => {
         if (row.type === 'quickbill') {
           const payments = row.meta?.payments || [];
@@ -182,7 +182,7 @@ const CustomerReportAdapter: React.FC<CustomerReportAdapterProps> = ({
     {
       key: 'credit',
       label: 'Credit',
-      width: '12%',
+      width: '11%',
       format: (_, row) => {
         const payments = row.meta?.payments || [];
         const creditPayments = payments.filter((p: any) => p.payment_type === 'credit');
@@ -205,6 +205,12 @@ const CustomerReportAdapter: React.FC<CustomerReportAdapterProps> = ({
       label: 'Total Bill',
       width: '10%',
       format: (_, row) => `₹${row.total || '0'}`
+    },
+    {
+      key: 'balance_due',
+      label: 'Balance',
+      width: '10%',
+      format: (_, row) => `₹${Number(row.balance || 0).toFixed(2)}`
     },
     {
       key: 'createdAt',
