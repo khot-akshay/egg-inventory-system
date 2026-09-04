@@ -894,17 +894,30 @@ const AddQuickBillForm = ({ handleClose, fetchData, selectedItem }: AddStocksFor
                           setQuantity(val);
                           // Clear unit selection if manual value doesn't match presets
                           if (val !== 30 && val !== 12 && val !== 6) {
-                            // When switching to custom unit, normalize rate_per_unit to
-                            // per-egg price so the display stays correct (perEggPrice = rate for custom)
+                            // Only normalize rate when CURRENTLY on a bundle unit (not already custom)
                             if (unit && unit !== 'custom') {
                               const currentRate = watch('rate_per_unit');
                               const perEgg = currentRate ? currentRate / unitValue : currentRate;
                               setValue('rate_per_unit', perEgg);
+                              setUnit('custom');
                             }
-                            setUnit('custom');
-                          } else if (val === 30) setUnit('tray');
-                          else if (val === 12) setUnit('dozen');
-                          else if (val === 6) setUnit('half_dozen');
+                            // if already 'custom', do nothing to the rate
+                          } else if (val === 30) {
+                            setUnit('tray');
+                            setUnitValue(30);
+                            const price30 = currentProductDetails?.egg_price_30;
+                            if (price30 != null) setValue('rate_per_unit', parseFloat(String(price30)) as unknown as null);
+                          } else if (val === 12) {
+                            setUnit('dozen');
+                            setUnitValue(12);
+                            const price12 = currentProductDetails?.egg_price_12;
+                            if (price12 != null) setValue('rate_per_unit', parseFloat(String(price12)) as unknown as null);
+                          } else if (val === 6) {
+                            setUnit('half_dozen');
+                            setUnitValue(6);
+                            const price6 = currentProductDetails?.egg_price_6;
+                            if (price6 != null) setValue('rate_per_unit', parseFloat(String(price6)) as unknown as null);
+                          }
                         }}
                         variant="standard"
                         InputProps={{
