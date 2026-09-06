@@ -40,7 +40,7 @@ const tempObject: VerticalNavItemsType = [
 
   {
     title: "Cash Book",
-  icon: "mdi:book-open-page-variant",
+    icon: "mdi:book-open-page-variant",
     path: '/cashbook',
     allowedRoles: ["Administrator"],
     // isPermissionNeeded: true,
@@ -66,12 +66,12 @@ const tempObject: VerticalNavItemsType = [
   {
     title: "Purchases",
     icon: "mdi:cart-arrow-down", // buying items
-    allowedRoles: [ "Distributor"],
+    allowedRoles: ["Distributor"],
     path: "/purchase",
     //  isPermissionNeeded: true,
     // permissionName: "purchase",
   },
-  
+
   {
     title: "Transfer to Shop",
     icon: "mdi:warehouse", // inventory / storage
@@ -80,7 +80,7 @@ const tempObject: VerticalNavItemsType = [
     isPermissionNeeded: true,
     permissionName: "stock",
   },
-   {
+  {
     title: "Distributor Quick Bill",
     icon: "mdi:clipboard-text-outline",
     allowedRoles: ["Distributor"],
@@ -90,7 +90,7 @@ const tempObject: VerticalNavItemsType = [
 
   },
 
-  
+
   // {
   //   title: "Products",
   //   icon: "mdi:clipboard-text-outline",
@@ -109,7 +109,7 @@ const tempObject: VerticalNavItemsType = [
     permissionName: "quick_bill", // aligned with backend permission
 
   },
- 
+
   {
     title: "Day Opening",
     icon: "mdi:calendar-start",
@@ -125,14 +125,14 @@ const tempObject: VerticalNavItemsType = [
 
 
 
- 
-    {
+
+  {
     title: " Vehicle Closing",
     icon: "mdi:calendar-end",
     allowedRoles: ["Distributor"],
     path: "/distributorVehicleclosing",
   },
- 
+
   {
     title: "Vendors",
     icon: "mdi:store-outline",
@@ -158,6 +158,12 @@ const tempObject: VerticalNavItemsType = [
     icon: "mdi:calendar-end",
     allowedRoles: ["Administrator"],
     path: "/dayclosingHistory",
+  },
+  {
+    title: "Vehichle Closing History",
+    icon: "mdi:calendar-end",
+    allowedRoles: ["Administrator"],
+    path: "/vehichleClosingHistory",
   },
 
   {
