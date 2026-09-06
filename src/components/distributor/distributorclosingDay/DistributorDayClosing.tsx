@@ -418,6 +418,14 @@ const DistributorDayClosing = () => {
   // Closing cash state
   const [closingCash, setClosingCash] = useState<number | string>('')
 
+  // Initialize closingCash with calculated total cash when data loads
+  useEffect(() => {
+    if (paymentSummary && closingCash === '') {
+      const calculatedTotal = (Number(paymentSummary?.cash ?? 0)) - (Number(paymentSummary?.expense_amount ?? 0)) + (Number(paymentSummary?.cash_in_hand ?? 0))
+      setClosingCash(calculatedTotal)
+    }
+  }, [paymentSummary])
+
   // Session date (defaults to today)
   const [sessionDate, setSessionDate] = useState(dayjs().format('YYYY-MM-DD'))
 
@@ -609,7 +617,8 @@ const DistributorDayClosing = () => {
           cash: Number(closingCash || 0),
           upi: Number(payments.upi || 0),
           credit: Number(payments.credit || 0)
-        }
+        },
+        expected_cash: existingCash
       }
 
       const result = await handleVehicleCloseRoute(vehiclePayload)
