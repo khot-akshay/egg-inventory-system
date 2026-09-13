@@ -19,6 +19,7 @@ const schema = yup.object().shape({
   egg_price_6: yup.number().required('Egg Price (6) is required.').min(0, 'Egg Price (6) must be positive'),
   egg_price_12: yup.number().required('Egg Price (12) is required.').min(0, 'Egg Price (12) must be positive'),
   egg_price_30: yup.number().required('Egg Price (30) is required.').min(0, 'Egg Price (30) must be positive'),
+  paper_price: yup.number().required('Paper Rate is required.').min(0, 'Paper Rate must be positive'),
 })
 
 interface Props {
@@ -49,6 +50,7 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShop
       egg_price_6: 0,
       egg_price_12: 0,
       egg_price_30: 0,
+      paper_price: 0,
       is_active: true
     }
   })
@@ -63,6 +65,7 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShop
         egg_price_6: Number(selectedItem.egg_price_6 || 0),
         egg_price_12: Number(selectedItem.egg_price_12 || 0),
         egg_price_30: Number(selectedItem.egg_price_30 || 0),
+        paper_price: Number(selectedItem.paper_price || 0),
         is_active: selectedItem.isActive === true || selectedItem.is_active == 1 ? true : false,
       })
     } else {
@@ -74,6 +77,7 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShop
         egg_price_6: 0,
         egg_price_12: 0,
         egg_price_30: 0,
+        paper_price: 0,
         is_active: true
       })
     }
@@ -90,6 +94,7 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShop
         egg_price_6: data.egg_price_6,
         egg_price_12: data.egg_price_12,
         egg_price_30: data.egg_price_30,
+        paper_price: data.paper_price,
         is_active: data.is_active ? 1 : 0
       }
 
@@ -105,7 +110,8 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShop
           egg_price_unit: "piece",
           egg_price_6: data.egg_price_6,
           egg_price_12: data.egg_price_12,
-          egg_price_30: data.egg_price_30
+          egg_price_30: data.egg_price_30,
+          paper_price: data.paper_price
         }
         url = `/api/v1/admin/bulkUpdateShopEggPrices`
       }
@@ -169,14 +175,17 @@ const AddUpdatePrice = ({ open, handleClose, fetchData, selectedItem, activeShop
             <Grid item xs={12} sm={6}>
               <RHFInput control={control} name='egg_price_max' label='Max Egg Price' placeholder='Max Price' mandatory />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}>
               <RHFInput control={control} name='egg_price_6' label='Egg Price (6)' placeholder='Price' mandatory />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}>
               <RHFInput control={control} name='egg_price_12' label='Egg Price (12)' placeholder='Price' mandatory />
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item xs={12} sm={3}>
               <RHFInput control={control} name='egg_price_30' label='Egg Price (30)' placeholder='Price' mandatory />
+            </Grid>
+              <Grid item xs={12} sm={3}>
+              <RHFInput control={control} name='paper_price' label='Paper Rate' placeholder='Price' mandatory />
             </Grid>
 
             {/* <Grid item xs={12}>

@@ -343,6 +343,11 @@ const QuickBillDashboard = () => {
                     id: 'existing_cash',
                     label: 'Cash in Counter',
                     value: `₹${Number(stockData?.totals?.existing_cash || 0).toFixed(2)}`
+                  },
+                    {
+                    id: 'customer_due_paid_amount',
+                    label: 'Deposit Cash',
+                    value: `₹${Number(stockData?.totals?.customer_due_paid_amount || 0).toFixed(2)}`
                   }
                 ]}
               />

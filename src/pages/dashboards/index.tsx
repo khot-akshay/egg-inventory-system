@@ -322,7 +322,12 @@ function Dashboard() {
                         id: 'existing_cash',
                         label: 'Cash in Counter',
                         value: `₹${Number(stockData?.totals?.existing_cash || 0).toFixed(2)}`
-                      }
+                      },
+                        {
+                    id: 'customer_due_paid_amount',
+                    label: 'Deposit Cash',
+                    value: `₹${Number(stockData?.totals?.customer_due_paid_amount || 0).toFixed(2)}`
+                  }
                     ]}
                   />
                 </Grid>
@@ -378,12 +383,13 @@ function Dashboard() {
                         <TableCell>6 Pieces</TableCell>
                         <TableCell>12 Pieces</TableCell>
                         <TableCell>30 Pieces</TableCell>
+                        <TableCell>Paper Rate</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {ratesLoading ? (
                         <TableRow>
-                          <TableCell colSpan={6} align="center" sx={{ py: 3 }}>Loading...</TableCell>
+                          <TableCell colSpan={7} align="center" sx={{ py: 3 }}>Loading...</TableCell>
                         </TableRow>
                       ) : productRates.length > 0 ? (
                         productRates.map((product) => {
@@ -398,12 +404,13 @@ function Dashboard() {
                               <TableCell>₹{Number(product.egg_price_6 || 0).toFixed(2)}</TableCell>
                               <TableCell>₹{Number(product.egg_price_12 || 0).toFixed(2)}</TableCell>
                               <TableCell>₹{Number(product.egg_price_30 || 0).toFixed(2)}</TableCell>
+                              <TableCell>₹{Number(product.paper_price || 0).toFixed(2)}</TableCell>
                             </TableRow>
                           )
                         })
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} align="center" sx={{ py: 3 }}>No category rates available for this shop.</TableCell>
+                          <TableCell colSpan={7} align="center" sx={{ py: 3 }}>No category rates available for this shop.</TableCell>
                         </TableRow>
                       )}
                     </TableBody>

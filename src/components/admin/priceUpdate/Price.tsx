@@ -147,18 +147,18 @@ const Price = () => {
         </div>
       )
     },
-    {
-      field: 'shop_name',
-      headerName: 'Shop Name',
-      flex: 1,
-      minWidth: 150,
-      sortable: false,
-      renderCell: (params: GridCellParams) => (
-        <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
-          {params.row?.shop?.name || 'NA'}
-        </div>
-      )
-    },
+    // {
+    //   field: 'shop_name',
+    //   headerName: 'Shop Name',
+    //   flex: 1,
+    //   minWidth: 150,
+    //   sortable: false,
+    //   renderCell: (params: GridCellParams) => (
+    //     <div style={{ whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.5 }}>
+    //       {params.row?.shop?.name || 'NA'}
+    //     </div>
+    //   )
+    // },
     // {
     //   field: 'category_name',
     //   headerName: 'Category',
@@ -215,6 +215,16 @@ const Price = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <p>₹{Number(params.row?.egg_price_30 || 0).toFixed(2)}</p>)
+    },
+
+     {
+      field: 'paper_price',
+      headerName: 'Paper rate',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <p>₹{Number(params.row?.paper_price || 0).toFixed(2)}</p>)
     },
     //   {
     //     field: 'status',
