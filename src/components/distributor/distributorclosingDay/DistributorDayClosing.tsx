@@ -77,7 +77,6 @@ interface EggRow {
   purchaseToday: number
   soldToday: number
   shopStock1: number
-  shopStock2: number
   saleStock: number
   sellAmount: number
   closingSystem: number
@@ -110,11 +109,11 @@ const DAMAGE_REASONS = [
 ]
 
 const FALLBACK_CATEGORIES: EggRow[] = [
-  { id: 1, name: 'Regular Size Eggs', icon: 'mdi:egg', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 2, name: 'Broken Eggs', icon: 'mdi:egg-off', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 3, name: 'Double Dhill Eggs', icon: 'mdi:egg-outline', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
-  { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, shopStock2: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 }
+  { id: 1, name: 'Regular Size Eggs', icon: 'mdi:egg', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 2, name: 'Broken Eggs', icon: 'mdi:egg-off', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 3, name: 'Double Dhill Eggs', icon: 'mdi:egg-outline', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 4, name: 'Medium/Small Size Eggs', icon: 'mdi:egg-easter', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 },
+  { id: 5, name: 'Deshi Eggs', icon: 'mdi:food-drumstick', openingStock: 0, purchaseToday: 0, soldToday: 0, shopStock1: 0, saleStock: 0, sellAmount: 0, closingSystem: 0, physicalCount: 0 }
 ]
 
 // ─── Sub-components ─────────────────────────────────────────────────────────────
@@ -299,12 +298,13 @@ const EggMobileCard = ({
 
         <Grid container spacing={1.5} mb={2}>
           {[
-            { label: 'Opening', val: row.openingStock },
-            { label: 'Purchase', val: row.purchaseToday },
-            { label: 'Sold Today', val: row.soldToday },
-            { label: 'System Stock', val: row.closingSystem }
+            { label: 'Purchase Stock', val: row.purchaseToday },
+            { label: 'Shop Stock', val: row.shopStock1 },
+            { label: 'Sale Stock', val: row.saleStock },
+            { label: 'Sell Amount', val: row.sellAmount, isCurrency: true },
+            { label: 'Vehicle Stock', val: row.closingSystem }
           ].map(item => (
-            <Grid item xs={6} key={item.label}>
+            <Grid item xs={4} sm={3} key={item.label}>
               <Box
                 sx={{
                   p: 1.25,
@@ -317,7 +317,7 @@ const EggMobileCard = ({
                   {item.label}
                 </Typography>
                 <Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.text.primary }}>
-                  {item.val.toLocaleString()}
+                  {item.isCurrency ? `₹${item.val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : item.val.toLocaleString()}
                 </Typography>
               </Box>
             </Grid>
@@ -341,9 +341,13 @@ const EggMobileCard = ({
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 1.25, borderTop: `1px solid ${theme.palette.divider}` }}>
           <Typography variant='caption' fontWeight={600} sx={{ color: theme.palette.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Difference
+            Status
           </Typography>
-          <DiffBadge diff={diff} />
+          {row.closingSystem === 0 ? (
+            <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, textTransform: 'capitalize' }} />
+          ) : (
+            <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, textTransform: 'capitalize' }} />
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -391,9 +395,11 @@ const DistributorDayClosing = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const { user } = useAuth()
-  const shopId = user?.shop_id || user?.shop?.id
+  const shopId = user?.shop_id || user?.shop?.id || user?.distributor_shop_id || user?.distributorShop?.id
   const router = useRouter()
   const eggVendorPurchaseId = router.query.egg_vendor_purchase_id
+  console.log('User object:', user)
+  console.log('Extracted shopId:', shopId)
 
   // ── State ────────────────────────────────────────────────────────────────────
   const [stockData, setStockData] = useState<StockData | null>(null)
@@ -441,22 +447,29 @@ const DistributorDayClosing = () => {
 
   // ── API ──────────────────────────────────────────────────────────────────────
   const fetchInventoryAndCategories = useCallback(async () => {
-    if (!shopId) return
+    console.log('fetchInventoryAndCategories called', { shopId, eggVendorPurchaseId })
+    // Remove shopId requirement - try to fetch data even without it
     setStockLoading(true)
     try {
       // 1. Fetch categories
+      console.log('Fetching categories...')
       const catResponse = await axiosInstance.get('/api/v1/shop/getAllCategories')
       const categories = catResponse.data?.data?.categories || catResponse.data?.categories || []
+      console.log('Categories fetched:', categories.length)
 
       // 2. Determine active purchase ID
       let activePurchaseIdResolved: string | number | string[] | undefined = eggVendorPurchaseId
+      console.log('Initial purchase ID from query:', activePurchaseIdResolved)
+      
       if (!activePurchaseIdResolved) {
-        const purchaseListResponse = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor?active=1')
-        const purchaseData = purchaseListResponse.data?.data
-        // Response structure: { data: { active: [{ id: 4, ... }], ... } }
-        const firstActivePurchase = purchaseData?.active?.[0]
-        if (firstActivePurchase?.id) {
-          activePurchaseIdResolved = firstActivePurchase.id
+        console.log('No purchase ID in query, fetching active purchase...')
+        const activeResp = await axiosInstance.get('/api/v1/shop/getCurrentPurchaseEggDataForDistributor', { params: { active: 1 } })
+        const active = activeResp.data?.data?.active || []
+        console.log('Active purchase data:', active)
+        const purchaseId = active.length > 0 ? active[0].id : null
+        if (purchaseId) {
+          activePurchaseIdResolved = purchaseId
+          console.log('Resolved purchase ID:', activePurchaseIdResolved)
         }
       }
 
@@ -464,34 +477,50 @@ const DistributorDayClosing = () => {
       let dashboardData = null
       if (activePurchaseIdResolved) {
         const numericId = Number(activePurchaseIdResolved)
+        console.log('Fetching dashboard data for purchase ID:', numericId)
         setActivePurchaseId(numericId)
         const dashResponse = await axiosInstance.get(`/api/v1/shop/getEggVendorPurchaseDashboard?egg_vendor_purchase_id=${numericId}`)
         dashboardData = dashResponse.data?.data
+        console.log('Dashboard data fetched:', dashboardData)
         // Store payment_summary for payment verification cards
         if (dashboardData?.payment_summary) {
           setPaymentSummary(dashboardData.payment_summary)
         }
+      } else {
+        console.log('No purchase ID available, skipping dashboard fetch')
       }
 
       // 4. Map categories to EggRows
       const dynamicRows = categories.map((cat: any) => {
         const catName = cat.name || "Unknown Category"
+        const catId = cat.id
 
         // Parse dashboard data for this category
-        const loadedItem = dashboardData?.loaded?.find((l: any) => l.category === catName)
+        const loadedItem = dashboardData?.loaded?.find((l: any) => l.category === catName || l.id === catId)
         const purchase = loadedItem?.count ?? 0
         const vehicleStock = loadedItem?.remaining ?? 0
 
-        const sellArray = Array.isArray(dashboardData?.customer_sell)
-          ? dashboardData.customer_sell
-          : dashboardData?.customer_sell?.categories || []
-        const sellItem = sellArray.find((s: any) => s.category === catName)
-        const saleStock = sellItem?.count ?? 0
-        const sellAmount = sellItem?.amount ?? 0
+        // Get sales data from egg_sale_summary
+        const saleSummaryItem = dashboardData?.egg_sale_summary?.find((s: any) => 
+          s.category_name === catName || s.category_id === catId
+        )
+        const saleStock = saleSummaryItem?.total_quantity ?? 0
+        const sellAmount = saleSummaryItem?.total_amount ?? 0
 
-        const shopItems = dashboardData?.shops?.filter((s: any) => s.category === catName) || []
-        const shopStock1 = shopItems[0]?.count ?? 0
-        const shopStock2 = shopItems[1]?.count ?? 0
+        // Calculate shop stock from shops data
+        let shopStockTotal = 0
+        if (dashboardData?.shops && Array.isArray(dashboardData.shops)) {
+          dashboardData.shops.forEach((shop: any) => {
+            if (shop.categories && Array.isArray(shop.categories)) {
+              const shopCat = shop.categories.find((c: any) => 
+                c.category === catName || c.id === catId
+              )
+              if (shopCat) {
+                shopStockTotal += shopCat.count || 0
+              }
+            }
+          })
+        }
 
         return {
           id: cat.id,
@@ -500,17 +529,18 @@ const DistributorDayClosing = () => {
           openingStock: 0,
           purchaseToday: purchase,
           soldToday: 0,
-          shopStock1,
-          shopStock2,
+          shopStock1: shopStockTotal,
           saleStock,
           sellAmount,
           closingSystem: vehicleStock,
           physicalCount: vehicleStock
         }
       })
+      console.log('Setting egg rows:', dynamicRows)
       setEggRows(dynamicRows)
-    } catch (err) {
-      toast.error('Failed to load stock data')
+    } catch (err: any) {
+      console.error('Error in fetchInventoryAndCategories:', err)
+      toast.error(err?.response?.data?.message || 'Failed to load stock data')
     } finally {
       setStockLoading(false)
     }
@@ -528,7 +558,6 @@ const DistributorDayClosing = () => {
       purchase: eggRows.reduce((s, r) => s + (r.purchaseToday || 0), 0),
       sold: eggRows.reduce((s, r) => s + (r.soldToday || 0), 0),
       shopStock1: eggRows.reduce((s, r) => s + (r.shopStock1 || 0), 0),
-      shopStock2: eggRows.reduce((s, r) => s + (r.shopStock2 || 0), 0),
       saleStock: eggRows.reduce((s, r) => s + (r.saleStock || 0), 0),
       sellAmount: eggRows.reduce((s, r) => s + (r.sellAmount || 0), 0),
       system: eggRows.reduce((s, r) => s + (r.closingSystem || 0), 0),
@@ -727,12 +756,12 @@ const DistributorDayClosing = () => {
                 <Stack direction='row' spacing={1}>
                   <Chip
                     size='small'
-                    label={`${eggRows.filter(r => r.physicalCount === r.closingSystem).length} Matched`}
+                    label={`${eggRows.filter(r => r.closingSystem === 0).length} Matched`}
                     sx={{ fontWeight: 600, bgcolor: theme.palette.success.light + '33', color: theme.palette.success.dark, border: `1px solid ${theme.palette.success.light}` }}
                   />
                   <Chip
                     size='small'
-                    label={`${eggRows.filter(r => r.physicalCount !== r.closingSystem).length} Differ`}
+                    label={`${eggRows.filter(r => r.closingSystem !== 0).length} Differ`}
                     sx={{ fontWeight: 600, bgcolor: theme.palette.warning.light + '33', color: theme.palette.warning.dark, border: `1px solid ${theme.palette.warning.light}` }}
                   />
                 </Stack>
@@ -759,16 +788,13 @@ const DistributorDayClosing = () => {
                       <TableHead>
                         <TableRow>
                           {[
-                            { name: 'Category', width: '30%', align: 'left' },
-                            // { name: 'Opening Stock', width: '10%', align: 'left' },
-                            { name: 'Purchase Stock', width: '10%', align: 'left' },
-                            // { name: 'Shop Stock 1', width: '10%', align: 'left' },
-                            // { name: 'Shop Stock 2', width: '10%', align: 'left' },
-                            { name: 'Sale Stock', width: '10%', align: 'left' },
-                            { name: 'Sell Amount', width: '10%', align: 'left' },
-                            { name: 'Vehicle Stock', width: '10%', align: 'left' },
-                            // { name: 'Physical Count', width: '15%', align: 'center' },
-                            { name: 'status ', width: '15%', align: 'center' }
+                            { name: 'Category', width: '25%', align: 'left' },
+                            { name: 'Purchase Stock', width: '12%', align: 'left' },
+                            { name: 'Shop Stock', width: '12%', align: 'left' },
+                            { name: 'Sale Stock', width: '12%', align: 'left' },
+                            { name: 'Sell Amount', width: '12%', align: 'left' },
+                            { name: 'Vehicle Stock', width: '12%', align: 'left' },
+                            { name: 'Status', width: '15%', align: 'center' }
                           ].map(col => (
                             <TableCell
                               key={col.name}
@@ -804,7 +830,7 @@ const DistributorDayClosing = () => {
                                 transition: 'background-color 0.15s'
                               }}
                             >
-                              <TableCell width="30%" align="left" sx={{ py: 1, px: 2 }}>
+                              <TableCell width="25%" align="left" sx={{ py: 1, px: 2 }}>
                                 <Stack direction='row' alignItems='center' spacing={1}>
                                   <Box
                                     sx={{
@@ -835,13 +861,11 @@ const DistributorDayClosing = () => {
                                   </Typography>
                                 </Stack>
                               </TableCell>
-                              {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.openingStock.toLocaleString()}</Typography></TableCell> */}
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.purchaseToday.toLocaleString()}</Typography></TableCell>
-                              {/* <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock1.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock2.toLocaleString()}</Typography></TableCell> */}
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.saleStock.toLocaleString()}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{fmt(row.sellAmount)}</Typography></TableCell>
-                              <TableCell width="10%" align="left" sx={{ py: 1, px: 2 }}>
+                              <TableCell width="12%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.purchaseToday.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="12%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.shopStock1.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="12%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{row.saleStock.toLocaleString()}</Typography></TableCell>
+                              <TableCell width="12%" align="left" sx={{ py: 1, px: 2 }}><Typography variant='body2' fontWeight={500}>{fmt(row.sellAmount)}</Typography></TableCell>
+                              <TableCell width="12%" align="left" sx={{ py: 1, px: 2 }}>
                                 <Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>
                                   {row.closingSystem.toLocaleString()}
                                 </Typography>
@@ -860,20 +884,23 @@ const DistributorDayClosing = () => {
 
                         {/* Totals Row */}
                         <TableRow sx={{ bgcolor: theme.palette.action.selected }}>
-                          <TableCell width="30%" align="left" sx={{ py: 1.5, px: 2 }}>
+                          <TableCell width="25%" align="left" sx={{ py: 1.5, px: 2 }}>
                             <Typography variant='body2' fontWeight={800} sx={{ color: theme.palette.text.primary }}>
                               TOTAL
                             </Typography>
                           </TableCell>
-                          {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.opening.toLocaleString()}</Typography></TableCell> */}
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.purchase.toLocaleString()}</Typography></TableCell>
-                          {/* <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock1.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock2.toLocaleString()}</Typography></TableCell> */}
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.saleStock.toLocaleString()}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{fmt(totals.sellAmount)}</Typography></TableCell>
-                          <TableCell width="10%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>{totals.system.toLocaleString()}</Typography></TableCell>
-                          {/* <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.physical.toLocaleString()}</Typography></TableCell> */}
-                          <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}><DiffBadge diff={totals.diff} /></TableCell>
+                          <TableCell width="12%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.purchase.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="12%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.shopStock1.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="12%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{totals.saleStock.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="12%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700}>{fmt(totals.sellAmount)}</Typography></TableCell>
+                          <TableCell width="12%" align="left" sx={{ py: 1.5, px: 2 }}><Typography variant='body2' fontWeight={700} sx={{ color: theme.palette.primary.main }}>{totals.system.toLocaleString()}</Typography></TableCell>
+                          <TableCell width="15%" align="center" sx={{ py: 1.5, px: 2 }}>
+                            {totals.system === 0 ? (
+                              <Chip label='Matched' size='small' color='success' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                            ) : (
+                              <Chip label='Not Matched' size='small' color='error' variant='outlined' sx={{ fontWeight: 600, width: '100%', textTransform: 'capitalize' }} />
+                            )}
+                          </TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>

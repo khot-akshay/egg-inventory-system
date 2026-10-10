@@ -20,6 +20,7 @@ import RHFAutoComplete from 'src/hook-forms/RHFAutoComplete';
 import AddExpense from './AddStaffExpense'
 import ClearIcon from '@mui/icons-material/Clear';
 import StaffExpenseReportAdapter from './StaffExpenseReportAdapter';
+import { useAuth } from 'src/hooks/useAuth'
 
 
 
@@ -41,6 +42,7 @@ type SelectOption = {
 }
 
 const StaffExpense = () => {
+  const { user } = useAuth()
   const [rows, setRows] = useState<CategoryRow[]>([])
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -106,6 +108,7 @@ const StaffExpense = () => {
       if (selectedShopId) params.append('shop_id', String(selectedShopId))
       if (startDate) params.append('from_date', startDate);
       if (endDate) params.append('to_date', endDate);
+      if (user?.id) params.append('user_id', String(user.id));
 
       const response = await axiosInstance.get(
         `/api/v1/shop/getAllExpenses?${params.toString()}`
@@ -136,7 +139,7 @@ const StaffExpense = () => {
   // Fetch data
   useEffect(() => {
     fetchGame()
-  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, startDate, endDate])
+  }, [page, pageSize, selectedCategoryId, selectedShopId, searchQuery, startDate, endDate, user?.id])
 
 
 
@@ -379,6 +382,7 @@ const StaffExpense = () => {
                 endDate={endDate}
                 selectedCategoryId={selectedCategoryId}
                 selectedShopId={selectedShopId}
+                userId={user?.id}
               />
             </Grid>
             <Grid item xs={12} sm="auto">
