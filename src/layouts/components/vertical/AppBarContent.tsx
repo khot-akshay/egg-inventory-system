@@ -24,11 +24,9 @@ import React from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import { useRouter } from 'next/router'
 import Dialog from '@mui/material/Dialog'
-import DialogTitle from '@mui/material/DialogTitle'
-import DialogContent from '@mui/material/DialogContent'
-import DialogActions from '@mui/material/DialogActions'
 import EggAltIcon from "@mui/icons-material/EggAlt";
 import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
 import { useTheme } from "@mui/material/styles";
 
 interface Props {
@@ -137,24 +135,39 @@ const shortcuts: ShortcutsType[] = [
 const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
-  const [openDialog, setOpenDialog] = React.useState(false)
+  const theme = useTheme()
 
-  // Show dialog when day opening flag is false and not on the openingDay page
-  React.useEffect(() => {
-    if (user && user.day_session && user.day_session.opening_flag === false) {
-      if (router.pathname !== '/openingDay') {
-        setOpenDialog(true)
-      }
-    } else {
-      setOpenDialog(false)
-    }
-  }, [user, router.pathname])
+  // Day session data
+  const daySession = user?.day_session
+
+  // Show Day Opening popup when:
+  // - opening_flag === false
+  // - last_closing_flag === true (previous session was closed)
+  // - Not already on the openingDay page
+  const shouldShowDayOpening =
+    !loading &&
+    daySession?.opening_flag === false &&
+    daySession?.last_closing_flag === true &&
+    router.pathname !== '/openingDay'
+
+  // Show Day Closing popup when:
+  // - closing_flag === false
+  // - last_closing_flag === false (previous session was not closed)
+  // - Not already on the dayclosing page
+  const shouldShowDayClosing =
+    !loading &&
+    daySession?.closing_flag === false &&
+    daySession?.last_closing_flag === false &&
+    router.pathname !== '/dayclosing'
 
   const handleGoToOpening = () => {
-    setOpenDialog(false)
     router.push('/openingDay')
+  }
+
+  const handleGoToDayClosing = () => {
+    router.push('/dayclosing')
   }
 
   
@@ -198,146 +211,287 @@ const AppBarContent = (props: Props) => {
       </Box>
 
       {/* Blocking Dialog for Day Opening */}
-     <Dialog
-  open={openDialog}
-  onClose={() => {}}
-  disableEscapeKeyDown
-  PaperProps={{
-    sx: {
-      borderRadius: 4,
-      width: 560,
-      maxWidth: "90%",
-      p: 5,
-      overflow: "hidden",
-      position: "relative",
-      textAlign: "center",
-      bgcolor: "background.paper",
-    },
-  }}
->
-  {/* Background Glow */}
-  <Box
-    sx={{
-      position: "absolute",
-      width: 350,
-      height: 350,
-      borderRadius: "50%",
-      bgcolor: "primary.main",
-      opacity: 0.08,
-      top: -120,
-      left: "50%",
-      transform: "translateX(-50%)",
-      filter: "blur(80px)",
-    }}
-  />
+      <Dialog
+        open={shouldShowDayOpening}
+        onClose={() => {}}
+        disableEscapeKeyDown
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            width: 560,
+            maxWidth: "90%",
+            p: 5,
+            overflow: "hidden",
+            position: "relative",
+            textAlign: "center",
+            bgcolor: "background.paper",
+          },
+        }}
+      >
+        {/* Background Glow */}
+        <Box
+          sx={{
+            position: "absolute",
+            width: 350,
+            height: 350,
+            borderRadius: "50%",
+            bgcolor: "primary.main",
+            opacity: 0.08,
+            top: -120,
+            left: "50%",
+            transform: "translateX(-50%)",
+            filter: "blur(80px)",
+          }}
+        />
 
-  {/* Icon */}
-  <Box
-    sx={{
-      width: 110,
-      height: 110,
-      borderRadius: "50%",
-      bgcolor: "primary.lighter", // or theme.palette.primary.lighter
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      mx: "auto",
-      mb: 3,
-      position: "relative",
-      zIndex: 1,
-    }}
-  >
-    <EggAltIcon
-      sx={{
-        fontSize: 55,
-        color: "primary.main",
-      }}
-    />
-  </Box>
+        {/* Icon */}
+        <Box
+          sx={{
+            width: 110,
+            height: 110,
+            borderRadius: "50%",
+            bgcolor: "primary.lighter",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+            mb: 3,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          <EggAltIcon
+            sx={{
+              fontSize: 55,
+              color: "primary.main",
+            }}
+          />
+        </Box>
 
-  {/* Title */}
-  <Typography
-    variant="h4"
-    fontWeight={700}
-    color="text.primary"
-    mb={1}
-  >
-    Day Opening Required
-  </Typography>
+        {/* Title */}
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          color="text.primary"
+          mb={1}
+        >
+          Day Opening Required
+        </Typography>
 
-  {/* Divider */}
-  <Box
-    sx={{
-      width: 45,
-      height: 4,
-      borderRadius: 10,
-      bgcolor: "primary.main",
-      mx: "auto",
-      mb: 3,
-    }}
-  />
+        {/* Divider */}
+        <Box
+          sx={{
+            width: 45,
+            height: 4,
+            borderRadius: 10,
+            bgcolor: "primary.main",
+            mx: "auto",
+            mb: 3,
+          }}
+        />
 
-  {/* Description */}
-  <Typography
-    variant="body1"
-    color="text.secondary"
-    sx={{
-      maxWidth: 360,
-      mx: "auto",
-      lineHeight: 1.8,
-      mb: 5,
-    }}
-  >
-    Please complete Day Opening first
-    <br />
-    to continue using the application.
-  </Typography>
+        {/* Description */}
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
+            maxWidth: 360,
+            mx: "auto",
+            lineHeight: 1.8,
+            mb: 5,
+          }}
+        >
+          Please complete Day Opening first
+          <br />
+          to continue using the application.
+        </Typography>
 
-  {/* Button */}
-  <Button
-    variant="contained"
-    size="large"
-    startIcon={<LoginIcon />}
-    onClick={handleGoToOpening}
-    sx={{
-      px: 4,
-      py: 1.5,
-      borderRadius: 2,
-      textTransform: "none",
-      fontWeight: 600,
-      // boxShadow: theme.shadows[4],
-    }}
-  >
-    Go to Day Opening
-  </Button>
+        {/* Button */}
+        <Button
+          variant="contained"
+          size="large"
+          startIcon={<LoginIcon />}
+          onClick={handleGoToOpening}
+          sx={{
+            px: 4,
+            py: 1.5,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          Go to Day Opening
+        </Button>
 
-  {/* Bottom Decorations */}
-  <Box
-    sx={{
-      position: "absolute",
-      bottom: -70,
-      left: -70,
-      width: 180,
-      height: 180,
-      borderRadius: "50%",
-      bgcolor: "primary.main",
-      opacity: 0.05,
-    }}
-  />
+        {/* Bottom Decorations */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: -70,
+            left: -70,
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            bgcolor: "primary.main",
+            opacity: 0.05,
+          }}
+        />
 
-  <Box
-    sx={{
-      position: "absolute",
-      bottom: -70,
-      right: -70,
-      width: 180,
-      height: 180,
-      borderRadius: "50%",
-      bgcolor: "primary.main",
-      opacity: 0.05,
-    }}
-  />
-</Dialog>
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: -70,
+            right: -70,
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            bgcolor: "primary.main",
+            opacity: 0.05,
+          }}
+        />
+      </Dialog>
+
+      {/* Blocking Dialog for Day Closing */}
+      <Dialog
+        open={shouldShowDayClosing}
+        onClose={() => {}}
+        disableEscapeKeyDown
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            width: 560,
+            maxWidth: "90%",
+            p: 5,
+            overflow: "hidden",
+            position: "relative",
+            textAlign: "center",
+            bgcolor: "background.paper",
+          },
+        }}
+      >
+        {/* Background Glow */}
+        <Box
+          sx={{
+            position: "absolute",
+            width: 350,
+            height: 350,
+            borderRadius: "50%",
+            bgcolor: "error.main",
+            opacity: 0.08,
+            top: -120,
+            left: "50%",
+            transform: "translateX(-50%)",
+            filter: "blur(80px)",
+          }}
+        />
+
+        {/* Icon */}
+        <Box
+          sx={{
+            width: 110,
+            height: 110,
+            borderRadius: "50%",
+            bgcolor: "error.lighter",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+            mb: 3,
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          <LogoutIcon
+            sx={{
+              fontSize: 55,
+              color: "error.main",
+            }}
+          />
+        </Box>
+
+        {/* Title */}
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          color="text.primary"
+          mb={1}
+        >
+          Day Closing Required
+        </Typography>
+
+        {/* Divider */}
+        <Box
+          sx={{
+            width: 45,
+            height: 4,
+            borderRadius: 10,
+            bgcolor: "error.main",
+            mx: "auto",
+            mb: 3,
+          }}
+        />
+
+        {/* Description */}
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{
+            maxWidth: 360,
+            mx: "auto",
+            lineHeight: 1.8,
+            mb: 5,
+          }}
+        >
+          Please complete the previous day's closing
+          <br />
+          to continue using the application.
+        </Typography>
+
+        {/* Button */}
+        <Button
+          variant="contained"
+          size="large"
+          color="error"
+          startIcon={<LogoutIcon />}
+          onClick={handleGoToDayClosing}
+          sx={{
+            px: 4,
+            py: 1.5,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+          }}
+        >
+          Go to Day Closing
+        </Button>
+
+        {/* Bottom Decorations */}
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: -70,
+            left: -70,
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            bgcolor: "error.main",
+            opacity: 0.05,
+          }}
+        />
+
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: -70,
+            right: -70,
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            bgcolor: "error.main",
+            opacity: 0.05,
+          }}
+        />
+      </Dialog>
     </Box>
   )
 }
