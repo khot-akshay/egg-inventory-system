@@ -170,7 +170,7 @@ const AppBarContent = (props: Props) => {
     router.push('/dayclosing')
   }
 
-  
+
   const handleFlushData = () => {
     try {
       axiosInstance.post('/admin/v1/staticPages/cache/flush').then((response) => {
@@ -211,7 +211,7 @@ const AppBarContent = (props: Props) => {
       </Box>
 
       {/* Blocking Dialog for Day Opening */}
-      <Dialog
+      {/* <Dialog
         open={shouldShowDayOpening}
         onClose={() => {}}
         disableEscapeKeyDown
@@ -228,7 +228,6 @@ const AppBarContent = (props: Props) => {
           },
         }}
       >
-        {/* Background Glow */}
         <Box
           sx={{
             position: "absolute",
@@ -244,7 +243,6 @@ const AppBarContent = (props: Props) => {
           }}
         />
 
-        {/* Icon */}
         <Box
           sx={{
             width: 110,
@@ -268,7 +266,6 @@ const AppBarContent = (props: Props) => {
           />
         </Box>
 
-        {/* Title */}
         <Typography
           variant="h4"
           fontWeight={700}
@@ -278,7 +275,6 @@ const AppBarContent = (props: Props) => {
           Day Opening Required
         </Typography>
 
-        {/* Divider */}
         <Box
           sx={{
             width: 45,
@@ -290,7 +286,6 @@ const AppBarContent = (props: Props) => {
           }}
         />
 
-        {/* Description */}
         <Typography
           variant="body1"
           color="text.secondary"
@@ -306,7 +301,6 @@ const AppBarContent = (props: Props) => {
           to continue using the application.
         </Typography>
 
-        {/* Button */}
         <Button
           variant="contained"
           size="large"
@@ -323,7 +317,6 @@ const AppBarContent = (props: Props) => {
           Go to Day Opening
         </Button>
 
-        {/* Bottom Decorations */}
         <Box
           sx={{
             position: "absolute",
@@ -349,10 +342,10 @@ const AppBarContent = (props: Props) => {
             opacity: 0.05,
           }}
         />
-      </Dialog>
+      </Dialog> */}
 
       {/* Blocking Dialog for Day Closing */}
-      <Dialog
+      {/* <Dialog
         open={shouldShowDayClosing}
         onClose={() => {}}
         disableEscapeKeyDown
@@ -369,7 +362,6 @@ const AppBarContent = (props: Props) => {
           },
         }}
       >
-        {/* Background Glow */}
         <Box
           sx={{
             position: "absolute",
@@ -385,7 +377,6 @@ const AppBarContent = (props: Props) => {
           }}
         />
 
-        {/* Icon */}
         <Box
           sx={{
             width: 110,
@@ -409,7 +400,6 @@ const AppBarContent = (props: Props) => {
           />
         </Box>
 
-        {/* Title */}
         <Typography
           variant="h4"
           fontWeight={700}
@@ -419,7 +409,6 @@ const AppBarContent = (props: Props) => {
           Day Closing Required
         </Typography>
 
-        {/* Divider */}
         <Box
           sx={{
             width: 45,
@@ -431,7 +420,6 @@ const AppBarContent = (props: Props) => {
           }}
         />
 
-        {/* Description */}
         <Typography
           variant="body1"
           color="text.secondary"
@@ -447,7 +435,6 @@ const AppBarContent = (props: Props) => {
           to continue using the application.
         </Typography>
 
-        {/* Button */}
         <Button
           variant="contained"
           size="large"
@@ -465,7 +452,6 @@ const AppBarContent = (props: Props) => {
           Go to Day Closing
         </Button>
 
-        {/* Bottom Decorations */}
         <Box
           sx={{
             position: "absolute",
@@ -491,7 +477,7 @@ const AppBarContent = (props: Props) => {
             opacity: 0.05,
           }}
         />
-      </Dialog>
+      </Dialog> */}
     </Box>
   )
 }
